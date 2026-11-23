@@ -15,6 +15,7 @@ The product targets dual delivery channels over a unified API:
 - **AI / LLM:** Google Gemini API (`@google/genai`) with structured JSON outputs & numeric-grounding verification
 - **Air Quality Providers:** Google Air Quality API (CPCB index primary) -> OpenAQ v3 (measured station readings) -> Open-Meteo (CAMS modelled fallback) -> Replay fixtures
 - **Chat Bot:** Telegram Bot API (`grammY`) with 07:00 IST morning brief webhook
+- **Design System & Styling:** Astryx Design System (`@astryxdesign/core`, `@stylexjs/stylex`, `@astryxdesign/theme-neutral`, `@astryxdesign/cli`) + Astryx Tailwind CSS v4 Bridge
 - **Localization:** All 12 major Indian regional languages (Hindi, Bengali, Telugu, Marathi, Tamil, Urdu, Gujarati, Kannada, Odia, Malayalam, Punjabi, Assamese) + English
 - **Testing & Evals:** Vitest (unit/engine/property/security), E2E evaluation suite (`evals/grounding.eval.test.ts`)
 
@@ -81,6 +82,13 @@ airdelta/
   - 50/50 tests passing across 12 test suites.
   - 0 errors, 0 warnings across monorepo typecheck and Astro static build (7 pages).
   - `README.md` completely updated with architecture diagrams, REST API reference, and setup guide.
+- [x] **Astryx Design System & Simplified UX Transformation:**
+  - Installed `@astryxdesign/core`, `@stylexjs/stylex`, `@astryxdesign/theme-neutral`, and `@astryxdesign/cli`.
+  - Initialized Astryx agent documentation conventions in `AGENTS.md` and `GEMINI.md`.
+  - Added neutral theme (`astryx-themes.ts`) and configured the Astryx Tailwind CSS v4 bridge in `apps/web/src/styles/global.css`.
+  - Re-architected user-facing UX across Today Dashboard, Community Advisories, and Layout to make smog actions immediately glanceable and simple to understand for non-technical Indian families.
+  - Added "3 Simple Actions for Today" directive banner (Outdoor Activity, Airing Window, Commute Protection).
+  - Implemented mobile bottom navigation bar for quick one-thumb accessibility.
 
 ## Development Progress
 - **Current Status:** 100% Complete & Verified across all 8 phases.

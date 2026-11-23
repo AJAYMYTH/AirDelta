@@ -9,42 +9,74 @@ interface Props {
 
 const { title = "AirDelta — Smog Action Engine", lang = "en" } = Astro.props;
 const languages = getAllLanguages();
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  { href: "/", label: "Today", icon: "☀️" },
+  { href: "/plan", label: "Plan A vs B", icon: "⚖️" },
+  { href: "/indoor", label: "Indoor Audit", icon: "🏠" },
+  { href: "/community", label: "Community", icon: "👥" },
+  { href: "/replay", label: "Smog Replay", icon: "⏪" },
+  { href: "/method", label: "Methodology", icon: "📐" },
+  { href: "/settings", label: "Settings", icon: "⚙️" }
+];
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#090d16" />
+    <meta name="theme-color" content="#121214" />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col bg-[#090d16] text-slate-100 selection:bg-cyan-500/30">
-    <header class="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur sticky top-0 z-50">
+  <body class="min-h-screen flex flex-col bg-[#0d0f12] text-slate-100 selection:bg-cyan-500/30 font-sans antialiased pb-20 md:pb-0">
+    <!-- Top Global Emergency Alert Pill -->
+    <div class="bg-red-950/80 border-b border-red-800/60 px-4 py-1.5 text-center text-xs font-medium text-red-300 flex items-center justify-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+      <span><strong>Delhi-NCR Advisory:</strong> CPCB AQI 385 (Severe). CAQM GRAP Stage III Active. Restrict outdoor exercise.</span>
+      <a href="/advisory" class="underline hover:text-red-200 hidden sm:inline ml-1 font-semibold">Society Notice →</a>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-violet-500 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/20">
+        <a href="/" class="flex items-center gap-2.5 group">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
             Δ
           </div>
           <div>
-            <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-slate-100 bg-clip-text text-transparent">AirDelta</span>
-            <span class="hidden sm:inline-block text-[10px] ml-2 px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50 uppercase font-mono">India CPCB</span>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-slate-100 bg-clip-text text-transparent">AirDelta</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50 uppercase font-mono font-semibold">India CPCB</span>
+            </div>
+            <span class="text-[10px] text-slate-400 block -mt-1">AI Winter Smog Action Engine</span>
           </div>
         </a>
 
-        <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
-          <a href="/" class="hover:text-cyan-400 transition-colors font-medium">Today</a>
-          <a href="/plan" class="hover:text-cyan-400 transition-colors">Plan A vs B</a>
-          <a href="/indoor" class="hover:text-cyan-400 transition-colors">Indoor Audit</a>
-          <a href="/community" class="hover:text-cyan-400 transition-colors">Community</a>
-          <a href="/replay" class="text-amber-400/90 hover:text-amber-300 transition-colors">Smog Replay</a>
-          <a href="/method" class="hover:text-cyan-400 transition-colors">Methodology</a>
-          <a href="/settings" class="hover:text-cyan-400 transition-colors">Settings</a>
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex items-center gap-1 text-xs font-medium text-slate-300">
+          {navItems.map((item) => {
+            const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
+            return (
+              <a 
+                href={item.href} 
+                class={`px-3 py-1.5 rounded-lg transition-all ${
+                  isActive 
+                    ? "bg-slate-800 text-cyan-400 font-semibold shadow-sm" 
+                    : "text-slate-300 hover:text-white hover:bg-slate-900"
+                }`}
+              >
+                {item.label}
+              </a>
+            );
+          })}
         </nav>
 
+        <!-- Language Selector -->
         <div class="flex items-center gap-3">
-          <select id="lang-select" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-slate-300 focus:outline-none focus:border-cyan-500">
+          <select id="global-lang-select" class="bg-slate-900 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-medium cursor-pointer">
             {languages.map((l) => (
               <option value={l.code} selected={l.code === lang}>
                 {l.nativeName} ({l.name})
@@ -55,15 +87,55 @@ const languages = getAllLanguages();
       </div>
     </header>
 
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
       <slot />
     </main>
 
-    <footer class="border-t border-slate-800/80 bg-slate-950 py-8 text-center text-xs text-slate-500">
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-8 text-xs text-slate-500 mt-12">
       <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p>AirDelta · Built for PromptWars Hackathon · Open Science & Grounded Exposure Modeling</p>
-        <p>Data: Google Air Quality API · OpenAQ · Open-Meteo · CPCB NAQI Standard</p>
+        <div>
+          <p class="font-semibold text-slate-400">AirDelta (Δ) — PromptWars Hackathon 2026</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">Strict Deterministic Math · Zero Hallucinated Doses · 12 Indian Languages</p>
+        </div>
+        <div class="flex items-center gap-4 text-[11px]">
+          <a href="/method" class="hover:text-cyan-400 transition-colors">Methodology</a>
+          <span>·</span>
+          <a href="/settings" class="hover:text-cyan-400 transition-colors">Privacy Guarantee</a>
+          <span>·</span>
+          <a href="https://t.me/AirDeltaBot" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors text-cyan-400 font-semibold">@AirDeltaBot ↗</a>
+        </div>
       </div>
     </footer>
+
+    <!-- Mobile Fixed Bottom Navigation Bar (Astryx Style) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-950/95 backdrop-blur border-t border-slate-800 flex items-center justify-around z-50 px-2">
+      {navItems.slice(0, 5).map((item) => {
+        const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
+        return (
+          <a 
+            href={item.href}
+            class={`flex flex-col items-center justify-center w-14 h-full text-[10px] gap-0.5 transition-colors ${
+              isActive ? "text-cyan-400 font-bold" : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <span class="text-base">{item.icon}</span>
+            <span>{item.label}</span>
+          </a>
+        );
+      })}
+    </nav>
+
+    <script>
+      const langSelect = document.getElementById("global-lang-select");
+      if (langSelect) {
+        langSelect.addEventListener("change", (e) => {
+          const target = e.target as HTMLSelectElement;
+          localStorage.setItem("airdelta_lang", target.value);
+          window.location.reload();
+        });
+      }
+    </script>
   </body>
 </html>

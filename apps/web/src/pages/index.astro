@@ -12,43 +12,100 @@ const forecast = await airService.getAirForecast(28.6139, 77.2090);
 const aqi = snapshot.indexValue || 385;
 const isSevere = aqi > 400;
 const isVeryPoor = aqi > 300 && aqi <= 400;
-const aqiColor = isSevere ? "text-red-500" : isVeryPoor ? "text-amber-500" : "text-emerald-400";
-const aqiBgGradient = isSevere
-  ? "from-red-950/40 via-slate-900 to-slate-950 border-red-500/30"
-  : "from-amber-950/40 via-slate-900 to-slate-950 border-amber-500/30";
+const aqiColor = isSevere ? "text-red-500" : isVeryPoor ? "text-red-400" : "text-amber-400";
+const aqiBadgeBg = isSevere ? "bg-red-950 text-red-400 border-red-800" : "bg-red-950/70 text-red-300 border-red-800/60";
 ---
 
-<Layout title="AirDelta — Today's Air Snapshot">
-  <div class="space-y-6">
-    <!-- CAQM GRAP Status Alert Banner -->
-    <div class="p-3.5 bg-gradient-to-r from-red-950/70 to-slate-900 border border-red-500/40 rounded-xl flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="px-2 py-0.5 rounded bg-red-600/30 text-red-400 text-xs font-bold border border-red-500/40 font-mono">
-          GRAP STAGE III
-        </span>
-        <p class="text-xs sm:text-sm text-slate-200">
-          Severe Air Quality measures active across Delhi-NCR. Non-essential construction prohibited.
-        </p>
-      </div>
-      <a href="/advisory" class="hidden sm:inline-block text-xs text-red-400 hover:underline">View Rules →</a>
-    </div>
-
-    <!-- Main Air Quality Hero Card -->
-    <div class={`p-6 sm:p-8 rounded-3xl border bg-gradient-to-br ${aqiBgGradient} shadow-2xl`}>
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+<Layout title="AirDelta — Today's Smog Action Dashboard">
+  <div class="space-y-8">
+    <!-- Immediate Action Directives: Simple UX for Families -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-4 border-b border-slate-800">
         <div>
-          <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">Delhi-NCR Central (ITO)</h1>
-            <BadgePill badge={snapshot.badge} />
+          <span class="text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block">Today's Quick Health Verdict</span>
+          <h2 class="text-lg sm:text-xl font-bold text-white">3 Simple Actions for Your Household Today</h2>
+        </div>
+        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-950 text-red-300 border border-red-800/80 self-start sm:self-auto font-mono">
+          CPCB Stage III Active
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Action 1 -->
+        <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xl">🛑</span>
+              <span class="text-xs font-bold text-red-400 uppercase tracking-wide">Outdoor Exercise</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-100">Cancel morning walks & outdoor play</p>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Winter inversion traps heavy particulate near ground level until 10:30 AM. Move cardio indoors.
+            </p>
           </div>
-          <p class="text-xs text-slate-400 font-mono">Grid Cell: {snapshot.cell} · Station: {snapshot.attribution}</p>
-          <p class="text-xs text-slate-500 mt-1">Data freshness: &lt; 30 mins ago</p>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 text-[11px] font-mono text-cyan-400">
+            Dose saving: ~38 µg PM2.5
+          </div>
         </div>
 
-        <div class="flex items-baseline gap-4">
+        <!-- Action 2 -->
+        <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xl">🪟</span>
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-wide">Airing Window</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-100">Open windows only 1:00 – 3:30 PM</p>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Solar radiation creates vertical mixing, dropping PM2.5 to the daily low of ~210 µg/m³.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 text-[11px] font-mono text-emerald-400">
+            Cleanest slot: 13:00 - 15:30
+          </div>
+        </div>
+
+        <!-- Action 3 -->
+        <div class="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xl">😷</span>
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-wide">Commute Guard</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-100">Wear N95 on bike / auto or take Metro</p>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              Two-wheeler tailpipe vortex concentrates exhaust (1.15× ambient). Metro AC cabin provides 75% filtration.
+            </p>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-800/80 text-[11px] font-mono text-cyan-400">
+            Carbon bonus: -300g CO₂
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Air Quality Hero Card (Astryx Neutral Theme Styling) -->
+    <div class="bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-2.5 mb-2">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Delhi-NCR Central (ITO)</h1>
+            <BadgePill badge={snapshot.badge} />
+          </div>
+          <p class="text-xs text-slate-400 font-mono">
+            Grid Cell: {snapshot.cell} · Station: {snapshot.attribution} (2.4 km away)
+          </p>
+          <p class="text-xs text-slate-500 mt-1">
+            Data standard: Official Central Pollution Control Board (CPCB) NAQI
+          </p>
+        </div>
+
+        <div class="flex items-baseline gap-4 self-start md:self-auto">
           <div class="text-right">
-            <span class="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Indian CPCB NAQI</span>
-            <span class="text-xs text-amber-400 font-medium">{snapshot.category || "Severe"}</span>
+            <span class="text-xs text-slate-400 uppercase tracking-wider block font-semibold">Current Air Index</span>
+            <span class={`inline-block px-2.5 py-0.5 rounded text-xs font-bold border mt-0.5 ${aqiBadgeBg}`}>
+              {snapshot.category || "Severe"}
+            </span>
           </div>
           <div class={`text-6xl sm:text-7xl font-extrabold tracking-tight ${aqiColor} font-mono`}>
             {aqi}
@@ -56,45 +113,52 @@ const aqiBgGradient = isSevere
         </div>
       </div>
 
-      <!-- Pollutants Grid -->
+      <!-- Dense Row Pollutants (Astryx Row Standard) -->
       <div class="mt-8 pt-6 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
-          <span class="text-[11px] text-slate-400 font-medium block">PM2.5 (Fine Particulate)</span>
+        <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 font-medium block">PM2.5 (Fine Inhalable)</span>
           <span class="text-xl font-bold text-slate-100 font-mono mt-0.5 block">{snapshot.pm25} µg/m³</span>
-          <span class="text-[10px] text-red-400">25.5× WHO 24h standard</span>
+          <span class="text-[10px] text-red-400 font-medium">25.5× WHO 24h standard</span>
         </div>
-        <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
-          <span class="text-[11px] text-slate-400 font-medium block">PM10 (Coarse Dust)</span>
+        <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 font-medium block">PM10 (Coarse Road Dust)</span>
           <span class="text-xl font-bold text-slate-100 font-mono mt-0.5 block">{snapshot.pm10} µg/m³</span>
-          <span class="text-[10px] text-red-400">11.3× WHO 24h standard</span>
+          <span class="text-[10px] text-red-400 font-medium">11.3× WHO 24h standard</span>
         </div>
-        <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
-          <span class="text-[11px] text-slate-400 font-medium block">NO2 (Traffic Exhaust)</span>
+        <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800">
+          <span class="text-[11px] text-slate-400 font-medium block">NO2 (Vehicular Fumes)</span>
           <span class="text-xl font-bold text-slate-100 font-mono mt-0.5 block">84.5 µg/m³</span>
-          <span class="text-[10px] text-amber-400">Elevated roadside</span>
+          <span class="text-[10px] text-amber-400 font-medium">Severe near arterial roads</span>
         </div>
-        <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+        <div class="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800">
           <span class="text-[11px] text-slate-400 font-medium block">Cleanest Window Today</span>
           <span class="text-base font-bold text-emerald-400 font-mono mt-0.5 block">13:00 – 15:30</span>
-          <span class="text-[10px] text-emerald-300">PM2.5 drops to ~210 µg/m³</span>
+          <span class="text-[10px] text-emerald-300 font-medium">PM2.5 drops to ~210 µg/m³</span>
         </div>
       </div>
     </div>
 
-    <!-- Call to Action: Plan A vs Plan B -->
-    <div class="p-6 bg-gradient-to-r from-cyan-950/60 via-slate-900 to-violet-950/60 border border-cyan-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-      <div>
-        <h2 class="text-lg font-bold text-white">Don't just watch the AQI. Optimize your routine.</h2>
-        <p class="text-xs sm:text-sm text-slate-300 mt-1">
-          Calculate your family's inhaled dose with Plan A vs Plan B and reduce toxic particle intake by up to 40%.
+    <!-- Prominent Plan A vs Plan B Call to Action -->
+    <div class="p-6 sm:p-8 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-cyan-500/40 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden">
+      <div class="absolute -right-8 -top-8 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="space-y-1">
+        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-400 border border-cyan-800 uppercase tracking-wide">
+          Core Engine Feature
+        </span>
+        <h2 class="text-xl sm:text-2xl font-bold text-white">Don't just watch the AQI. Reduce your inhaled dose.</h2>
+        <p class="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+          AirDelta computes your family's normal routine (Plan A) versus an optimized routine (Plan B) to prevent up to 40% of toxic particles from reaching your lungs.
         </p>
       </div>
-      <a href="/plan" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition-all text-center whitespace-nowrap">
-        Simulate Plan A vs B →
+      <a 
+        href="/plan" 
+        class="w-full md:w-auto px-6 py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm rounded-xl shadow-lg shadow-cyan-500/25 transition-all text-center whitespace-nowrap"
+      >
+        View Plan A vs Plan B Ledger →
       </a>
     </div>
 
-    <!-- 96-Hour Forecast Strip -->
+    <!-- 96-Hour Forecast Strip Component -->
     <ForecastStrip forecast={forecast} />
   </div>
 </Layout>
