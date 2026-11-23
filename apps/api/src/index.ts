@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
+import fs from "node:fs";
+import path from "node:path";
 import dotenv from "dotenv";
 import { AirDataService } from "@airdelta/air-adapters";
 import { createAirRoutes } from "./routes/air.route.js";
@@ -14,7 +16,15 @@ import { VisionService } from "./services/vision.service.js";
 import { AdvisoryService } from "./services/advisory.service.js";
 import { AirDeltaBot } from "./bot/telegram.js";
 
-dotenv.config();
+const localEnv = path.resolve(process.cwd(), ".env");
+const rootEnv = path.resolve(process.cwd(), "../../.env");
+if (fs.existsSync(localEnv)) {
+  dotenv.config({ path: localEnv });
+} else if (fs.existsSync(rootEnv)) {
+  dotenv.config({ path: rootEnv });
+} else {
+  dotenv.config();
+}
 
 export function createApp(serviceOverride?: AirDataService) {
   const app = new Hono();

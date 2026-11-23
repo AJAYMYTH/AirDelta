@@ -1,5 +1,18 @@
+import fs from "node:fs";
+import path from "node:path";
 import dotenv from "dotenv";
-dotenv.config();
+
+// Load from current dir or monorepo root .env
+const localEnv = path.resolve(process.cwd(), ".env");
+const rootEnv = path.resolve(process.cwd(), "../../.env");
+
+if (fs.existsSync(localEnv)) {
+  dotenv.config({ path: localEnv });
+} else if (fs.existsSync(rootEnv)) {
+  dotenv.config({ path: rootEnv });
+} else {
+  dotenv.config();
+}
 
 import { AirDataService } from "@airdelta/air-adapters";
 import { AdvisoryService } from "@airdelta/schemas";
