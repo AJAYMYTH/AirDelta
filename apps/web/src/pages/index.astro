@@ -3,6 +3,15 @@ import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
 import ForecastStrip from "../components/ForecastStrip.astro";
 import { AirDataService } from "@airdelta/air-adapters";
+import { 
+  Wind, 
+  ArrowRight, 
+  Bike, 
+  Share2, 
+  ShieldAlert, 
+  CheckCircle2,
+  Check
+} from "lucide-astro";
 
 const airService = new AirDataService({ replayMode: true });
 const snapshot = await airService.getAirSnapshot(28.6139, 77.2090);
@@ -17,7 +26,7 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
 <Layout title="AirDelta — Today's Smog Action Dashboard">
   <div class="space-y-8">
     <!-- Immediate Health Directive Banner: Showroom Option Cards -->
-    <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-[#f0f0f0]">
         <div>
           <span class="text-[11px] font-mono uppercase tracking-wider text-[#ea580c] font-bold block mb-1">
@@ -25,22 +34,42 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
           </span>
           <h2 class="text-xl sm:text-2xl font-bold text-[#262626]">3 Essential Actions for Your Family Today</h2>
         </div>
-        <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] self-start sm:self-auto font-mono">
-          CPCB GRAP Stage III Active
-        </span>
+        <div class="flex items-center gap-3">
+          <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] font-mono">
+            CPCB GRAP Stage III Active
+          </span>
+          <button 
+            id="btn-quick-share" 
+            type="button" 
+            class="px-3 py-1 rounded-full bg-[#f7f9fa] hover:bg-[#e8e8e8] text-[#595959] text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors press-scale"
+            title="Share Today's Brief on WhatsApp"
+          >
+            <Share2 class="w-3.5 h-3.5 text-[#ea580c]" />
+            <span>Share Brief</span>
+          </button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <!-- Action 1 -->
-        <div class="p-5 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group">
+        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-1">
           <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-xl">🛑</span>
-              <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wide">Outdoor Exercise</span>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-[#fee2e2] text-[#dc2626] flex items-center justify-center">
+                  <ShieldAlert class="w-4 h-4" />
+                </div>
+                <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wide">Outdoor Exercise</span>
+              </div>
+              <button type="button" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors">
+                <Check class="w-3.5 h-3.5 check-icon opacity-0" />
+              </button>
             </div>
-            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors">Cancel morning walks & outdoor play</h3>
-            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed">
-              Ground inversion traps heavy vehicular soot until 10:30 AM. Move cardio exercise indoors.
+            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors" data-i18n="action1Title">
+              1. Postpone Morning Cardio
+            </h3>
+            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed" data-i18n="action1Desc">
+              Avoid morning running/cycling. Inversion layer traps heavy PM2.5 particulates until 10:00 IST.
             </p>
           </div>
           <div class="mt-4 pt-3 border-t border-[#e8e8e8] text-[11px] font-mono font-bold text-[#ea580c]">
@@ -49,32 +78,50 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
         </div>
 
         <!-- Action 2 -->
-        <div class="p-5 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group">
+        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-2">
           <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-xl">🪟</span>
-              <span class="text-[11px] font-bold text-[#15803d] uppercase tracking-wide">Home Airing Window</span>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-[#dcfce7] text-[#15803d] flex items-center justify-center">
+                  <Wind class="w-4 h-4" />
+                </div>
+                <span class="text-[11px] font-bold text-[#15803d] uppercase tracking-wide">Home Airing Window</span>
+              </div>
+              <button type="button" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors">
+                <Check class="w-3.5 h-3.5 check-icon opacity-0" />
+              </button>
             </div>
-            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors">Ventilate only 1:00 – 3:30 PM</h3>
-            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed">
-              Solar heating causes vertical atmospheric dispersion, bringing the cleanest air of the 24-hour cycle.
+            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors" data-i18n="action2Title">
+              2. Airing Window: 13:00 - 15:00
+            </h3>
+            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed" data-i18n="action2Desc">
+              Cleanest solar mixing window. Open cross-ventilation briefly for 30 minutes to reduce indoor CO2.
             </p>
           </div>
           <div class="mt-4 pt-3 border-t border-[#e8e8e8] text-[11px] font-mono font-bold text-[#15803d]">
-            Cleanest slot: 13:00 – 15:30
+            Cleanest slot: 13:00 – 15:30 IST
           </div>
         </div>
 
         <!-- Action 3 -->
-        <div class="p-5 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group">
+        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-3">
           <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-xl">😷</span>
-              <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wide">Commute Guard</span>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
+                  <Bike class="w-4 h-4" />
+                </div>
+                <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wide">Commute Guard</span>
+              </div>
+              <button type="button" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors">
+                <Check class="w-3.5 h-3.5 check-icon opacity-0" />
+              </button>
             </div>
-            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors">Wear N95 on bike or switch to Metro</h3>
-            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed">
-              Two-wheeler riders inhale tailpipe vortex air (1.15× ambient). Delhi Metro cabins filter 75% of particulate.
+            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors" data-i18n="action3Title">
+              3. Road Commute Protection
+            </h3>
+            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed" data-i18n="action3Desc">
+              Switch roadside two-wheeler to electric Metro or use sealed N95 respirator mask.
             </p>
           </div>
           <div class="mt-4 pt-3 border-t border-[#e8e8e8] text-[11px] font-mono font-bold text-[#ea580c]">
@@ -85,7 +132,7 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
     </div>
 
     <!-- Main Air Quality Hero Card (DJI Spec Showroom Style) -->
-    <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#f0f0f0]">
         <div>
           <div class="flex items-center gap-2.5 mb-2">
@@ -103,7 +150,7 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
         <div class="flex items-baseline gap-5 self-start md:self-auto bg-[#f7f9fa] px-6 py-4 rounded-2xl border border-[#e8e8e8]">
           <div class="text-right">
             <span class="text-[11px] text-[#8c8c8c] uppercase tracking-wider block font-bold">Indian CPCB NAQI</span>
-            <span class="inline-block px-2.5 py-0.5 rounded text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] mt-1">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] mt-1 font-mono">
               {snapshot.category || "Severe"}
             </span>
           </div>
@@ -115,22 +162,22 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
 
       <!-- Dense Spec Row Pollutants (DESIGN.md Spec-Column Standard) -->
       <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <span class="text-xs text-[#8c8c8c] font-semibold block">PM2.5 (Fine Inhalable)</span>
           <span class="text-2xl font-extrabold text-[#262626] font-mono mt-1 block">{snapshot.pm25} µg/m³</span>
           <span class="text-[11px] text-[#ea580c] font-bold">25.5× WHO 24h standard</span>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <span class="text-xs text-[#8c8c8c] font-semibold block">PM10 (Road Dust)</span>
           <span class="text-2xl font-extrabold text-[#262626] font-mono mt-1 block">{snapshot.pm10} µg/m³</span>
           <span class="text-[11px] text-[#ea580c] font-bold">11.3× WHO 24h standard</span>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <span class="text-xs text-[#8c8c8c] font-semibold block">NO2 (Traffic Exhaust)</span>
           <span class="text-2xl font-extrabold text-[#262626] font-mono mt-1 block">84.5 µg/m³</span>
           <span class="text-[11px] text-[#b45309] font-semibold">Elevated roadside</span>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <span class="text-xs text-[#8c8c8c] font-semibold block">Cleanest Window Today</span>
           <span class="text-lg font-extrabold text-[#15803d] font-mono mt-1 block">13:00 – 15:30</span>
           <span class="text-[11px] text-[#15803d] font-semibold">Dips to ~210 µg/m³</span>
@@ -139,9 +186,9 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
     </div>
 
     <!-- Prominent Plan A vs Plan B Call to Action (DESIGN.md Primary Pill Button) -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
+    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs stagger-card">
       <div class="space-y-1.5 max-w-xl">
-        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono tracking-wider">
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono tracking-wider">
           Action Engine
         </span>
         <h2 class="text-xl sm:text-2xl font-bold text-[#262626]">Don't just watch the AQI. Reduce your inhaled dose.</h2>
@@ -151,13 +198,62 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
       </div>
       <a 
         href="/plan" 
-        class="w-full md:w-auto px-8 py-3.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-sm rounded-full shadow-md shadow-orange-500/20 transition-all text-center whitespace-nowrap"
+        class="btn-action w-full md:w-auto px-8 py-3.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-sm rounded-full shadow-md shadow-orange-500/20 transition-all text-center whitespace-nowrap flex items-center justify-center gap-2 press-scale cursor-pointer"
       >
-        View Plan A vs Plan B Ledger →
+        <span data-i18n="optimizeRoutine">Optimize Today's Routine →</span>
+        <ArrowRight class="w-4 h-4" />
       </a>
     </div>
 
     <!-- 96-Hour Forecast Strip Component -->
-    <ForecastStrip forecast={forecast} />
+    <div class="stagger-card">
+      <ForecastStrip forecast={forecast} />
+    </div>
+
+    <!-- Quick Toast Notification -->
+    <div id="brief-toast" class="hidden fixed bottom-6 right-6 z-50 p-4 bg-[#262626] text-white rounded-2xl shadow-xl flex items-center gap-2 text-xs font-semibold">
+      <CheckCircle2 class="w-4 h-4 text-[#ea580c]" />
+      <span>Today's Smog Brief copied to clipboard!</span>
+    </div>
   </div>
+
+  <script>
+    // Action Cards Interactive Completion Toggle
+    document.querySelectorAll(".action-card").forEach((card) => {
+      const toggleBtn = card.querySelector(".action-toggle-btn");
+      const checkIcon = card.querySelector(".check-icon");
+
+      card.addEventListener("click", () => {
+        const isDone = card.classList.toggle("bg-[#f0fdf4]");
+        if (isDone) {
+          card.classList.remove("bg-[#f7f9fa]");
+          card.classList.add("border-[#86efac]");
+          if (toggleBtn) toggleBtn.className = "action-toggle-btn w-6 h-6 rounded-full bg-[#15803d] text-white flex items-center justify-center transition-colors shadow-xs";
+          if (checkIcon) checkIcon.classList.remove("opacity-0");
+        } else {
+          card.classList.add("bg-[#f7f9fa]");
+          card.classList.remove("border-[#86efac]");
+          if (toggleBtn) toggleBtn.className = "action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors";
+          if (checkIcon) checkIcon.classList.add("opacity-0");
+        }
+      });
+    });
+
+    // Quick Share WhatsApp Brief
+    const shareBtn = document.getElementById("btn-quick-share");
+    const toast = document.getElementById("brief-toast");
+
+    if (shareBtn) {
+      shareBtn.addEventListener("click", () => {
+        const briefText = `⚠️ *AirDelta Delhi-NCR Smog Brief*\nAQI: 385 (Severe - CPCB GRAP III Active)\n\n1. Postpone morning outdoor cardio until 10:00 IST.\n2. Open windows only 13:00 - 15:30 (Solar clearing).\n3. Wear certified N95 or switch two-wheeler to Metro.\n\nSimulate your household exposure: ${window.location.origin}`;
+        
+        navigator.clipboard.writeText(briefText).then(() => {
+          if (toast) {
+            toast.classList.remove("hidden");
+            setTimeout(() => toast.classList.add("hidden"), 3000);
+          }
+        });
+      });
+    }
+  </script>
 </Layout>

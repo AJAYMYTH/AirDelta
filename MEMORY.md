@@ -105,12 +105,27 @@ airdelta/
     - `method.astro` (Methodology): White physics formulation cards with orange equation syntax boxes, versioned Constants Registry `2026-11-a` showroom table, and data provenance cards.
     - `settings.astro` (Settings & Privacy): Regional language selection grid with active orange border ring, Telegram bot card, and rounded data export/purge action buttons.
   - Verified 100% clean builds across monorepo: `pnpm test` (50/50 passing), `pnpm typecheck` (0 errors, 0 warnings), `pnpm -r run build` (all 7 static pages built in 2.27s).
+- [x] **Client Interactivity, Lucide Icons, anime.js & Dynamic i18n:**
+  - Resolved non-working language switcher and button clicks by introducing a dedicated client runtime in `apps/web/src/scripts/client-runtime.ts`.
+  - Installed `lucide-astro` and replaced emoji placeholders with modern Lucide icons (`Sun`, `Scale`, `Home`, `Users`, `History`, `BookOpen`, `Settings`, `Globe`, `ChevronDown`, `Check`, `ExternalLink`, `Wind`, `Play`, `Pause`, `RotateCcw`, `Camera`, `Upload`, `ShieldCheck`, `Copy`, `Download`, `Trash2`, `Send`, `Lock`).
+  - Added `animejs` for tactile button click springs (`press-scale`), staggered page card entrances (`stagger-card`), and fluid dropdown menu transitions.
+  - Implemented `transitions.dev` inspired floating glass dropdown (`.dropdown-surface`) in the navbar with active checkmark indicators and smooth opening/closing animations.
+  - Added `loading.dev` inspired micro-loaders (`.loader-spin`, `.radar-pulse-ring`) for photo scan audits and async clipboard actions.
+  - Expanded `@airdelta/i18n` with full UI string keys across all 13 supported languages (12 Indian regional languages + English) and enabled instant dynamic DOM text swapping via `[data-i18n]`.
+  - Added interactive features across all pages:
+    - Today: interactive action card completion toggles & quick WhatsApp brief copy.
+    - Plan: interactive Plan B intervention toggles with dynamic recalculation of net saved dose in real time.
+    - Indoor: photo upload simulation with radar pulse and dynamic mass balance calculation on checkbox toggle.
+    - Community: instant Hindi/English language toggle & WhatsApp copy feedback.
+    - Replay: clickable timeline bars, animated play/pause states, and live telemetry updates.
+    - Settings: regional language grid with instant dynamic translation and JSON data export.
+  - Verified 0 errors, 0 warnings, 0 hints across monorepo typecheck and Astro static build.
 
 ## Development Progress
-- **Current Status:** 100% Complete & Verified across all 8 phases + Astryx & DESIGN.md Showroom UI Redesign.
+- **Current Status:** 100% Complete & Verified across all 8 phases + Astryx, DESIGN.md Showroom, Lucide Icons & anime.js Interactivity.
 - **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (`main` branch).
 - **Test Suite Status:** 50/50 tests passing across 12 test suites (`pnpm test`).
-- **Compilation Status:** 0 errors, 0 warnings (`pnpm typecheck` & `pnpm -r run build`).
+- **Compilation Status:** 0 errors, 0 warnings, 0 hints (`pnpm typecheck` & `pnpm -r run build`).
 
 ## Technical Decisions
 1. **Strict Math Boundary:** LLM is strictly forbidden from performing mathematical calculations. `@airdelta/engine` computes all doses and percentages; Gemini only narrates and translates.

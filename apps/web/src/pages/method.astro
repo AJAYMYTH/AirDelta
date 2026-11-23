@@ -1,6 +1,11 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { CONSTANTS_REGISTRY, CONSTANTS_VERSION } from "@airdelta/engine";
+import { 
+  Atom, 
+  Database, 
+  ExternalLink 
+} from "lucide-astro";
 
 const constantsList = Object.values(CONSTANTS_REGISTRY);
 ---
@@ -8,16 +13,17 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
 <Layout title="AirDelta — Exposure Science & Methodology">
   <div class="space-y-10 max-w-5xl mx-auto">
     <!-- Header -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex items-center gap-2 mb-2">
-        <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]">
-          Core Architecture Principle
+        <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] flex items-center gap-1.5">
+          <Atom class="w-3.5 h-3.5" />
+          <span>Core Architecture Principle</span>
         </span>
         <span class="px-3 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8]">
           Registry: {CONSTANTS_VERSION}
         </span>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]" data-i18n="methodTitle">
         Deterministic Exposure Methodology
       </h1>
       <p class="text-xs sm:text-sm text-[#595959] mt-2 max-w-3xl leading-relaxed">
@@ -26,13 +32,13 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
     </div>
 
     <!-- The 3 Core Physical Formulations -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-card">
       <!-- Equation 1 -->
-      <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-[#fed7aa] transition-colors">
+      <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#ea580c] transition-colors">
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 1</span>
           <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3">Inhaled PM2.5 Dose</h3>
-          <div class="bg-[#f7f9fa] p-4 rounded-xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
+          <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             D = Σ (C_micro × VE × Δt)<br/>
             C_micro = C_amb × F_micro × (1 - η_mask)
           </div>
@@ -40,17 +46,18 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
             Integrates discrete time-weighted microenvironment exposure against age-band and exertion-specific minute ventilation rates (m³/h). Uncertainty bounds are propagated deterministically at [0.85, 1.15] × D.
           </p>
         </div>
-        <div class="mt-4 pt-4 border-t border-[#e8e8e8] text-[11px] text-[#8c8c8c] font-mono">
-          Ref: US EPA Exposure Handbook Ch. 6
+        <div class="mt-4 pt-4 border-t border-[#e8e8e8] text-[11px] text-[#8c8c8c] font-mono flex items-center justify-between">
+          <span>Ref: US EPA Exposure Handbook</span>
+          <span class="text-[#ea580c]">Ch. 6</span>
         </div>
       </div>
 
       <!-- Equation 2 -->
-      <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-[#fed7aa] transition-colors">
+      <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#ea580c] transition-colors">
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 2</span>
           <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3">Indoor Mass Balance</h3>
-          <div class="bg-[#f7f9fa] p-4 rounded-xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
+          <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             C_ss = (P·a·C_out + S/V) /<br/>
                    (a + k_dep + CADR/V)
           </div>
@@ -58,31 +65,33 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
             Single-compartment dynamic indoor air quality model accounting for building envelope penetration (P), air changes per hour (a), surface gravitational deposition (k_dep), indoor emissions (S), and active CADR filtration.
           </p>
         </div>
-        <div class="mt-4 pt-4 border-t border-[#e8e8e8] text-[11px] text-[#8c8c8c] font-mono">
-          Ref: Nazaroff (2004) · EPIC IAQ Review
+        <div class="mt-4 pt-4 border-t border-[#e8e8e8] text-[11px] text-[#8c8c8c] font-mono flex items-center justify-between">
+          <span>Ref: Nazaroff (2004)</span>
+          <span class="text-[#ea580c]">EPIC Review</span>
         </div>
       </div>
 
       <!-- Equation 3 -->
-      <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-[#fed7aa] transition-colors">
+      <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#ea580c] transition-colors">
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 3</span>
           <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3">Carbon Co-benefit Ledger</h3>
-          <div class="bg-[#f7f9fa] p-4 rounded-xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
+          <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             E_co2e = Σ (distance_km × EF_mode)
           </div>
           <p class="text-xs text-[#595959] leading-relaxed">
             Quantifies greenhouse gas emissions divergence when Plan B shifts high-exposure transit modes (such as congested fossil fuel 2-wheelers or private petrol cars) to electrified Delhi Metro or active micro-mobility.
           </p>
         </div>
-        <div class="mt-4 pt-4 border-t border-[#e8e8e8] text-[11px] text-[#8c8c8c] font-mono">
-          Ref: CPCB Vehicular Standards · DMRC
+        <div class="mt-4 pt-4 border-t border-[#e8e8e8] text-[11px] text-[#8c8c8c] font-mono flex items-center justify-between">
+          <span>Ref: CPCB Vehicular Standards</span>
+          <span class="text-[#ea580c]">DMRC EF</span>
         </div>
       </div>
     </div>
 
     <!-- Constants Registry Table -->
-    <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h2 class="text-lg font-bold text-[#262626]">Constants Registry ({CONSTANTS_VERSION})</h2>
@@ -90,8 +99,9 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
             Every coefficient in AirDelta is versioned, peer-reviewed, and cited with open research links.
           </p>
         </div>
-        <span class="text-xs font-mono text-[#ea580c] font-bold bg-[#fff7ed] px-3 py-1.5 rounded-full border border-[#fed7aa] self-start sm:self-auto">
-          {constantsList.length} Active Constants
+        <span class="text-xs font-mono text-[#ea580c] font-bold bg-[#fff7ed] px-3.5 py-1.5 rounded-full border border-[#fed7aa] self-start sm:self-auto flex items-center gap-1.5">
+          <Database class="w-3.5 h-3.5" />
+          <span>{constantsList.length} Active Constants</span>
         </span>
       </div>
 
@@ -125,7 +135,8 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
                 <td class="py-3 px-3 text-[#595959]">{c.description}</td>
                 <td class="py-3 px-3">
                   <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer" class="text-[#ea580c] hover:underline flex items-center gap-1 font-mono text-[11px] font-semibold">
-                    Link ↗
+                    <span>Link</span>
+                    <ExternalLink class="w-3 h-3" />
                   </a>
                 </td>
               </tr>
@@ -136,22 +147,22 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
     </div>
 
     <!-- Data Provenance & Licenses -->
-    <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <h2 class="text-lg font-bold text-[#262626] mb-4">Data Provenance & Regulatory Standards</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <div class="font-bold text-[#262626] mb-1">Google Air Quality API</div>
           <p class="text-[#595959] leading-relaxed">High-resolution hourly hyper-local air quality grid with 1x1 km spatial interpolation.</p>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <div class="font-bold text-[#262626] mb-1">OpenAQ Open Data</div>
           <p class="text-[#595959] leading-relaxed">Global open-source ground monitoring reference stations, including CPCB CAAQMS.</p>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <div class="font-bold text-[#262626] mb-1">Open-Meteo & CAMS</div>
           <p class="text-[#595959] leading-relaxed">European Centre for Medium-Range Weather Forecasts (ECMWF) atmospheric chemistry ensemble.</p>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-xl border border-[#e8e8e8]">
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <div class="font-bold text-[#262626] mb-1">CPCB NAQI & CAQM GRAP</div>
           <p class="text-[#595959] leading-relaxed">Government of India official National Air Quality Index breakpoints & graded response actions.</p>
         </div>

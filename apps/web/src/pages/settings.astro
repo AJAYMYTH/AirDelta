@@ -1,6 +1,15 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { getAllLanguages } from "@airdelta/i18n";
+import { 
+  Languages, 
+  Download, 
+  Trash2, 
+  Send, 
+  Lock, 
+  Check, 
+  ExternalLink 
+} from "lucide-astro";
 
 const languages = getAllLanguages();
 ---
@@ -8,16 +17,17 @@ const languages = getAllLanguages();
 <Layout title="AirDelta — Settings & Privacy">
   <div class="max-w-3xl mx-auto space-y-8">
     <!-- Header -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex items-center gap-2 mb-2">
-        <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]">
-          User Preferences
+        <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] flex items-center gap-1.5">
+          <Languages class="w-3.5 h-3.5" />
+          <span>User Preferences</span>
         </span>
         <span class="px-3 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8]">
           Client-Side Storage
         </span>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626] mb-1">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626] mb-1" data-i18n="settingsTitle">
         Settings & Privacy
       </h1>
       <p class="text-xs sm:text-sm text-[#595959] leading-relaxed">
@@ -26,8 +36,11 @@ const languages = getAllLanguages();
     </div>
 
     <!-- Language Selector -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs">
-      <h2 class="text-lg font-bold text-[#262626] mb-1">Regional Language</h2>
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-lg font-bold text-[#262626]">Regional Language</h2>
+        <span class="text-xs text-[#ea580c] font-mono font-semibold">13 Supported</span>
+      </div>
       <p class="text-xs text-[#595959] mb-6 leading-relaxed">
         Select from 12 official Indian languages. All explanations, community notices, and photo audit recommendations will be rendered in your chosen language.
       </p>
@@ -37,9 +50,12 @@ const languages = getAllLanguages();
           <button 
             type="button" 
             data-lang={l.code}
-            class="btn-lang-choice text-left p-4 rounded-2xl border border-[#e8e8e8] bg-[#f7f9fa] hover:border-[#ea580c] transition-all flex flex-col gap-1 cursor-pointer"
+            class="btn-lang-choice text-left p-4 rounded-2xl border border-[#e8e8e8] bg-[#f7f9fa] hover:border-[#ea580c] transition-all flex flex-col gap-1 cursor-pointer press-scale"
           >
-            <span class="font-bold text-sm text-[#262626]">{l.nativeName}</span>
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-[#262626]">{l.nativeName}</span>
+              <Check class="lang-grid-check w-3.5 h-3.5 text-[#ea580c] hidden" />
+            </div>
             <span class="text-[11px] text-[#595959] font-medium">{l.name} ({l.code})</span>
           </button>
         ))}
@@ -47,7 +63,7 @@ const languages = getAllLanguages();
     </div>
 
     <!-- Notification Channels -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <h2 class="text-lg font-bold text-[#262626] mb-1">Morning Alerts & Telegram Bot</h2>
       <p class="text-xs text-[#595959] mb-6 leading-relaxed">
         AirDelta pushes deterministic morning briefs at 07:00 IST directly via Telegram Bot to avoid commercial SMS costs.
@@ -55,25 +71,30 @@ const languages = getAllLanguages();
 
       <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div class="font-bold text-[#262626] text-sm">Telegram Bot Channel</div>
+          <div class="font-bold text-[#262626] text-sm flex items-center gap-1.5">
+            <Send class="w-4 h-4 text-[#ea580c]" />
+            <span>Telegram Bot Channel</span>
+          </div>
           <div class="text-xs text-[#595959] mt-0.5 leading-relaxed">Free 07:00 proactive morning alerts, quick photo audits, and routine checks.</div>
         </div>
         <a 
           href="https://t.me/AirDeltaBot" 
           target="_blank" 
           rel="noopener noreferrer" 
-          class="px-5 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs rounded-full shadow-sm transition-all text-center whitespace-nowrap cursor-pointer"
+          class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs rounded-full shadow-sm transition-all text-center whitespace-nowrap flex items-center gap-1.5 cursor-pointer press-scale"
         >
-          Open @AirDeltaBot ↗
+          <span>Open @AirDeltaBot</span>
+          <ExternalLink class="w-3.5 h-3.5" />
         </a>
       </div>
     </div>
 
     <!-- Data Sovereignty & Zero PII Guarantee -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex items-center gap-2 mb-2">
-        <span class="px-3 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac]">
-          Zero PII Guarantee
+        <span class="px-3 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#dcfce7] text-[#15803d] border border-[#86efac] flex items-center gap-1.5">
+          <Lock class="w-3 h-3" />
+          <span>Zero PII Guarantee</span>
         </span>
       </div>
       <h2 class="text-lg font-bold text-[#262626] mb-1">Household Data Sovereignty</h2>
@@ -84,55 +105,70 @@ const languages = getAllLanguages();
       <div class="flex flex-wrap items-center gap-4">
         <button 
           id="btn-export" 
-          class="px-5 py-2.5 bg-white hover:bg-[#f7f9fa] text-[#262626] text-xs font-bold rounded-full border border-[#d9d9d9] shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+          type="button"
+          class="btn-action px-6 py-2.5 bg-white hover:bg-[#f7f9fa] text-[#262626] text-xs font-bold rounded-full border border-[#d9d9d9] shadow-xs transition-all flex items-center gap-2 cursor-pointer press-scale"
         >
-          <svg class="w-4 h-4 text-[#ea580c]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-          </svg>
-          Export Data (JSON)
+          <Download class="w-4 h-4 text-[#ea580c]" />
+          <span>Export Data (JSON)</span>
         </button>
 
         <button 
           id="btn-purge" 
-          class="px-5 py-2.5 bg-[#fee2e2] hover:bg-[#fecaca] text-[#dc2626] text-xs font-bold rounded-full border border-[#fca5a5] shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+          type="button"
+          class="btn-action px-6 py-2.5 bg-[#fee2e2] hover:bg-[#fecaca] text-[#dc2626] text-xs font-bold rounded-full border border-[#fca5a5] shadow-xs transition-all flex items-center gap-2 cursor-pointer press-scale"
         >
-          <svg class="w-4 h-4 text-[#dc2626]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-          </svg>
-          Purge All Local Data
+          <Trash2 class="w-4 h-4 text-[#dc2626]" />
+          <span>Purge All Local Data</span>
         </button>
       </div>
 
-      <div id="status-toast" class="hidden mt-4 p-4 bg-[#dcfce7] border border-[#86efac] rounded-2xl text-[#15803d] text-xs font-semibold"></div>
+      <div id="status-toast" class="hidden mt-4 p-4 bg-[#dcfce7] border border-[#86efac] rounded-2xl text-[#15803d] text-xs font-semibold flex items-center gap-2">
+        <Check class="w-4 h-4 text-[#15803d]" />
+        <span id="toast-text"></span>
+      </div>
     </div>
   </div>
 
   <script>
-    const buttons = document.querySelectorAll(".btn-lang-choice");
+    const buttons = document.querySelectorAll<HTMLElement>(".btn-lang-choice");
     const exportBtn = document.getElementById("btn-export");
     const purgeBtn = document.getElementById("btn-purge");
     const toast = document.getElementById("status-toast");
+    const toastText = document.getElementById("toast-text");
 
-    // Highlight current stored lang
-    const currentLang = localStorage.getItem("airdelta_lang") || "en";
+    function highlightActiveLang(currentLang: string) {
+      buttons.forEach((btn) => {
+        const code = btn.getAttribute("data-lang");
+        const check = btn.querySelector(".lang-grid-check");
+        if (code === currentLang) {
+          btn.classList.add("border-2", "border-[#ea580c]", "bg-[#fff7ed]", "shadow-xs");
+          btn.classList.remove("border-[#e8e8e8]", "bg-[#f7f9fa]");
+          if (check) check.classList.remove("hidden");
+        } else {
+          btn.classList.remove("border-2", "border-[#ea580c]", "bg-[#fff7ed]", "shadow-xs");
+          btn.classList.add("border-[#e8e8e8]", "bg-[#f7f9fa]");
+          if (check) check.classList.add("hidden");
+        }
+      });
+    }
+
+    // Initialize current lang
+    const initialLang = localStorage.getItem("airdelta_lang") || "en";
+    highlightActiveLang(initialLang);
+
+    // Language selection click
     buttons.forEach((btn) => {
-      const code = btn.getAttribute("data-lang");
-      if (code === currentLang) {
-        btn.classList.add("border-2", "border-[#ea580c]", "bg-[#fff7ed]", "shadow-xs");
-        btn.classList.remove("border-[#e8e8e8]", "bg-[#f7f9fa]");
-      }
-
       btn.addEventListener("click", () => {
-        buttons.forEach((b) => {
-          b.classList.remove("border-2", "border-[#ea580c]", "bg-[#fff7ed]", "shadow-xs");
-          b.classList.add("border-[#e8e8e8]", "bg-[#f7f9fa]");
-        });
-        btn.classList.add("border-2", "border-[#ea580c]", "bg-[#fff7ed]", "shadow-xs");
-        btn.classList.remove("border-[#e8e8e8]", "bg-[#f7f9fa]");
-        localStorage.setItem("airdelta_lang", code || "en");
+        const code = btn.getAttribute("data-lang") || "en";
+        highlightActiveLang(code);
         
-        if (toast) {
-          toast.innerText = `Language set to ${btn.querySelector("span")?.innerText || code}. Changes applied!`;
+        // Invoke global runtime
+        if (window.AirDeltaRuntime) {
+          window.AirDeltaRuntime.applyLanguage(code);
+        }
+
+        if (toast && toastText) {
+          toastText.innerText = `Language set to ${btn.querySelector("span")?.innerText || code}. Changes applied dynamically!`;
           toast.classList.remove("hidden");
           setTimeout(() => toast.classList.add("hidden"), 3000);
         }
@@ -143,9 +179,10 @@ const languages = getAllLanguages();
       exportBtn.addEventListener("click", () => {
         const payload = {
           exportedAt: new Date().toISOString(),
-          householdProfile: localStorage.getItem("airdelta_household"),
+          householdProfile: localStorage.getItem("airdelta_household") || "Default 2-Person Delhi Household",
           activeLang: localStorage.getItem("airdelta_lang") || "en",
-          version: "1.0.0"
+          version: "1.0.0",
+          engineConstants: "2026-11-a"
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -154,6 +191,12 @@ const languages = getAllLanguages();
         a.download = `airdelta-export-${new Date().toISOString().split("T")[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
+
+        if (toast && toastText) {
+          toastText.innerText = "Household data exported successfully (JSON format).";
+          toast.classList.remove("hidden");
+          setTimeout(() => toast.classList.add("hidden"), 3000);
+        }
       });
     }
 
@@ -161,8 +204,8 @@ const languages = getAllLanguages();
       purgeBtn.addEventListener("click", () => {
         if (confirm("Are you sure you want to purge all local household data and plans?")) {
           localStorage.clear();
-          if (toast) {
-            toast.innerText = "All local data has been purged successfully.";
+          if (toast && toastText) {
+            toastText.innerText = "All local data has been purged successfully.";
             toast.classList.remove("hidden");
             setTimeout(() => toast.classList.add("hidden"), 3000);
           }

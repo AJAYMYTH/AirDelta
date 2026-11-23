@@ -4,7 +4,8 @@ import {
   isLanguageSupported,
   getLanguageMeta,
   getGlossaryTerm,
-  getTranslation
+  getTranslation,
+  UI_TRANSLATIONS
 } from "../src/index.js";
 
 describe("@airdelta/i18n test suite", () => {
@@ -40,8 +41,9 @@ describe("@airdelta/i18n test suite", () => {
     expect(getTranslation("planA", "hi")).toBe("योजना A (सामान्य दिनचर्या)");
     expect(getTranslation("planB", "bn")).toBe("পরিকল্পনা B (অপ্টিমাইজড রুটিন)");
     expect(getTranslation("netDoseSaved", "te")).toBe("పీల్చకుండా కాపాడిన PM2.5");
+    expect(getTranslation("todayTitle", "as")).toBe("আজিৰ বায়ু আৰু সুৰক্ষা কাৰ্যসূচী");
 
-    // Fallback to English for language without that specific string
-    expect(getTranslation("todayTitle", "as")).toBe("Today's Air");
+    // Fallback to English for unknown language
+    expect(getTranslation("todayTitle", "unsupported" as any)).toBe(UI_TRANSLATIONS.en.todayTitle);
   });
 });

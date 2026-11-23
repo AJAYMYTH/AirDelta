@@ -121,9 +121,15 @@ importers:
       '@types/react-dom':
         specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
+      animejs:
+        specifier: ^4.5.0
+        version: 4.5.0
       astro:
         specifier: ^5.0.0
         version: 5.18.2(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.68.8)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
+      lucide-astro:
+        specifier: ^0.556.0
+        version: 0.556.0(astro@5.18.2(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.68.8)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1))
       react:
         specifier: ^19.3.1
         version: 19.3.1
@@ -137,6 +143,9 @@ importers:
       '@astrojs/check':
         specifier: ^0.9.4
         version: 0.9.12(prettier@3.10.1)(typescript@5.9.3)
+      '@types/animejs':
+        specifier: ^4.0.0
+        version: 4.0.0
       '@types/node':
         specifier: ^22.10.1
         version: 22.20.5
@@ -1679,6 +1688,10 @@ packages:
   '@tybys/wasm-util@0.10.5':
     resolution: {integrity: sha512-dOGOPxlaNV+G046mZzN+9C0dAcQZeSKcXiVaM0TYy/LM4ttTmgSBDxYfovcYI8Em3+eAbiAYpvWLOv8+ZVRJKA==}
 
+  '@types/animejs@4.0.0':
+    resolution: {integrity: sha512-DAjSUvkZpOZ7J7I/F6mtcOhSdrBCLZvOTod43rlWSwpNWV2kIHTr3tVaXas6rZrhy9b27Mbm54CZnKVOG0ep9A==}
+    deprecated: This is a stub types definition. animejs provides its own type definitions, so you do not need this installed.
+
   '@types/debug@4.1.13':
     resolution: {integrity: sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw==}
 
@@ -1815,6 +1828,17 @@ packages:
 
   ajv@8.20.0:
     resolution: {integrity: sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==}
+
+  animejs@4.5.0:
+    resolution: {integrity: sha512-NQimYX+lz8WaXonGS9zVVoviCIAjONeJayxacUditaivYLqyXgGjFKjuyl0aUUhFKm5MriX9ty1TGovNzoJQWA==}
+    peerDependencies:
+      '@types/three': '>=0.150.0'
+      three: '>=0.150.0'
+    peerDependenciesMeta:
+      '@types/three':
+        optional: true
+      three:
+        optional: true
 
   ansi-align@3.0.1:
     resolution: {integrity: sha512-IOfwwBF5iczOjp/WeY4YxyjqAFMQoZufdQWDd19SEExbVLNXqvpzSJ/M7Za4/sCPmQ0+GRquoA7bGcINcxew6w==}
@@ -2573,6 +2597,12 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-astro@0.556.0:
+    resolution: {integrity: sha512-ugMjPb45AMfkLCaduNSbyy5NQEKvB1TxVVMmUS4S6L807PMESnX0Qp+DIKHjbyjJmPXOyLRbrzvR3YikTK7brg==}
+    deprecated: 'Deprecated: Use `@lucide/astro`'
+    peerDependencies:
+      astro: '>=2.7.1'
 
   lucide-react@1.77.0:
     resolution: {integrity: sha512-VS6sOi8ZUH1qm6swBL/tpI4xAhB6pFTdHvw3pfCJD+DaTJwpyynVzfOS6mdyMZ+OCdY/GMSQbqinOMOPbNSrQA==}
@@ -4813,6 +4843,13 @@ snapshots:
     dependencies:
       tslib: 2.9.1
 
+  '@types/animejs@4.0.0':
+    dependencies:
+      animejs: 4.5.0
+    transitivePeerDependencies:
+      - '@types/three'
+      - three
+
   '@types/debug@4.1.13':
     dependencies:
       '@types/ms': 2.1.0
@@ -4970,6 +5007,8 @@ snapshots:
       fast-uri: 3.1.9
       json-schema-traverse: 1.0.0
       require-from-string: 2.0.2
+
+  animejs@4.5.0: {}
 
   ansi-align@3.0.1:
     dependencies:
@@ -5869,6 +5908,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-astro@0.556.0(astro@5.18.2(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.68.8)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)):
+    dependencies:
+      astro: 5.18.2(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.33.0)(rollup@4.68.8)(tsx@4.23.15)(typescript@5.9.3)(yaml@2.9.1)
 
   lucide-react@1.77.0(@types/react@19.3.0)(react@19.3.1):
     dependencies:

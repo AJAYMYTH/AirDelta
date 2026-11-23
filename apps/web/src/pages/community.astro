@@ -3,6 +3,11 @@ import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
 import { AirDataService } from "@airdelta/air-adapters";
 import { getGrapStageForAqi, getAllGrapStages, AdvisoryService } from "@airdelta/schemas";
+import { 
+  Copy, 
+  Check, 
+  ShieldAlert 
+} from "lucide-astro";
 
 const airService = new AirDataService({ replayMode: true });
 const snapshot = await airService.getAirSnapshot(28.6139, 77.2090);
@@ -23,7 +28,7 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
       <div class="flex items-center gap-2 mb-1.5">
         <a href="/" class="text-xs font-semibold text-[#8c8c8c] hover:text-[#ea580c] transition-colors">← Back to Today</a>
         <span class="text-xs text-[#d9d9d9]">/</span>
-        <span class="text-xs text-[#ea580c] font-semibold">Society & Campus Notices</span>
+        <span class="text-xs text-[#ea580c] font-semibold" data-i18n="communityTitle">Society & Campus Notices</span>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -34,15 +39,16 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
         </div>
         <div class="flex items-center gap-2">
           <BadgePill badge="forecast" />
-          <span class="text-xs text-[#ea580c] bg-[#fff7ed] border border-[#fed7aa] px-3 py-1 rounded-full font-mono font-bold">
-            {activeGrapRule.stageName} Active
+          <span class="text-xs text-[#ea580c] bg-[#fff7ed] border border-[#fed7aa] px-3.5 py-1 rounded-full font-mono font-bold flex items-center gap-1.5">
+            <ShieldAlert class="w-3.5 h-3.5" />
+            <span>{activeGrapRule.stageName} Active</span>
           </span>
         </div>
       </div>
     </div>
 
     <!-- Active Advisory Preview Card (DJI Showroom Card) -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-6">
+    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-6 stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e8e8e8]">
         <div>
           <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Target: RWA & Apartment Society Residents</span>
@@ -53,9 +59,10 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
           <button
             id="btn-copy-notice"
             type="button"
-            class="px-5 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
+            class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer press-scale"
           >
-            <span>📋 Copy WhatsApp Notice</span>
+            <Copy id="copy-icon" class="w-4 h-4" />
+            <span id="copy-btn-text" data-i18n="copyNotice">Copy WhatsApp Notice</span>
           </button>
         </div>
       </div>
@@ -63,10 +70,10 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
       <!-- Quick Language Switch Tabs -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
         <span class="text-[#8c8c8c] font-semibold mr-1 text-[11px]">Notice Language:</span>
-        <button id="btn-lang-hi" class="px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors">
+        <button id="btn-lang-hi" type="button" class="px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors press-scale">
           हिन्दी (Hindi)
         </button>
-        <button id="btn-lang-en" class="px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors">
+        <button id="btn-lang-en" type="button" class="px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale">
           English
         </button>
       </div>
@@ -78,7 +85,7 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
         <span class="text-xs font-bold text-[#262626] uppercase tracking-wider block">Official Mandates & Protocol:</span>
         <div id="advisory-bullets" class="space-y-2">
           {rwaAdvisoryHindi.actionBulletPoints.map((point) => (
-            <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-xl text-xs text-[#262626]">
+            <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl text-xs text-[#262626]">
               <span class="text-[#ea580c] text-sm leading-none mt-0.5">⚠️</span>
               <span class="leading-relaxed">{point}</span>
             </div>
@@ -97,13 +104,14 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
         <span class="font-mono text-[#ea580c] font-semibold">Ready to forward on WhatsApp / Telegram</span>
       </div>
 
-      <div id="copy-toast" class="hidden p-3.5 bg-[#dcfce7] border border-[#86efac] text-[#15803d] rounded-2xl text-xs font-semibold text-center">
-        ✅ Notice copied to clipboard! Paste directly into your resident WhatsApp group.
+      <div id="copy-toast" class="hidden p-4 bg-[#dcfce7] border border-[#86efac] text-[#15803d] rounded-2xl text-xs font-semibold text-center flex items-center justify-center gap-2">
+        <Check class="w-4 h-4 text-[#15803d]" />
+        <span data-i18n="noticeCopied">Notice copied to clipboard! Paste directly into your resident WhatsApp group.</span>
       </div>
     </div>
 
     <!-- Anonymous Community Impact Ledger (k >= 5 Anonymity Standard) -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4">
+    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 stagger-card">
       <div class="flex items-center justify-between">
         <div>
           <span class="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#dcfce7] text-[#15803d] border border-[#86efac] font-bold">
@@ -134,7 +142,7 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
     </div>
 
     <!-- Official CAQM GRAP Policy Stages Matrix -->
-    <div class="space-y-4">
+    <div class="space-y-4 stagger-card">
       <div>
         <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Statutory Framework</span>
         <h2 class="text-lg font-bold text-[#262626]">CAQM Graded Response Action Plan (GRAP) Matrix</h2>
@@ -175,6 +183,7 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
 
   <script define:vars={{ rwaAdvisoryHindi, rwaAdvisoryEng }}>
     const copyBtn = document.getElementById("btn-copy-notice");
+    const copyBtnText = document.getElementById("copy-btn-text");
     const toast = document.getElementById("copy-toast");
     const headline = document.getElementById("advisory-headline");
     const body = document.getElementById("advisory-body");
@@ -184,43 +193,60 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
 
     let currentCard = rwaAdvisoryHindi.shareCardText;
 
-    btnHi?.addEventListener("click", () => {
-      btnHi.className = "px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors";
-      btnEn.className = "px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors";
+    function renderHindi() {
+      if (btnHi) btnHi.className = "px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors press-scale";
+      if (btnEn) btnEn.className = "px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale";
       if (headline) headline.innerText = rwaAdvisoryHindi.headline;
       if (body) body.innerText = rwaAdvisoryHindi.body;
       currentCard = rwaAdvisoryHindi.shareCardText;
       if (bullets) {
         bullets.innerHTML = rwaAdvisoryHindi.actionBulletPoints.map(p => `
-          <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-xl text-xs text-[#262626]">
+          <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl text-xs text-[#262626]">
             <span class="text-[#ea580c] text-sm leading-none mt-0.5">⚠️</span>
             <span class="leading-relaxed">${p}</span>
           </div>
         `).join("");
       }
-    });
+    }
 
-    btnEn?.addEventListener("click", () => {
-      btnEn.className = "px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors";
-      btnHi.className = "px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors";
+    function renderEnglish() {
+      if (btnEn) btnEn.className = "px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors press-scale";
+      if (btnHi) btnHi.className = "px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale";
       if (headline) headline.innerText = rwaAdvisoryEng.headline;
       if (body) body.innerText = rwaAdvisoryEng.body;
       currentCard = rwaAdvisoryEng.shareCardText;
       if (bullets) {
         bullets.innerHTML = rwaAdvisoryEng.actionBulletPoints.map(p => `
-          <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-xl text-xs text-[#262626]">
+          <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl text-xs text-[#262626]">
             <span class="text-[#ea580c] text-sm leading-none mt-0.5">⚠️</span>
             <span class="leading-relaxed">${p}</span>
           </div>
         `).join("");
       }
+    }
+
+    btnHi?.addEventListener("click", renderHindi);
+    btnEn?.addEventListener("click", renderEnglish);
+
+    // Sync with global language switcher event
+    window.addEventListener("airdelta:langchange", (e) => {
+      const lang = e.detail?.lang;
+      if (lang === "en") {
+        renderEnglish();
+      } else {
+        renderHindi();
+      }
     });
 
     copyBtn?.addEventListener("click", () => {
       navigator.clipboard.writeText(currentCard).then(() => {
+        if (copyBtnText) copyBtnText.innerText = "Copied!";
         if (toast) {
           toast.classList.remove("hidden");
-          setTimeout(() => toast.classList.add("hidden"), 3000);
+          setTimeout(() => {
+            toast.classList.add("hidden");
+            if (copyBtnText) copyBtnText.innerText = "Copy WhatsApp Notice";
+          }, 3000);
         }
       });
     });

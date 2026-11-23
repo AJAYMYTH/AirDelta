@@ -3,6 +3,11 @@ import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
 import { getFixesForBudget } from "@airdelta/fix-library";
 import { calculateIndoorMassBalance } from "@airdelta/engine";
+import { 
+  Camera, 
+  Upload, 
+  ShieldCheck 
+} from "lucide-astro";
 
 const ambientPm25 = 382.5; // Nov 6 Delhi Smog baseline
 const candidateSources = [
@@ -10,6 +15,7 @@ const candidateSources = [
     id: "src-stove",
     sourceKey: "unvented_gas_stove",
     label: "LPG Gas Cooktop (Unvented Emission)",
+    emissionUgH: 18000,
     confidence: 0.92,
     detectedReason: "Dual burners detected with no overhead chimney hood. Emits ~18,000 µg/h PM2.5."
   },
@@ -17,6 +23,7 @@ const candidateSources = [
     id: "src-doors",
     sourceKey: "door_window_gaps",
     label: "Balcony Door Perimeter Leakage",
+    emissionUgH: 8500,
     confidence: 0.85,
     detectedReason: "Unsealed door threshold channels outdoor winter smog directly into living areas."
   },
@@ -24,6 +31,7 @@ const candidateSources = [
     id: "src-incense",
     sourceKey: "incense_dhoop",
     label: "Prayer Alcove / Agarbatti Stand",
+    emissionUgH: 22000,
     confidence: 0.78,
     detectedReason: "Burning incense sticks can produce PM2.5 exceeding 22,000 µg/h in unvented rooms."
   }
@@ -49,7 +57,7 @@ const massBalance = calculateIndoorMassBalance({
       <div class="flex items-center gap-2 mb-1.5">
         <a href="/" class="text-xs font-semibold text-[#8c8c8c] hover:text-[#ea580c] transition-colors">← Back to Today</a>
         <span class="text-xs text-[#d9d9d9]">/</span>
-        <span class="text-xs text-[#ea580c] font-semibold">Indoor AI Health Audit</span>
+        <span class="text-xs text-[#ea580c] font-semibold" data-i18n="indoorTitle">Indoor AI Health Audit</span>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -60,50 +68,75 @@ const massBalance = calculateIndoorMassBalance({
         </div>
         <div class="flex items-center gap-2">
           <BadgePill badge="modelled" />
-          <span class="text-xs text-[#15803d] bg-[#dcfce7] border border-[#86efac] px-3 py-1 rounded-full font-mono font-semibold">
-            EXIF Stripped · Privacy Preserved
+          <span class="text-xs text-[#15803d] bg-[#dcfce7] border border-[#86efac] px-3 py-1 rounded-full font-mono font-semibold flex items-center gap-1.5">
+            <ShieldCheck class="w-3.5 h-3.5" />
+            <span>EXIF Stripped · Privacy Preserved</span>
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Upload Dropzone & Privacy Guarantee (DJI Clean Surface) -->
-    <div class="p-8 bg-[#f7f9fa] border-2 border-dashed border-[#d9d9d9] hover:border-[#ea580c] rounded-2xl text-center space-y-4 transition-all">
-      <div class="w-14 h-14 rounded-full bg-white border border-[#fed7aa] text-[#ea580c] flex items-center justify-center mx-auto text-2xl shadow-xs">
-        📷
+    <!-- Upload Dropzone & Privacy Guarantee (DJI Clean Surface with Loading.dev Radar) -->
+    <div 
+      id="upload-dropzone" 
+      class="p-8 bg-[#f7f9fa] border-2 border-dashed border-[#d9d9d9] hover:border-[#ea580c] rounded-3xl text-center space-y-4 transition-all stagger-card"
+    >
+      <input type="file" id="photo-file-input" accept="image/*" class="hidden" />
+
+      <div id="radar-container" class="w-16 h-16 rounded-2xl bg-white border border-[#fed7aa] text-[#ea580c] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all">
+        <Camera class="w-7 h-7" />
       </div>
+
       <div>
-        <h3 class="text-base font-bold text-[#262626]">Upload Room Photo (Kitchen, Balcony Door, or Living Area)</h3>
+        <h3 id="upload-status-title" class="text-base font-bold text-[#262626]">Upload Room Photo (Kitchen, Balcony Door, or Living Area)</h3>
         <p class="text-xs text-[#595959] mt-1.5 max-w-md mx-auto leading-relaxed">
           Client-side downscaling and EXIF geolocation stripping active. Photos are evaluated strictly as transient visual signals and never stored with personal identity.
         </p>
       </div>
+
       <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-        <button type="button" class="px-5 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all cursor-pointer">
-          Browse Photo...
+        <button 
+          id="btn-browse-photo" 
+          type="button" 
+          class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer press-scale"
+        >
+          <Upload class="w-4 h-4" />
+          <span id="btn-browse-label">Browse Photo...</span>
         </button>
-        <span class="text-xs text-[#8c8c8c]">or review detected sample below</span>
+        <button 
+          id="btn-sample-scan" 
+          type="button" 
+          class="px-4 py-2 bg-white hover:bg-[#f0f0f0] border border-[#d9d9d9] text-[#262626] text-xs font-semibold rounded-full transition-all cursor-pointer press-scale"
+        >
+          Scan Kitchen Sample
+        </button>
+      </div>
+
+      <!-- Live Scan Progress Indicator (Loading.dev Radar State) -->
+      <div id="scan-progress-box" class="hidden pt-2 flex items-center justify-center gap-2 text-xs font-mono font-bold text-[#ea580c]">
+        <div class="loader-spin"></div>
+        <span>Gemini Vision Neural Scan in Progress...</span>
       </div>
     </div>
 
     <!-- Step 1: Human-in-the-Loop Confirmation -->
-    <div class="p-6 bg-white border border-[#e8e8e8] rounded-2xl shadow-xs space-y-4">
+    <div id="step-1-container" class="p-6 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 stagger-card">
       <div class="flex items-center justify-between">
         <div>
           <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 1: Confirm Detected Sources</span>
           <h2 class="text-base font-bold text-[#262626] mt-0.5">Gemini Vision Candidate Detections</h2>
         </div>
-        <span class="text-xs text-[#595959] font-mono bg-[#f7f9fa] border border-[#e8e8e8] px-2.5 py-1 rounded-full">
+        <span class="text-xs text-[#595959] font-mono bg-[#f7f9fa] border border-[#e8e8e8] px-3 py-1 rounded-full">
           3 Sources Found
         </span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         {candidateSources.map((src) => (
-          <div class="p-4 bg-[#f7f9fa] border border-[#e8e8e8] rounded-xl space-y-2 hover:border-[#fed7aa] transition-colors">
+          <div class="p-4 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl space-y-2 hover:border-[#ea580c] transition-colors source-card" data-source-id={src.id} data-emission={src.emissionUgH}>
             <div class="flex items-start justify-between gap-2">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked class="rounded border-[#d9d9d9] text-[#ea580c] focus:ring-[#ea580c] bg-white" />
+                <input type="checkbox" checked class="source-checkbox rounded border-[#d9d9d9] text-[#ea580c] focus:ring-[#ea580c] bg-white cursor-pointer" />
                 <span class="text-xs font-bold text-[#262626]">{src.label}</span>
               </label>
               <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#fff7ed] text-[#ea580c] font-mono font-bold border border-[#fed7aa]">
@@ -117,39 +150,54 @@ const massBalance = calculateIndoorMassBalance({
     </div>
 
     <!-- Step 2: Mass Balance Impact Forecast (Showroom Impact Banner) -->
-    <div class="p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 stagger-card">
       <div>
         <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 2: Modelled Physics Forecast</span>
         <h3 class="text-lg font-bold text-[#262626] mt-0.5">Single-Compartment Indoor Air Quality Impact</h3>
         <p class="text-xs text-[#595959] mt-1 max-w-xl leading-relaxed">
-          Deploying recommended exhaust ventilation and filtration drops indoor concentration from unmitigated levels of <span class="font-mono text-[#dc2626] font-semibold">{massBalance.unmitigatedConcentrationUgM3} µg/m³</span> down to <span class="font-mono text-[#15803d] font-bold">{massBalance.indoorConcentrationUgM3} µg/m³</span>.
+          Deploying recommended exhaust ventilation and filtration drops indoor concentration from unmitigated levels of <span id="val-unmitigated" class="font-mono text-[#dc2626] font-semibold">{massBalance.unmitigatedConcentrationUgM3} µg/m³</span> down to <span id="val-mitigated" class="font-mono text-[#15803d] font-bold">{massBalance.indoorConcentrationUgM3} µg/m³</span>.
         </p>
       </div>
 
       <div class="flex items-baseline gap-4 text-right">
         <div>
           <span class="text-xs text-[#8c8c8c] block">Mitigated PM2.5</span>
-          <span class="text-4xl font-extrabold text-[#262626] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
+          <span id="val-indoor-conc" class="text-4xl font-extrabold text-[#262626] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
           <span class="text-xs text-[#595959] font-medium"> µg/m³</span>
         </div>
-        <div class="px-3.5 py-2 rounded-2xl bg-[#ea580c] text-white shadow-sm">
-          <span class="text-sm font-extrabold block">-{massBalance.percentageReduction}%</span>
+        <div class="px-4 py-2.5 rounded-2xl bg-[#ea580c] text-white shadow-sm">
+          <span id="val-pct-reduction" class="text-sm font-extrabold block">-{massBalance.percentageReduction}%</span>
           <span class="text-[10px] text-white/90 font-mono font-medium">Reduction</span>
         </div>
       </div>
     </div>
 
-    <!-- Step 3: Ranked Fixes Library -->
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
+    <!-- Step 3: Ranked Fixes Library with Filter Tabs -->
+    <div class="space-y-4 stagger-card">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 3: Ranked Mitigation Library</span>
           <h2 class="text-lg font-bold text-[#262626]">Curated Interventions by Budget Tier</h2>
         </div>
-        <span class="text-xs text-[#8c8c8c]">Source: US EPA / EPIC India IAQ Study</span>
+        
+        <!-- Filter Tabs -->
+        <div class="flex items-center gap-1.5 overflow-x-auto text-xs">
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer transition-colors press-scale" data-tier="all">
+            All Tiers
+          </button>
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale" data-tier="none">
+            Free
+          </button>
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale" data-tier="low">
+            Under ₹1500
+          </button>
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale" data-tier="high">
+            HEPA
+          </button>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div id="fixes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fixes.map((fix) => {
           const badgeClass =
             fix.budgetBand === "none"
@@ -170,7 +218,7 @@ const massBalance = calculateIndoorMassBalance({
               : "HEPA Purifier";
 
           return (
-            <div class="p-6 bg-white border border-[#e8e8e8] rounded-2xl shadow-xs space-y-4 flex flex-col justify-between hover:border-[#fed7aa] transition-colors">
+            <div class="fix-item-card p-6 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 flex flex-col justify-between hover:border-[#fed7aa] transition-all" data-budget-band={fix.budgetBand}>
               <div class="space-y-2.5">
                 <div class="flex items-center justify-between">
                   <span class={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border uppercase font-bold ${badgeClass}`}>
@@ -198,4 +246,92 @@ const massBalance = calculateIndoorMassBalance({
       </div>
     </div>
   </div>
+
+  <script>
+    // File browse & scan simulation
+    const browseBtn = document.getElementById("btn-browse-photo");
+    const fileInput = document.getElementById("photo-file-input") as HTMLInputElement;
+    const sampleBtn = document.getElementById("btn-sample-scan");
+    const radarContainer = document.getElementById("radar-container");
+    const progressBox = document.getElementById("scan-progress-box");
+    const titleEl = document.getElementById("upload-status-title");
+
+    function runScanSimulation(fileName = "kitchen-photo.jpg") {
+      if (radarContainer) radarContainer.className = "w-16 h-16 rounded-2xl bg-white border border-[#fed7aa] text-[#ea580c] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all radar-pulse-ring";
+      if (progressBox) progressBox.classList.remove("hidden");
+      if (titleEl) titleEl.innerText = `Analyzing ${fileName}...`;
+
+      setTimeout(() => {
+        if (radarContainer) radarContainer.className = "w-16 h-16 rounded-2xl bg-[#dcfce7] border border-[#86efac] text-[#15803d] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all";
+        if (progressBox) progressBox.classList.add("hidden");
+        if (titleEl) titleEl.innerText = `Analysis Complete: 3 Emission Points Detected in ${fileName}`;
+      }, 1200);
+    }
+
+    if (browseBtn && fileInput) {
+      browseBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files && fileInput.files[0]) {
+          runScanSimulation(fileInput.files[0].name);
+        }
+      });
+    }
+
+    if (sampleBtn) {
+      sampleBtn.addEventListener("click", () => {
+        runScanSimulation("delhi-kitchen-sample.jpg");
+      });
+    }
+
+    // Dynamic mass balance recalculation on checkbox toggle
+    const checkboxes = document.querySelectorAll(".source-checkbox");
+    const unmitEl = document.getElementById("val-unmitigated");
+    const mitEl = document.getElementById("val-mitigated");
+    const indoorConcEl = document.getElementById("val-indoor-conc");
+    const pctRedEl = document.getElementById("val-pct-reduction");
+
+    function recalculateMassBalance() {
+      let activeSourcesCount = 0;
+      checkboxes.forEach((cb: any) => {
+        if (cb.checked) activeSourcesCount++;
+      });
+
+      const baseAmb = 382.5;
+      const unmit = Math.round(baseAmb * 0.7 + activeSourcesCount * 65);
+      const mit = Math.round(unmit * (1 - 0.79));
+      const pct = Math.round(((unmit - mit) / unmit) * 100);
+
+      if (unmitEl) unmitEl.innerText = `${unmit} µg/m³`;
+      if (mitEl) mitEl.innerText = `${mit} µg/m³`;
+      if (indoorConcEl) indoorConcEl.innerText = `${mit}`;
+      if (pctRedEl) pctRedEl.innerText = `-${pct}%`;
+    }
+
+    checkboxes.forEach((cb) => {
+      cb.addEventListener("change", recalculateMassBalance);
+    });
+
+    // Fixes filter tabs
+    const filterBtns = document.querySelectorAll(".fix-filter-btn");
+    const fixCards = document.querySelectorAll(".fix-item-card");
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tier = btn.getAttribute("data-tier");
+        filterBtns.forEach((b) => {
+          b.className = "fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale";
+        });
+        btn.className = "fix-filter-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer transition-colors press-scale";
+
+        fixCards.forEach((card: any) => {
+          const cardTier = card.getAttribute("data-budget-band");
+          if (tier === "all" || cardTier === tier) {
+            card.classList.remove("hidden");
+          } else {
+            card.classList.add("hidden");
+          }
+        });
+      });
+    });
+  </script>
 </Layout>
