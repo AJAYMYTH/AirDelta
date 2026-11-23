@@ -120,9 +120,13 @@ airdelta/
     - Replay: clickable timeline bars, animated play/pause states, and live telemetry updates.
     - Settings: regional language grid with instant dynamic translation and JSON data export.
   - Verified 0 errors, 0 warnings, 0 hints across monorepo typecheck and Astro static build.
+- [x] **Supabase MCP Server & Agent Skills Integration:**
+  - Configured Supabase MCP server in `~/.gemini/antigravity/mcp_config.json` and `~/.gemini/antigravity-cli/mcp_config.json` with project reference `cwvsngmwzhytrjzdqvpn` and full management features (`docs, account, database, debugging, development, functions, branching, feedback, notebooks`).
+  - Preserved existing local MCP servers (`codebase-memory-mcp` and `devfolio`).
+  - Installed official project-level Supabase Agent Skills (`.agents/skills/supabase` and `.agents/skills/supabase-postgres-best-practices`) for schema operations, migration auditing, and RLS optimization.
 
 ## Development Progress
-- **Current Status:** 100% Complete & Verified across all 8 phases + Astryx, DESIGN.md Showroom, Lucide Icons & anime.js Interactivity.
+- **Current Status:** 100% Complete & Verified across all 8 phases + Astryx, DESIGN.md Showroom, Lucide Icons, anime.js Interactivity, and Supabase MCP & Skills.
 - **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (`main` branch).
 - **Test Suite Status:** 50/50 tests passing across 12 test suites (`pnpm test`).
 - **Compilation Status:** 0 errors, 0 warnings, 0 hints (`pnpm typecheck` & `pnpm -r run build`).
