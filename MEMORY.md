@@ -90,8 +90,24 @@ airdelta/
   - Added "3 Simple Actions for Today" directive banner (Outdoor Activity, Airing Window, Commute Protection).
   - Implemented mobile bottom navigation bar for quick one-thumb accessibility.
 
+- [x] **DESIGN.md Showroom UI Redesign & Brand Theme Integration:**
+  - Fully adopted the DJI-inspired engineering showroom design philosophy from `DESIGN.md`: pure white canvas (`#ffffff`), soft panel fills (`#f7f9fa`), near-black ink text (`#262626`, stepped to `#595959` and `#8c8c8c`), subtle dividers (`#e8e8e8`), and rounded pill buttons (`rounded-full`).
+  - Integrated the official brand colors across the entire web application: **Primary: White (`#ffffff`)** and **Secondary: Orange (`#ea580c` / `#f97316` / `#fff7ed` / `#fed7aa`)**.
+  - Redesigned `apps/web/src/styles/global.css` with tokens for `--color-canvas`, `--color-canvas-soft`, `--color-orange-primary`, `--color-orange-secondary`, and Astryx layered bridge.
+  - Redesigned `apps/web/src/components/BadgePill.astro` (crisp white/tinted pills with distinct colored status dots) and `apps/web/src/components/ForecastStrip.astro` (white card, orange peak highlight, soft gray bars).
+  - Redesigned `apps/web/src/layouts/Layout.astro` with a 64px white navbar, orange active indicator dot and pill, orange emergency alert bar, charcoal `#272727` footer, and showroom mobile bottom navigation.
+  - Fully transformed all 7 web pages:
+    - `index.astro` (Today Dashboard): 3 Action Option Cards, 64px hero spec card for AQI 385, dense pollutant rows, and prominent orange pill CTA.
+    - `plan.astro` (Exposure Optimizer): Plan A neutral showroom card vs Plan B flagship card with 2px orange border ring, orange percentage badge, emissions ledger, and trade-off card.
+    - `indoor.astro` (Photo Audit): Soft gray dashed dropzone, candidate detection cards with orange confidence badges, single-compartment mass balance forecast in orange tint card, and budget-ranked mitigation library.
+    - `community.astro` (Advisories): White advisory preview card, orange WhatsApp copy button, interactive Hindi/English pill toggles, $k \ge 5$ collective action ledger, and CAQM GRAP matrix.
+    - `replay.astro` (Smog Replay Studio): White timeline scrubber frame, orange slider accent, live telemetry grid with Plan B orange highlight card, and active orange bar animation.
+    - `method.astro` (Methodology): White physics formulation cards with orange equation syntax boxes, versioned Constants Registry `2026-11-a` showroom table, and data provenance cards.
+    - `settings.astro` (Settings & Privacy): Regional language selection grid with active orange border ring, Telegram bot card, and rounded data export/purge action buttons.
+  - Verified 100% clean builds across monorepo: `pnpm test` (50/50 passing), `pnpm typecheck` (0 errors, 0 warnings), `pnpm -r run build` (all 7 static pages built in 2.27s).
+
 ## Development Progress
-- **Current Status:** 100% Complete & Verified across all 8 phases.
+- **Current Status:** 100% Complete & Verified across all 8 phases + Astryx & DESIGN.md Showroom UI Redesign.
 - **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (`main` branch).
 - **Test Suite Status:** 50/50 tests passing across 12 test suites (`pnpm test`).
 - **Compilation Status:** 0 errors, 0 warnings (`pnpm typecheck` & `pnpm -r run build`).

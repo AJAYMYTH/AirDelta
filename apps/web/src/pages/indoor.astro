@@ -46,93 +46,95 @@ const massBalance = calculateIndoorMassBalance({
   <div class="space-y-8 max-w-5xl mx-auto">
     <!-- Header -->
     <div>
-      <div class="flex items-center gap-2 mb-1">
-        <a href="/" class="text-xs text-slate-400 hover:text-cyan-400">← Back to Today</a>
-        <span class="text-xs text-slate-600">/</span>
-        <span class="text-xs text-cyan-400 font-medium">Indoor AI Health Audit</span>
+      <div class="flex items-center gap-2 mb-1.5">
+        <a href="/" class="text-xs font-semibold text-[#8c8c8c] hover:text-[#ea580c] transition-colors">← Back to Today</a>
+        <span class="text-xs text-[#d9d9d9]">/</span>
+        <span class="text-xs text-[#ea580c] font-semibold">Indoor AI Health Audit</span>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Indoor Air & Pollution Audit</h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]">Indoor Air & Pollution Audit</h1>
+          <p class="text-xs sm:text-sm text-[#595959] mt-1">
             Visual emission detection + human-in-the-loop confirmation + budget-ranked fixes
           </p>
         </div>
         <div class="flex items-center gap-2">
           <BadgePill badge="modelled" />
-          <span class="text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono">
-            EXIF Stripped
+          <span class="text-xs text-[#15803d] bg-[#dcfce7] border border-[#86efac] px-3 py-1 rounded-full font-mono font-semibold">
+            EXIF Stripped · Privacy Preserved
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Upload Dropzone & Privacy Guarantee -->
-    <div class="p-6 bg-slate-900/60 border-2 border-dashed border-slate-700/80 rounded-2xl text-center space-y-3 hover:border-cyan-500/50 transition-all">
-      <div class="w-12 h-12 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-400 flex items-center justify-center mx-auto text-xl">
+    <!-- Upload Dropzone & Privacy Guarantee (DJI Clean Surface) -->
+    <div class="p-8 bg-[#f7f9fa] border-2 border-dashed border-[#d9d9d9] hover:border-[#ea580c] rounded-2xl text-center space-y-4 transition-all">
+      <div class="w-14 h-14 rounded-full bg-white border border-[#fed7aa] text-[#ea580c] flex items-center justify-center mx-auto text-2xl shadow-xs">
         📷
       </div>
       <div>
-        <h3 class="text-sm font-bold text-slate-100">Upload Room Photo (Kitchen, Balcony Door, or Living Area)</h3>
-        <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-          Client-side downscaling and EXIF geolocation stripping active. Photos are processed strictly as visual data and never stored with personal identity.
+        <h3 class="text-base font-bold text-[#262626]">Upload Room Photo (Kitchen, Balcony Door, or Living Area)</h3>
+        <p class="text-xs text-[#595959] mt-1.5 max-w-md mx-auto leading-relaxed">
+          Client-side downscaling and EXIF geolocation stripping active. Photos are evaluated strictly as transient visual signals and never stored with personal identity.
         </p>
       </div>
-      <div class="flex items-center justify-center gap-3 pt-2">
-        <button type="button" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg text-slate-200 border border-slate-600 transition-colors">
+      <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <button type="button" class="px-5 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all cursor-pointer">
           Browse Photo...
         </button>
-        <span class="text-xs text-slate-500">or review detected sample below</span>
+        <span class="text-xs text-[#8c8c8c]">or review detected sample below</span>
       </div>
     </div>
 
     <!-- Step 1: Human-in-the-Loop Confirmation -->
-    <div class="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-4">
+    <div class="p-6 bg-white border border-[#e8e8e8] rounded-2xl shadow-xs space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">Step 1: Confirm Detected Sources</span>
-          <h2 class="text-base font-bold text-slate-100 mt-0.5">Gemini Vision Candidate Detections</h2>
+          <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 1: Confirm Detected Sources</span>
+          <h2 class="text-base font-bold text-[#262626] mt-0.5">Gemini Vision Candidate Detections</h2>
         </div>
-        <span class="text-xs text-slate-400 font-mono">3 Sources Found</span>
+        <span class="text-xs text-[#595959] font-mono bg-[#f7f9fa] border border-[#e8e8e8] px-2.5 py-1 rounded-full">
+          3 Sources Found
+        </span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         {candidateSources.map((src) => (
-          <div class="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2">
+          <div class="p-4 bg-[#f7f9fa] border border-[#e8e8e8] rounded-xl space-y-2 hover:border-[#fed7aa] transition-colors">
             <div class="flex items-start justify-between gap-2">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked class="rounded border-slate-700 text-cyan-500 focus:ring-cyan-500 bg-slate-900" />
-                <span class="text-xs font-bold text-slate-200">{src.label}</span>
+                <input type="checkbox" checked class="rounded border-[#d9d9d9] text-[#ea580c] focus:ring-[#ea580c] bg-white" />
+                <span class="text-xs font-bold text-[#262626]">{src.label}</span>
               </label>
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#fff7ed] text-[#ea580c] font-mono font-bold border border-[#fed7aa]">
                 {Math.round(src.confidence * 100)}%
               </span>
             </div>
-            <p class="text-[11px] text-slate-400 leading-snug">{src.detectedReason}</p>
+            <p class="text-[11px] text-[#595959] leading-snug">{src.detectedReason}</p>
           </div>
         ))}
       </div>
     </div>
 
-    <!-- Step 2: Mass Balance Impact Forecast -->
-    <div class="p-6 bg-gradient-to-r from-emerald-950/50 via-slate-900 to-cyan-950/50 border border-emerald-500/40 rounded-2xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <!-- Step 2: Mass Balance Impact Forecast (Showroom Impact Banner) -->
+    <div class="p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div>
-        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Step 2: Modelled Physics Forecast</span>
-        <h3 class="text-lg font-bold text-white mt-0.5">Single-Compartment Indoor Air Quality Impact</h3>
-        <p class="text-xs text-slate-300 mt-1 max-w-xl">
-          Deploying recommended exhaust ventilation and filtration drops indoor concentration from unmitigated levels of <span class="font-mono text-red-400">{massBalance.unmitigatedConcentrationUgM3} µg/m³</span> down to <span class="font-mono text-emerald-400 font-bold">{massBalance.indoorConcentrationUgM3} µg/m³</span>.
+        <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 2: Modelled Physics Forecast</span>
+        <h3 class="text-lg font-bold text-[#262626] mt-0.5">Single-Compartment Indoor Air Quality Impact</h3>
+        <p class="text-xs text-[#595959] mt-1 max-w-xl leading-relaxed">
+          Deploying recommended exhaust ventilation and filtration drops indoor concentration from unmitigated levels of <span class="font-mono text-[#dc2626] font-semibold">{massBalance.unmitigatedConcentrationUgM3} µg/m³</span> down to <span class="font-mono text-[#15803d] font-bold">{massBalance.indoorConcentrationUgM3} µg/m³</span>.
         </p>
       </div>
 
       <div class="flex items-baseline gap-4 text-right">
         <div>
-          <span class="text-xs text-slate-400 block">Mitigated PM2.5</span>
-          <span class="text-4xl font-extrabold text-emerald-400 font-mono">{massBalance.indoorConcentrationUgM3}</span>
-          <span class="text-xs text-slate-400 font-medium"> µg/m³</span>
+          <span class="text-xs text-[#8c8c8c] block">Mitigated PM2.5</span>
+          <span class="text-4xl font-extrabold text-[#262626] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
+          <span class="text-xs text-[#595959] font-medium"> µg/m³</span>
         </div>
-        <div class="px-3 py-1.5 rounded-xl bg-emerald-950 border border-emerald-500/40">
-          <span class="text-xs font-bold text-emerald-300 block">-{massBalance.percentageReduction}%</span>
-          <span class="text-[10px] text-emerald-400/80 font-mono">Reduction</span>
+        <div class="px-3.5 py-2 rounded-2xl bg-[#ea580c] text-white shadow-sm">
+          <span class="text-sm font-extrabold block">-{massBalance.percentageReduction}%</span>
+          <span class="text-[10px] text-white/90 font-mono font-medium">Reduction</span>
         </div>
       </div>
     </div>
@@ -141,22 +143,22 @@ const massBalance = calculateIndoorMassBalance({
     <div class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider block">Step 3: Ranked Mitigation Library</span>
-          <h2 class="text-lg font-bold text-slate-100">Curated Interventions by Budget Tier</h2>
+          <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 3: Ranked Mitigation Library</span>
+          <h2 class="text-lg font-bold text-[#262626]">Curated Interventions by Budget Tier</h2>
         </div>
-        <span class="text-xs text-slate-400">Source: US EPA / EPIC India IAQ Study</span>
+        <span class="text-xs text-[#8c8c8c]">Source: US EPA / EPIC India IAQ Study</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {fixes.map((fix) => {
           const badgeClass =
             fix.budgetBand === "none"
-              ? "bg-emerald-950 text-emerald-400 border-emerald-800/40"
+              ? "bg-[#dcfce7] text-[#15803d] border-[#86efac]"
               : fix.budgetBand === "low"
-              ? "bg-blue-950 text-blue-400 border-blue-800/40"
+              ? "bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]"
               : fix.budgetBand === "medium"
-              ? "bg-purple-950 text-purple-400 border-purple-800/40"
-              : "bg-amber-950 text-amber-400 border-amber-800/40";
+              ? "bg-[#f3e8ff] text-[#7e22ce] border-[#d8b4fe]"
+              : "bg-[#fff7ed] text-[#ea580c] border-[#fed7aa]";
 
           const budgetLabel =
             fix.budgetBand === "none"
@@ -168,23 +170,23 @@ const massBalance = calculateIndoorMassBalance({
               : "HEPA Purifier";
 
           return (
-            <div class="p-5 bg-slate-900/70 border border-slate-800 rounded-2xl space-y-3 flex flex-col justify-between">
-              <div class="space-y-2">
+            <div class="p-6 bg-white border border-[#e8e8e8] rounded-2xl shadow-xs space-y-4 flex flex-col justify-between hover:border-[#fed7aa] transition-colors">
+              <div class="space-y-2.5">
                 <div class="flex items-center justify-between">
-                  <span class={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase font-bold ${badgeClass}`}>
+                  <span class={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border uppercase font-bold ${badgeClass}`}>
                     {budgetLabel}
                   </span>
-                  <span class="text-xs font-mono font-bold text-emerald-400">
+                  <span class="text-xs font-mono font-bold text-[#15803d] bg-[#dcfce7] px-2.5 py-0.5 rounded-full">
                     -{fix.estimatedReductionPercent}% PM2.5
                   </span>
                 </div>
-                <h3 class="text-sm font-bold text-slate-100">{fix.title}</h3>
-                <p class="text-xs text-slate-400 leading-relaxed">{fix.description}</p>
+                <h3 class="text-sm font-bold text-[#262626]">{fix.title}</h3>
+                <p class="text-xs text-[#595959] leading-relaxed">{fix.description}</p>
               </div>
 
-              <div class="pt-2 border-t border-slate-800/60 space-y-1.5">
-                <span class="text-[11px] font-semibold text-slate-300 block">Action Steps:</span>
-                <ul class="text-[11px] text-slate-400 space-y-1 list-disc list-inside">
+              <div class="pt-3 border-t border-[#e8e8e8] space-y-2">
+                <span class="text-[11px] font-bold text-[#262626] block">Action Steps:</span>
+                <ul class="text-[11px] text-[#595959] space-y-1.5 list-disc list-inside">
                   {fix.actionSteps.map((step) => (
                     <li>{step}</li>
                   ))}

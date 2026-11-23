@@ -34,35 +34,35 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
 ---
 
 <Layout title="AirDelta — Smog Replay Studio">
-  <div class="space-y-8">
+  <div class="space-y-8 max-w-5xl mx-auto">
     <!-- Header -->
-    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-2">
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]">
               Deterministic Simulation
             </span>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+            <span class="px-3 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8]">
               {episodeMeta}
             </span>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]">
             Severe Smog Episode Replay
           </h1>
-          <p class="text-sm text-slate-400 mt-1 max-w-2xl">
+          <p class="text-xs sm:text-sm text-[#595959] mt-1 max-w-2xl leading-relaxed">
             Simulate and replay the severe post-Diwali Delhi NCR temperature inversion episode. Scrub across the day to observe how Plan B active interventions prevent critical respiratory dose spikes.
           </p>
         </div>
 
-        <div class="flex items-center gap-3">
-          <button id="btn-play" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs rounded-xl shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2">
+        <div class="flex items-center gap-3 self-start sm:self-auto">
+          <button id="btn-play" class="px-5 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer">
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M6.3 2.841A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
             </svg>
             <span id="play-text">Play Replay</span>
           </button>
-          <button id="btn-reset" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl border border-slate-700 transition-all">
+          <button id="btn-reset" class="px-4 py-2.5 bg-[#f7f9fa] hover:bg-[#f0f0f0] text-[#262626] font-semibold text-xs rounded-full border border-[#e8e8e8] transition-all cursor-pointer">
             Reset
           </button>
         </div>
@@ -70,8 +70,8 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
 
       <!-- Scrubber Slider -->
       <div class="mt-8 space-y-3">
-        <div class="flex justify-between items-center text-xs font-mono text-slate-400">
-          <span id="label-time">Hour: 06:00 IST (Peak Morning Commute)</span>
+        <div class="flex justify-between items-center text-xs font-mono text-[#595959]">
+          <span id="label-time" class="font-bold text-[#262626]">Hour: 06:00 IST (Peak Morning Commute)</span>
           <span id="label-date">Nov 6, 2026 · Grid 28.61:77.21 (Delhi)</span>
         </div>
         <input 
@@ -80,13 +80,13 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
           min="0" 
           max={hours.length > 0 ? hours.length - 1 : 0} 
           value="2" 
-          class="w-full h-2.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-400 border border-slate-700/60"
+          class="w-full h-2.5 bg-[#f0f0f0] rounded-lg appearance-none cursor-pointer accent-[#ea580c] border border-[#e8e8e8]"
         />
-        <div class="flex justify-between text-[11px] font-mono text-slate-500">
+        <div class="flex justify-between text-[11px] font-mono text-[#8c8c8c]">
           <span>00:00 (Inversion)</span>
           <span>06:00 (Peak Smog)</span>
           <span>12:00 (Clearing)</span>
-          <span>14:00 (Window)</span>
+          <span>14:00 (Clean Window)</span>
           <span>20:00 (Night Stagnation)</span>
         </div>
       </div>
@@ -95,117 +95,116 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
     <!-- Live Telemetry Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- Card 1: Ambient Conditions -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+      <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 shadow-xs">
         <div class="flex items-center justify-between mb-4">
-          <span class="text-xs uppercase font-mono text-slate-400">Ambient Air Quality</span>
-          <span id="badge-provenance" class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800">
-            [Measured]
+          <span class="text-xs uppercase font-mono font-bold text-[#8c8c8c]">Ambient Air Quality</span>
+          <span id="badge-provenance" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8]">
+            [Measured: CPCB]
           </span>
         </div>
-        <div class="flex items-baseline gap-3">
-          <span id="val-aqi" class="text-4xl font-extrabold text-red-400 font-mono">425</span>
-          <span class="text-xs text-slate-400">CPCB NAQI</span>
+        <div class="flex items-baseline gap-2">
+          <span id="val-aqi" class="text-4xl font-extrabold text-[#dc2626] font-mono tracking-tight">425</span>
+          <span class="text-xs font-semibold text-[#8c8c8c]">CPCB NAQI</span>
         </div>
-        <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-2 text-xs">
+        <div class="mt-4 pt-4 border-t border-[#e8e8e8] space-y-2.5 text-xs">
           <div class="flex justify-between">
-            <span class="text-slate-400">PM2.5 Concentration:</span>
-            <span id="val-pm25" class="font-mono text-slate-200">420 µg/m³</span>
+            <span class="text-[#595959]">PM2.5 Concentration:</span>
+            <span id="val-pm25" class="font-mono font-bold text-[#262626]">420 µg/m³</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-400">CPCB Category:</span>
-            <span id="val-category" class="font-semibold uppercase text-red-400">Severe</span>
+            <span class="text-[#595959]">CPCB Category:</span>
+            <span id="val-category" class="font-bold uppercase text-[#dc2626]">Severe</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-400">CAQM GRAP Regulatory:</span>
-            <span id="val-grap" class="font-mono text-red-400">Stage IV Active</span>
+            <span class="text-[#595959]">CAQM GRAP Regulatory:</span>
+            <span id="val-grap" class="font-mono font-semibold text-[#dc2626]">Stage IV Active</span>
           </div>
         </div>
       </div>
 
       <!-- Card 2: Plan A Exposure (Default Routine) -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+      <div class="bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl p-6 shadow-xs">
         <div class="flex items-center justify-between mb-4">
-          <span class="text-xs uppercase font-mono text-slate-400">Plan A: Normal Day</span>
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-red-950 text-red-400 border border-red-800">
+          <span class="text-xs uppercase font-mono font-bold text-[#8c8c8c]">Plan A: Normal Day</span>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#fee2e2] text-[#dc2626] border border-[#fca5a5]">
             Unprotected
           </span>
         </div>
-        <div class="flex items-baseline gap-3">
-          <span id="val-dose-a" class="text-4xl font-extrabold text-slate-100 font-mono">164.2</span>
-          <span class="text-xs text-slate-400">µg inhaled</span>
+        <div class="flex items-baseline gap-2">
+          <span id="val-dose-a" class="text-4xl font-extrabold text-[#262626] font-mono tracking-tight">164.2</span>
+          <span class="text-xs font-semibold text-[#8c8c8c]">µg inhaled</span>
         </div>
-        <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-2 text-xs">
+        <div class="mt-4 pt-4 border-t border-[#e8e8e8] space-y-2.5 text-xs">
           <div class="flex justify-between">
-            <span class="text-slate-400">Activity State:</span>
-            <span id="val-state-a" class="text-slate-200">Roadside Two-Wheeler Commute</span>
+            <span class="text-[#595959]">Activity State:</span>
+            <span id="val-state-a" class="text-[#262626] font-semibold">Roadside Two-Wheeler Commute</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-400">Breathing Rate (VE):</span>
-            <span class="font-mono text-slate-200">1.25 m³/h</span>
+            <span class="text-[#595959]">Breathing Rate (VE):</span>
+            <span class="font-mono text-[#262626] font-medium">1.25 m³/h</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-400">Filtration / Envelope:</span>
-            <span class="text-red-400">None (F_micro = 1.15)</span>
+            <span class="text-[#595959]">Filtration / Envelope:</span>
+            <span class="text-[#dc2626] font-semibold">None (F_micro = 1.15)</span>
           </div>
         </div>
       </div>
 
-      <!-- Card 3: Plan B Exposure (AirDelta Optimized) -->
-      <div class="bg-slate-900/80 border border-cyan-800/40 rounded-2xl p-6 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none"></div>
+      <!-- Card 3: Plan B Exposure (AirDelta Guided) -->
+      <div class="bg-white border-2 border-[#ea580c] rounded-2xl p-6 shadow-sm relative overflow-hidden">
         <div class="flex items-center justify-between mb-4">
-          <span class="text-xs uppercase font-mono text-cyan-400">Plan B: AirDelta Guided</span>
-          <span id="val-saved-percent" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+          <span class="text-xs uppercase font-mono font-bold text-[#ea580c]">Plan B: Guided</span>
+          <span id="val-saved-percent" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]">
             -45.2% DOSE
           </span>
         </div>
-        <div class="flex items-baseline gap-3">
-          <span id="val-dose-b" class="text-4xl font-extrabold text-cyan-400 font-mono">89.9</span>
-          <span class="text-xs text-slate-400">µg inhaled</span>
+        <div class="flex items-baseline gap-2">
+          <span id="val-dose-b" class="text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight">89.9</span>
+          <span class="text-xs font-semibold text-[#ea580c]">µg inhaled</span>
         </div>
-        <div class="mt-4 pt-4 border-t border-slate-800/80 space-y-2 text-xs">
+        <div class="mt-4 pt-4 border-t border-[#fed7aa]/60 space-y-2.5 text-xs">
           <div class="flex justify-between">
-            <span class="text-slate-400">Intervention Mode:</span>
-            <span id="val-state-b" class="text-emerald-400 font-medium">Metro AC + N95 (F_micro = 0.038)</span>
+            <span class="text-[#595959]">Intervention Mode:</span>
+            <span id="val-state-b" class="text-[#15803d] font-semibold">Metro AC + N95 (F_micro = 0.038)</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-400">Dose Difference:</span>
-            <span id="val-saved-ug" class="font-mono text-emerald-400 font-semibold">-74.3 µg saved</span>
+            <span class="text-[#595959]">Dose Difference:</span>
+            <span id="val-saved-ug" class="font-mono text-[#ea580c] font-bold">-74.3 µg saved</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-slate-400">Carbon Impact:</span>
-            <span class="font-mono text-cyan-300">-300 gCO₂e (Metro switch)</span>
+            <span class="text-[#595959]">Carbon Impact:</span>
+            <span class="font-mono text-[#15803d] font-semibold">-300 gCO₂e (Metro switch)</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Comparative Hourly Timeline Visualization -->
-    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8">
-      <h3 class="text-base font-bold text-white mb-2">Episode Smog Timeline (PM2.5 Profile)</h3>
-      <p class="text-xs text-slate-400 mb-6">
+    <div class="bg-white border border-[#e8e8e8] rounded-2xl p-6 sm:p-8 shadow-xs">
+      <h3 class="text-base font-bold text-[#262626] mb-1">Episode Smog Timeline (PM2.5 Profile)</h3>
+      <p class="text-xs text-[#595959] mb-6">
         Discrete timeline points from CPCB Anand Vihar ITO and CAMS Forecast during the peak winter episode.
       </p>
 
-      <div class="grid grid-cols-8 gap-3 h-36 items-end pt-4 pb-2 border-b border-slate-800">
+      <div class="grid grid-cols-8 gap-3 h-40 items-end pt-4 pb-2 border-b border-[#e8e8e8]">
         {hours.map((h: HourlyPoint, i: number) => {
           const heightPct = Math.min(100, Math.max(15, Math.round((h.pm25 / 450) * 100)));
           return (
-            <div class="flex flex-col items-center gap-1 group relative">
+            <div class="flex flex-col items-center gap-1.5 group relative">
               <div 
                 id={`bar-${i}`}
-                class="w-full bg-slate-800 rounded-t transition-all group-hover:bg-cyan-500/50 cursor-pointer"
+                class="w-full bg-[#e8e8e8] rounded-t transition-all group-hover:bg-[#fed7aa] cursor-pointer"
                 style={`height: ${heightPct}%`}
                 title={`${h.timeLabel} · PM2.5: ${h.pm25} µg/m³`}
               ></div>
-              <span class="text-[10px] font-mono text-slate-400">{h.timeLabel}</span>
+              <span class="text-[10px] font-mono text-[#8c8c8c]">{h.timeLabel}</span>
             </div>
           );
         })}
       </div>
-      <div class="flex justify-between text-xs text-slate-400 mt-3">
+      <div class="flex justify-between text-xs text-[#595959] mt-3">
         <span>Bar height proportional to ambient PM2.5 concentration</span>
-        <span class="font-mono text-red-400">Max AQI: 438 @ 03:00 IST</span>
+        <span class="font-mono font-bold text-[#dc2626]">Peak: 438 AQI @ 03:00 IST</span>
       </div>
     </div>
   </div>
@@ -236,32 +235,40 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
     function updateView(idx) {
       if (!hours || hours.length === 0) return;
       currentIdx = idx;
-      slider.value = idx;
+      if (slider) slider.value = idx;
       const data = hours[idx];
 
-      labelTime.innerText = `Hour: ${data.timeLabel} IST`;
-      valAqi.innerText = data.aqi;
-      valPm25.innerText = `${data.pm25} µg/m³`;
-      valCategory.innerText = data.category.toUpperCase();
+      if (labelTime) labelTime.innerText = `Hour: ${data.timeLabel} IST`;
+      if (valAqi) valAqi.innerText = data.aqi;
+      if (valPm25) valPm25.innerText = `${data.pm25} µg/m³`;
+      if (valCategory) valCategory.innerText = data.category.toUpperCase();
 
       if (data.aqi >= 400) {
-        valAqi.className = "text-4xl font-extrabold text-red-500 font-mono";
-        valGrap.innerText = "Stage IV (Severe+)";
-        valGrap.className = "font-mono text-red-400";
+        if (valAqi) valAqi.className = "text-4xl font-extrabold text-[#dc2626] font-mono tracking-tight";
+        if (valGrap) {
+          valGrap.innerText = "Stage IV (Severe+)";
+          valGrap.className = "font-mono font-semibold text-[#dc2626]";
+        }
       } else if (data.aqi >= 300) {
-        valAqi.className = "text-4xl font-extrabold text-red-400 font-mono";
-        valGrap.innerText = "Stage III (Severe)";
-        valGrap.className = "font-mono text-red-400";
+        if (valAqi) valAqi.className = "text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight";
+        if (valGrap) {
+          valGrap.innerText = "Stage III (Severe)";
+          valGrap.className = "font-mono font-semibold text-[#ea580c]";
+        }
       } else {
-        valAqi.className = "text-4xl font-extrabold text-amber-400 font-mono";
-        valGrap.innerText = "Stage II (Very Poor)";
-        valGrap.className = "font-mono text-amber-400";
+        if (valAqi) valAqi.className = "text-4xl font-extrabold text-[#d97706] font-mono tracking-tight";
+        if (valGrap) {
+          valGrap.innerText = "Stage II (Very Poor)";
+          valGrap.className = "font-mono font-semibold text-[#d97706]";
+        }
       }
 
-      badgeProvenance.innerText = data.source === "cpcb" ? "[Measured: CPCB]" : "[Forecast: CAMS]";
-      badgeProvenance.className = data.source === "cpcb" 
-        ? "px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-950 text-cyan-400 border border-cyan-800"
-        : "px-2 py-0.5 rounded text-[10px] font-mono bg-violet-950 text-violet-400 border border-violet-800";
+      if (badgeProvenance) {
+        badgeProvenance.innerText = data.source === "cpcb" ? "[Measured: CPCB]" : "[Forecast: CAMS]";
+        badgeProvenance.className = data.source === "cpcb" 
+          ? "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8]"
+          : "px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#eff6ff] text-[#2563eb] border border-[#bfdbfe]";
+      }
 
       // Cumulative dose simulation
       let accumDoseA = 0;
@@ -279,24 +286,24 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
       const diffUg = accumDoseA - accumDoseB;
       const pct = Math.max(0, Math.min(95, Math.round((diffUg / accumDoseA) * 100)));
 
-      valDoseA.innerText = accumDoseA.toFixed(1);
-      valDoseB.innerText = accumDoseB.toFixed(1);
-      valSavedUg.innerText = `-${diffUg.toFixed(1)} µg saved`;
-      valSavedPercent.innerText = `-${pct}% DOSE`;
+      if (valDoseA) valDoseA.innerText = accumDoseA.toFixed(1);
+      if (valDoseB) valDoseB.innerText = accumDoseB.toFixed(1);
+      if (valSavedUg) valSavedUg.innerText = `-${diffUg.toFixed(1)} µg saved`;
+      if (valSavedPercent) valSavedPercent.innerText = `-${pct}% DOSE`;
 
       // State annotation
       if (data.hour >= 6 && data.hour <= 9) {
-        valStateA.innerText = "Roadside Two-Wheeler Commute";
-        valStateB.innerText = "Metro AC + Certified N95";
+        if (valStateA) valStateA.innerText = "Roadside Two-Wheeler Commute";
+        if (valStateB) valStateB.innerText = "Metro AC + Certified N95";
       } else if (data.hour >= 12 && data.hour <= 15) {
-        valStateA.innerText = "Closed Stagnant Indoors";
-        valStateB.innerText = "Ventilation Window Purge";
+        if (valStateA) valStateA.innerText = "Closed Stagnant Indoors";
+        if (valStateB) valStateB.innerText = "Ventilation Window Purge";
       } else if (data.hour >= 17 && data.hour <= 21) {
-        valStateA.innerText = "Indoor Cooking without Exhaust";
-        valStateB.innerText = "Active Exhaust Hood + Purifier High";
+        if (valStateA) valStateA.innerText = "Indoor Cooking without Exhaust";
+        if (valStateB) valStateB.innerText = "Active Exhaust Hood + Purifier High";
       } else {
-        valStateA.innerText = "Unsealed Envelope Sleeping";
-        valStateB.innerText = "Purified Sleeping Microenvironment";
+        if (valStateA) valStateA.innerText = "Unsealed Envelope Sleeping";
+        if (valStateB) valStateB.innerText = "Purified Sleeping Microenvironment";
       }
 
       // Highlight active timeline bar
@@ -304,9 +311,9 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
         const el = document.getElementById(`bar-${i}`);
         if (el) {
           if (i === idx) {
-            el.className = "w-full bg-cyan-400 rounded-t shadow-lg shadow-cyan-500/50";
+            el.className = "w-full bg-[#ea580c] rounded-t shadow-sm";
           } else {
-            el.className = "w-full bg-slate-800 rounded-t hover:bg-slate-700";
+            el.className = "w-full bg-[#e8e8e8] rounded-t hover:bg-[#fed7aa]";
           }
         }
       });
@@ -323,10 +330,10 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
         if (isPlaying) {
           clearInterval(timer);
           isPlaying = false;
-          playText.innerText = "Play Replay";
+          if (playText) playText.innerText = "Play Replay";
         } else {
           isPlaying = true;
-          playText.innerText = "Pause";
+          if (playText) playText.innerText = "Pause";
           timer = setInterval(() => {
             currentIdx = (currentIdx + 1) % hours.length;
             updateView(currentIdx);
@@ -340,7 +347,7 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
         if (isPlaying) {
           clearInterval(timer);
           isPlaying = false;
-          playText.innerText = "Play Replay";
+          if (playText) playText.innerText = "Play Replay";
         }
         updateView(2);
       });

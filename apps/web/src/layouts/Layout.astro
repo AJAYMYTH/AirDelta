@@ -23,60 +23,64 @@ const navItems = [
 ---
 
 <!doctype html>
-<html lang={lang} class="dark">
+<html lang={lang} class="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#121214" />
+    <meta name="theme-color" content="#ffffff" />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col bg-[#0d0f12] text-slate-100 selection:bg-cyan-500/30 font-sans antialiased pb-20 md:pb-0">
-    <!-- Top Global Emergency Alert Pill -->
-    <div class="bg-red-950/80 border-b border-red-800/60 px-4 py-1.5 text-center text-xs font-medium text-red-300 flex items-center justify-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-      <span><strong>Delhi-NCR Advisory:</strong> CPCB AQI 385 (Severe). CAQM GRAP Stage III Active. Restrict outdoor exercise.</span>
-      <a href="/advisory" class="underline hover:text-red-200 hidden sm:inline ml-1 font-semibold">Society Notice →</a>
+  <body class="min-h-screen flex flex-col bg-[#f7f9fa] text-[#262626] font-sans antialiased pb-20 md:pb-0">
+    <!-- Announcement / Emergency Alert Bar (DESIGN.md specification) -->
+    <div class="bg-[#fff7ed] border-b border-[#fed7aa] px-4 py-2 text-center text-xs text-[#9a3412] flex items-center justify-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-[#ea580c] animate-pulse"></span>
+      <span><strong>Delhi-NCR Smog Advisory:</strong> CPCB AQI 385 (Severe). CAQM GRAP Stage III Active. Postpone outdoor morning cardio.</span>
+      <a href="/community" class="font-bold underline text-[#c2410c] hover:text-[#9a3412] hidden sm:inline ml-1">Society Notice →</a>
     </div>
 
-    <!-- Main Navigation Bar -->
-    <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <!-- Main Navigation Bar (DESIGN.md: nav-bar 64px on white canvas) -->
+    <header class="border-b border-[#e8e8e8] bg-white sticky top-0 z-50 shadow-2xs">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2.5 group">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+        <a href="/" class="flex items-center gap-3 group">
+          <div class="w-9 h-9 rounded-xl bg-[#ea580c] flex items-center justify-center font-bold text-white shadow-sm group-hover:bg-[#c2410c] transition-all">
             Δ
           </div>
           <div>
-            <div class="flex items-center gap-1.5">
-              <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-slate-100 bg-clip-text text-transparent">AirDelta</span>
-              <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50 uppercase font-mono font-semibold">India CPCB</span>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-lg tracking-tight text-[#262626]">AirDelta</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] uppercase font-mono font-bold tracking-tight">CPCB NAQI</span>
             </div>
-            <span class="text-[10px] text-slate-400 block -mt-1">AI Winter Smog Action Engine</span>
+            <span class="text-[10px] text-[#8c8c8c] block -mt-1 font-medium">Public Health Smog Action Engine</span>
           </div>
         </a>
 
-        <!-- Desktop Navigation -->
-        <nav class="hidden md:flex items-center gap-1 text-xs font-medium text-slate-300">
+        <!-- Desktop Navigation Items -->
+        <nav class="hidden md:flex items-center gap-1 text-xs font-semibold text-[#595959]">
           {navItems.map((item) => {
             const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
             return (
               <a 
                 href={item.href} 
-                class={`px-3 py-1.5 rounded-lg transition-all ${
+                class={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 ${
                   isActive 
-                    ? "bg-slate-800 text-cyan-400 font-semibold shadow-sm" 
-                    : "text-slate-300 hover:text-white hover:bg-slate-900"
+                    ? "bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] font-bold shadow-2xs" 
+                    : "hover:text-[#262626] hover:bg-[#f5f5f5]"
                 }`}
               >
+                {isActive && <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>}
                 {item.label}
               </a>
             );
           })}
         </nav>
 
-        <!-- Language Selector -->
+        <!-- Right Side: Regional Language Pill -->
         <div class="flex items-center gap-3">
-          <select id="global-lang-select" class="bg-slate-900 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-cyan-500 font-medium cursor-pointer">
+          <select 
+            id="global-lang-select" 
+            class="bg-[#f5f5f5] hover:bg-[#ebebeb] border border-[#d9d9d9] text-xs font-semibold rounded-full px-3 py-1.5 text-[#262626] focus:outline-none focus:border-[#ea580c] cursor-pointer transition-colors"
+          >
             {languages.map((l) => (
               <option value={l.code} selected={l.code === lang}>
                 {l.nativeName} ({l.name})
@@ -87,37 +91,41 @@ const navItems = [
       </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
+    <!-- Main Content Area on Soft Canvas -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
       <slot />
     </main>
 
-    <!-- Footer -->
-    <footer class="border-t border-slate-800/80 bg-slate-950 py-8 text-xs text-slate-500 mt-12">
-      <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <!-- Charcoal Engineering Footer (DESIGN.md: footer #272727) -->
+    <footer class="bg-[#272727] text-[#b3b3b3] border-t border-[#414141] py-10 text-xs mt-16">
+      <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
-          <p class="font-semibold text-slate-400">AirDelta (Δ) — PromptWars Hackathon 2026</p>
-          <p class="text-[11px] text-slate-500 mt-0.5">Strict Deterministic Math · Zero Hallucinated Doses · 12 Indian Languages</p>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-5 h-5 rounded-md bg-[#ea580c] text-white flex items-center justify-center font-bold text-[10px]">Δ</span>
+            <span class="font-bold text-white text-sm tracking-tight">AirDelta System</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded bg-[#383838] text-[#ea580c] font-mono">v1.0.0</span>
+          </div>
+          <p class="text-[#8c8c8c] text-[11px]">Strict Deterministic Exposure Engine · Zero Hallucinated Doses · PromptWars Hackathon 2026</p>
         </div>
-        <div class="flex items-center gap-4 text-[11px]">
-          <a href="/method" class="hover:text-cyan-400 transition-colors">Methodology</a>
-          <span>·</span>
-          <a href="/settings" class="hover:text-cyan-400 transition-colors">Privacy Guarantee</a>
-          <span>·</span>
-          <a href="https://t.me/AirDeltaBot" target="_blank" rel="noopener noreferrer" class="hover:text-cyan-400 transition-colors text-cyan-400 font-semibold">@AirDeltaBot ↗</a>
+        <div class="flex flex-wrap items-center gap-5 text-[11px] font-medium text-[#b3b3b3]">
+          <a href="/method" class="hover:text-white transition-colors">Methodology & Constants</a>
+          <a href="/settings" class="hover:text-white transition-colors">Privacy Guarantee</a>
+          <a href="https://t.me/AirDeltaBot" target="_blank" rel="noopener noreferrer" class="px-3 py-1 rounded-full bg-[#383838] hover:bg-[#ea580c] hover:text-white text-[#f5f5f5] transition-all flex items-center gap-1.5 font-bold">
+            <span>Telegram Bot</span> ↗
+          </a>
         </div>
       </div>
     </footer>
 
-    <!-- Mobile Fixed Bottom Navigation Bar (Astryx Style) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-950/95 backdrop-blur border-t border-slate-800 flex items-center justify-around z-50 px-2">
+    <!-- Mobile Fixed Bottom Navigation (White Showroom Surface) -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur border-t border-[#e8e8e8] flex items-center justify-around z-50 px-2 shadow-lg">
       {navItems.slice(0, 5).map((item) => {
         const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
         return (
           <a 
             href={item.href}
             class={`flex flex-col items-center justify-center w-14 h-full text-[10px] gap-0.5 transition-colors ${
-              isActive ? "text-cyan-400 font-bold" : "text-slate-400 hover:text-slate-200"
+              isActive ? "text-[#ea580c] font-extrabold" : "text-[#595959] hover:text-[#262626]"
             }`}
           >
             <span class="text-base">{item.icon}</span>
