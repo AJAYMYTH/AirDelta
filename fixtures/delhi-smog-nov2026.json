@@ -1,0 +1,51 @@
+{
+  "cell": "28.61:77.21",
+  "episodeName": "Delhi-NCR Severe Smog (GRAP Stage III)",
+  "date": "2026-11-06",
+  "snapshot": {
+    "cell": "28.61:77.21",
+    "ts": "2026-11-06T10:00:00Z",
+    "pm25": 382.5,
+    "pm10": 512.0,
+    "pollutants": {
+      "pm25": 382.5,
+      "pm10": 512.0,
+      "no2": 84.5,
+      "so2": 26.2,
+      "co": 2.8,
+      "o3": 45.0
+    },
+    "indexValue": 385,
+    "indexStandard": "ind_cpcb",
+    "category": "Severe",
+    "source": "replay",
+    "badge": "measured",
+    "fetchedAt": "2026-11-06T10:00:00Z",
+    "ttlSec": 3600,
+    "license": "Open Data / CPCB Historical Record",
+    "attribution": "Central Pollution Control Board (CPCB) Station ITO",
+    "stationDistanceKm": 2.4
+  },
+  "forecast": {
+    "cell": "28.61:77.21",
+    "fetchedAt": "2026-11-06T10:00:00Z",
+    "source": "replay",
+    "badge": "forecast",
+    "cleanestWindow": {
+      "startTs": "2026-11-06T13:00:00Z",
+      "endTs": "2026-11-06T15:30:00Z",
+      "expectedPm25": 210.0,
+      "reason": "Afternoon boundary layer mixing and solar radiation peak"
+    },
+    "hourly": [
+      { "ts": "2026-11-06T00:00:00Z", "pm25": 410.0, "pm10": 550.0, "indexValue": 415, "category": "Severe", "badge": "forecast" },
+      { "ts": "2026-11-06T03:00:00Z", "pm25": 435.0, "pm10": 580.0, "indexValue": 438, "category": "Severe", "badge": "forecast" },
+      { "ts": "2026-11-06T06:00:00Z", "pm25": 420.0, "pm10": 560.0, "indexValue": 425, "category": "Severe", "badge": "forecast" },
+      { "ts": "2026-11-06T09:00:00Z", "pm25": 390.0, "pm10": 520.0, "indexValue": 395, "category": "Severe", "badge": "forecast" },
+      { "ts": "2026-11-06T12:00:00Z", "pm25": 260.0, "pm10": 380.0, "indexValue": 285, "category": "Poor", "badge": "forecast" },
+      { "ts": "2026-11-06T14:00:00Z", "pm25": 210.0, "pm10": 310.0, "indexValue": 240, "category": "Poor", "badge": "forecast" },
+      { "ts": "2026-11-06T17:00:00Z", "pm25": 330.0, "pm10": 450.0, "indexValue": 345, "category": "Very Poor", "badge": "forecast" },
+      { "ts": "2026-11-06T20:00:00Z", "pm25": 395.0, "pm10": 530.0, "indexValue": 402, "category": "Severe", "badge": "forecast" }
+    ]
+  }
+}

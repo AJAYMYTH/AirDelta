@@ -1,0 +1,68 @@
+---
+import "../styles/global.css";
+import { getAllLanguages } from "@airdelta/i18n";
+
+interface Props {
+  title?: string;
+  lang?: string;
+}
+
+const { title = "AirDelta — Smog Action Engine", lang = "en" } = Astro.props;
+const languages = getAllLanguages();
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#090d16" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col bg-[#090d16] text-slate-100 selection:bg-cyan-500/30">
+    <header class="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-violet-500 flex items-center justify-center font-bold text-white shadow-lg shadow-cyan-500/20">
+            Δ
+          </div>
+          <div>
+            <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-slate-100 bg-clip-text text-transparent">AirDelta</span>
+            <span class="hidden sm:inline-block text-[10px] ml-2 px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/50 uppercase font-mono">India CPCB</span>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+          <a href="/" class="hover:text-cyan-400 transition-colors font-medium">Today</a>
+          <a href="/plan" class="hover:text-cyan-400 transition-colors">Plan A vs B</a>
+          <a href="/indoor" class="hover:text-cyan-400 transition-colors">Indoor Audit</a>
+          <a href="/community" class="hover:text-cyan-400 transition-colors">Community</a>
+          <a href="/replay" class="text-amber-400/90 hover:text-amber-300 transition-colors">Smog Replay</a>
+          <a href="/method" class="hover:text-cyan-400 transition-colors">Methodology</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <select id="lang-select" class="bg-slate-900 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-slate-300 focus:outline-none focus:border-cyan-500">
+            {languages.map((l) => (
+              <option value={l.code} selected={l.code === lang}>
+                {l.nativeName} ({l.name})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+      <slot />
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-8 text-center text-xs text-slate-500">
+      <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p>AirDelta · Built for PromptWars Hackathon · Open Science & Grounded Exposure Modeling</p>
+        <p>Data: Google Air Quality API · OpenAQ · Open-Meteo · CPCB NAQI Standard</p>
+      </div>
+    </footer>
+  </body>
+</html>

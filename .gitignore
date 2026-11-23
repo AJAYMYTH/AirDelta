@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+.astro/
+out/
+
+# Environment files
+.env
+.env.local
+*.env
+!.env.example
+
+# Logs & temp
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Test coverage & outputs
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Editor directories
+.vscode/
+.idea/

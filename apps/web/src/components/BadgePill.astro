@@ -1,0 +1,51 @@
+---
+import type { Badge } from "@airdelta/schemas";
+import { getGlossaryTerm } from "@airdelta/i18n";
+
+interface Props {
+  badge: Badge;
+  lang?: string;
+  className?: string;
+}
+
+const { badge, lang = "en", className = "" } = Astro.props;
+
+const badgeConfig: Record<Badge, { labelKey: string; bg: string; text: string; border: string; dot: string }> = {
+  measured: {
+    labelKey: "badge_measured",
+    bg: "bg-emerald-950/60",
+    text: "text-emerald-300",
+    border: "border-emerald-600/40",
+    dot: "bg-emerald-400"
+  },
+  forecast: {
+    labelKey: "badge_forecast",
+    bg: "bg-blue-950/60",
+    text: "text-blue-300",
+    border: "border-blue-600/40",
+    dot: "bg-blue-400"
+  },
+  modelled: {
+    labelKey: "badge_modelled",
+    bg: "bg-purple-950/60",
+    text: "text-purple-300",
+    border: "border-purple-600/40",
+    dot: "bg-purple-400"
+  },
+  assumed: {
+    labelKey: "badge_assumed",
+    bg: "bg-amber-950/60",
+    text: "text-amber-300",
+    border: "border-amber-600/40",
+    dot: "bg-amber-400"
+  }
+};
+
+const cfg = badgeConfig[badge] || badgeConfig.modelled;
+const label = getGlossaryTerm(cfg.labelKey, lang);
+---
+
+<span class={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${cfg.bg} ${cfg.text} ${cfg.border} ${className}`}>
+  <span class={`w-1.5 h-1.5 rounded-full animate-pulse ${cfg.dot}`}></span>
+  <span>{label}</span>
+</span>
