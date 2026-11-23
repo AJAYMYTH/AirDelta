@@ -1,0 +1,160 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getAllLanguages } from "@airdelta/i18n";
+
+const languages = getAllLanguages();
+---
+
+<Layout title="AirDelta — Settings & Privacy">
+  <div class="max-w-3xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mb-2">
+        Settings & Privacy
+      </h1>
+      <p class="text-sm text-slate-400">
+        Manage your regional language preferences, audit notifications, and control your household data privacy.
+      </p>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8">
+      <h2 class="text-lg font-bold text-white mb-1">Regional Language</h2>
+      <p class="text-xs text-slate-400 mb-6">
+        Select from 12 official Indian languages. All explanations, community notices, and photo audit recommendations will be rendered in your chosen language.
+      </p>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {languages.map((l) => (
+          <button 
+            type="button" 
+            data-lang={l.code}
+            class="btn-lang-choice text-left p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-cyan-500/50 hover:bg-slate-850 transition-all flex flex-col gap-1"
+          >
+            <span class="font-bold text-sm text-slate-200">{l.nativeName}</span>
+            <span class="text-[11px] text-slate-400">{l.name} ({l.code})</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <!-- Notification Channels -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8">
+      <h2 class="text-lg font-bold text-white mb-1">Morning Alerts & Telegram Bot</h2>
+      <p class="text-xs text-slate-400 mb-6">
+        AirDelta pushes deterministic morning briefs at 07:00 IST directly via Telegram Bot to avoid commercial SMS costs.
+      </p>
+
+      <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div class="font-bold text-slate-200 text-sm">Telegram Bot Channel</div>
+          <div class="text-xs text-slate-400 mt-0.5">Free 07:00 proactive morning alerts, quick photo audits, and routine checks.</div>
+        </div>
+        <a 
+          href="https://t.me/AirDeltaBot" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl transition-all text-center"
+        >
+          Open @AirDeltaBot ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- Data Sovereignty & Zero PII Guarantee -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800">
+          Zero PII Guarantee
+        </span>
+      </div>
+      <h2 class="text-lg font-bold text-white mb-1">Household Data Sovereignty</h2>
+      <p class="text-xs text-slate-400 mb-6 leading-relaxed">
+        AirDelta never collects or stores names, emails, phone numbers, or exact street addresses. Coordinates are snapped to coarse ~1.1 km spatial cells. Plans are automatically pruned after 30 days.
+      </p>
+
+      <div class="flex flex-wrap items-center gap-4">
+        <button 
+          id="btn-export" 
+          class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center gap-2"
+        >
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Export Data (JSON)
+        </button>
+
+        <button 
+          id="btn-purge" 
+          class="px-4 py-2.5 bg-red-950/40 hover:bg-red-900/60 text-red-300 text-xs font-semibold rounded-xl border border-red-800/60 transition-all flex items-center gap-2"
+        >
+          <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Purge All Local Data
+        </button>
+      </div>
+
+      <div id="status-toast" class="hidden mt-4 p-3 bg-emerald-950/60 border border-emerald-800 rounded-xl text-emerald-400 text-xs"></div>
+    </div>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll(".btn-lang-choice");
+    const exportBtn = document.getElementById("btn-export");
+    const purgeBtn = document.getElementById("btn-purge");
+    const toast = document.getElementById("status-toast");
+
+    // Highlight current stored lang
+    const currentLang = localStorage.getItem("airdelta_lang") || "en";
+    buttons.forEach((btn) => {
+      const code = btn.getAttribute("data-lang");
+      if (code === currentLang) {
+        btn.classList.add("border-cyan-500", "bg-cyan-950/30");
+      }
+
+      btn.addEventListener("click", () => {
+        buttons.forEach((b) => b.classList.remove("border-cyan-500", "bg-cyan-950/30"));
+        btn.classList.add("border-cyan-500", "bg-cyan-950/30");
+        localStorage.setItem("airdelta_lang", code || "en");
+        
+        if (toast) {
+          toast.innerText = `Language set to ${btn.querySelector("span")?.innerText || code}. Changes applied!`;
+          toast.classList.remove("hidden");
+          setTimeout(() => toast.classList.add("hidden"), 3000);
+        }
+      });
+    });
+
+    if (exportBtn) {
+      exportBtn.addEventListener("click", () => {
+        const payload = {
+          exportedAt: new Date().toISOString(),
+          householdProfile: localStorage.getItem("airdelta_household"),
+          activeLang: localStorage.getItem("airdelta_lang") || "en",
+          version: "1.0.0"
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `airdelta-export-${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    if (purgeBtn) {
+      purgeBtn.addEventListener("click", () => {
+        if (confirm("Are you sure you want to purge all local household data and plans?")) {
+          localStorage.clear();
+          if (toast) {
+            toast.innerText = "All local data has been purged successfully.";
+            toast.classList.remove("hidden");
+            setTimeout(() => toast.classList.add("hidden"), 3000);
+          }
+        }
+      });
+    }
+  </script>
+</Layout>

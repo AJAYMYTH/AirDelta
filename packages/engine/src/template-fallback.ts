@@ -59,11 +59,74 @@ export class TemplateFallbackService {
           source: "template"
         };
 
+      case "mr":
+        return {
+          lang: "mr",
+          headline: `AQI ${aqi}: योजना B द्वारे शरीरात जाणारे प्रदूषण ${savingPercent}% कमी करा`,
+          body: `सध्या हवेची गुणवत्ता अत्यंत गंभीर (AQI ${aqi}) आहे. नियमित दिनचर्येत PM2.5 चा संपर्क ${doseA} µg आहे. योजना B मुळे तो ${doseB} µg पर्यंत खाली येईल, ज्यामुळे ${savingUg} µg (${savingPercent}%) बचत होईल.`,
+          keyActions,
+          source: "template"
+        };
+
+      case "gu":
+        return {
+          lang: "gu",
+          headline: `AQI ${aqi}: પ્લાન B દ્વારા શ્વાસમાં જતા પ્રદૂષણમાં ${savingPercent}% ઘટાડો કરો`,
+          body: `હાલની હવાની ગુણવત્તા ગંભીર (AQI ${aqi}) છે. સામાન્ય દિનચર્યામાં PM2.5 નો શ્વાસ ${doseA} µg છે. પ્લાન B થી તે ઘટીને ${doseB} µg થશે, જેથી ${savingUg} µg (${savingPercent}%) રક્ષણ મળશે.`,
+          keyActions,
+          source: "template"
+        };
+
       case "kn":
         return {
           lang: "kn",
           headline: `AQI ${aqi}: ಯೋಜನೆ B ಮೂಲಕ ಉಸಿರಾಡುವ ಮಾಲಿನ್ಯವನ್ನು ${savingPercent}% ಕಡಿಮೆ ಮಾಡಿ`,
           body: `ಪ್ರಸ್ತುತ ವಾಯು ಗುಣಮಟ್ಟ ಗಂಭೀರವಾಗಿದೆ (AQI ${aqi})। ಸಾಮಾನ್ಯ ದಿನಚರಿಯಲ್ಲಿ ಅಂದಾಜು PM2.5 ಉಸಿರಾಟ ${doseA} µg। ಯೋಜನೆ B ಬದಲಾವಣೆಗಳಿಂದ ಇದು ${doseB} µg ಗೆ ಇಳಿಯುತ್ತದೆ, ಅಂದರೆ ${savingUg} µg (${savingPercent}%) ಉಳಿತಾಯವಾಗುತ್ತದೆ।`,
+          keyActions,
+          source: "template"
+        };
+
+      case "ur":
+        return {
+          lang: "ur",
+          headline: `AQI ${aqi}: پلان B کے ذریعے سانس میں جانے والی آلودگی میں ${savingPercent}% کمی کریں`,
+          body: `موجودہ ہوا کا معیار شدید خراب (AQI ${aqi}) ہے۔ عام روٹین میں سانس کا تخمینہ ${doseA} µg ہے۔ پلان B سے یہ گھٹ کر ${doseB} µg رہ جائے گا جس سے ${savingUg} µg (${savingPercent}%) بچت ہوگی۔`,
+          keyActions,
+          source: "template"
+        };
+
+      case "ml":
+        return {
+          lang: "ml",
+          headline: `AQI ${aqi}: പ്ലാൻ B വഴി ശ്വസിക്കുന്ന മലിനീകരണത്തിൽ ${savingPercent}% കുറവ് വരുത്തുക`,
+          body: `നിലവിലെ വായു നിലവാരം വളരെ മോശമാണ് (AQI ${aqi}). സാധാരണ ദിനചര്യയിൽ PM2.5 അളവ് ${doseA} µg ആണ്. പ്ലാൻ B വഴി ഇത് ${doseB} µg ആയി കുറയ്ക്കാനാകും, ${savingUg} µg (${savingPercent}%) ലാഭം.`,
+          keyActions,
+          source: "template"
+        };
+
+      case "pa":
+        return {
+          lang: "pa",
+          headline: `AQI ${aqi}: ਪਲਾਨ B ਨਾਲ ਪ੍ਰਦੂਸ਼ਣ ਦੇ ਸਾਹ ਨੂੰ ${savingPercent}% ਘਟਾਓ`,
+          body: `ਮੌਜੂਦਾ ਹਵਾ ਗੰਭੀਰ (AQI ${aqi}) ਹੈ। ਆਮ ਰੁਟੀਨ ਵਿੱਚ ਅੰਦਾਜ਼ਨ PM2.5 ਸਾਹ ${doseA} µg ਹੈ। ਪਲਾਨ B ਨਾਲ ਇਹ ਘੱਟ ਕੇ ${doseB} µg ਰਹਿ ਜਾਵੇਗਾ, ਜਿਸ ਨਾਲ ${savingUg} µg (${savingPercent}%) ਬਚਤ ਹੋਵੇਗੀ।`,
+          keyActions,
+          source: "template"
+        };
+
+      case "or":
+        return {
+          lang: "or",
+          headline: `AQI ${aqi}: ଯୋଜନା B ଦ୍ୱାରା ପ୍ରଦୂଷଣ ନିଶ୍ୱାସ ${savingPercent}% ହ୍ରାସ କରନ୍ତୁ`,
+          body: `ବର୍ତ୍ତମାନର ବାୟୁ ମାନ ଅତ୍ୟନ୍ତ ଗମ୍ଭୀର (AQI ${aqi}) ଅଟେ। ସାଧାରଣ ରୁଟିନରେ PM2.5 ପ୍ରଭାବ ${doseA} µg ରହିଛି। ଯୋଜନା B ଦ୍ୱାରା ଏହା ${doseB} µg କୁ ହ୍ରାସ ପାଇବ, ଯାହାକି ${savingUg} µg (${savingPercent}%) ସୁରକ୍ଷା ଦେବ।`,
+          keyActions,
+          source: "template"
+        };
+
+      case "as":
+        return {
+          lang: "as",
+          headline: `AQI ${aqi}: পৰিকল্পনা B ৰ দ্বাৰা প্ৰদূষণ নিশ্বাস ${savingPercent}% হ্ৰাস কৰক`,
+          body: `বৰ্তমান বায়ুৰ মান অত্যন্ত গুৰুতৰ (AQI ${aqi})। সাধাৰণ ৰুটিনত PM2.5 নিশ্বাসৰ মাত্ৰা ${doseA} µg। পৰিকল্পনা B ৰ জৰিয়তে এইয়া ${doseB} µg লৈ হ্ৰাস কৰিব পাৰি, যাৰ ফলত ${savingUg} µg (${savingPercent}%) সুৰক্ষা পাব।`,
           keyActions,
           source: "template"
         };

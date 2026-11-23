@@ -1,0 +1,161 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { CONSTANTS_REGISTRY, CONSTANTS_VERSION } from "@airdelta/engine";
+
+const constantsList = Object.values(CONSTANTS_REGISTRY);
+---
+
+<Layout title="AirDelta — Exposure Science & Methodology">
+  <div class="space-y-10">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+          Core Architecture Principle
+        </span>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-mono text-slate-400">
+          Registry: {CONSTANTS_VERSION}
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+        Deterministic Exposure Methodology
+      </h1>
+      <p class="text-sm text-slate-400 mt-2 max-w-3xl leading-relaxed">
+        AirDelta operates under a strict ironclad architectural boundary: <strong class="text-cyan-400 font-semibold">LLMs Never Do Math</strong>. Every dose number, percentage reduction, indoor equilibrium concentration, and carbon emissions figure is computed deterministically by verified physics and biological equations. Gemini solely generates personalized explanations, regional language translations, and structured contextual advice.
+      </p>
+    </div>
+
+    <!-- The 3 Core Physical Formulations -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Equation 1 -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <span class="text-xs font-mono text-cyan-400 uppercase">Equation 1</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-3">Inhaled PM2.5 Dose</h3>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 leading-relaxed mb-4 overflow-x-auto">
+            D = Σ (C_micro × VE × Δt)<br/>
+            C_micro = C_amb × F_micro × (1 - η_mask)
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Integrates discrete time-weighted microenvironment exposure against age-band and exertion-specific minute ventilation rates (m³/h). Uncertainty bounds are propagated deterministically at [0.85, 1.15] × D.
+          </p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-800 text-[11px] text-slate-500 font-mono">
+          Ref: US EPA Exposure Handbook Ch. 6
+        </div>
+      </div>
+
+      <!-- Equation 2 -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <span class="text-xs font-mono text-cyan-400 uppercase">Equation 2</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-3">Indoor Mass Balance</h3>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 leading-relaxed mb-4 overflow-x-auto">
+            C_ss = (P·a·C_out + S/V) /<br/>
+                   (a + k_dep + CADR/V)
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Single-compartment dynamic indoor air quality model accounting for building envelope penetration (P), air changes per hour (a), surface gravitational deposition (k_dep), indoor emissions (S), and active CADR filtration.
+          </p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-800 text-[11px] text-slate-500 font-mono">
+          Ref: Nazaroff (2004) · EPIC IAQ Review
+        </div>
+      </div>
+
+      <!-- Equation 3 -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <span class="text-xs font-mono text-cyan-400 uppercase">Equation 3</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-3">Carbon Co-benefit Ledger</h3>
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-cyan-300 leading-relaxed mb-4 overflow-x-auto">
+            E_co2e = Σ (distance_km × EF_mode)
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Quantifies the greenhouse gas emissions divergence when Plan B shifts high-exposure transit modes (such as congested fossil fuel 2-wheelers or private petrol cars) to electrified Delhi Metro or active micro-mobility.
+          </p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-800 text-[11px] text-slate-500 font-mono">
+          Ref: CPCB Vehicular Standards · DMRC
+        </div>
+      </div>
+    </div>
+
+    <!-- Constants Registry Table -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-lg font-bold text-white">Constants Registry ({CONSTANTS_VERSION})</h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Every coefficient in AirDelta is versioned, peer-reviewed, and cited with open research links.
+          </p>
+        </div>
+        <span class="text-xs font-mono text-cyan-400 bg-cyan-950 px-3 py-1.5 rounded-lg border border-cyan-800/60 self-start sm:self-auto">
+          {constantsList.length} Active Constants
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 font-mono">
+              <th class="py-3 px-3">Key</th>
+              <th class="py-3 px-3">Value</th>
+              <th class="py-3 px-3">Unit</th>
+              <th class="py-3 px-3">Confidence</th>
+              <th class="py-3 px-3">Description</th>
+              <th class="py-3 px-3">Citation Source</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60 text-slate-300">
+            {constantsList.map((c) => (
+              <tr class="hover:bg-slate-800/30 transition-colors">
+                <td class="py-3 px-3 font-mono text-cyan-400">{c.key}</td>
+                <td class="py-3 px-3 font-mono font-bold text-slate-100">{c.value}</td>
+                <td class="py-3 px-3 font-mono text-slate-400">{c.unit}</td>
+                <td class="py-3 px-3">
+                  <span class={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                    c.confidence === "High" 
+                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800" 
+                      : "bg-amber-950 text-amber-400 border border-amber-800"
+                  }`}>
+                    {c.confidence}
+                  </span>
+                </td>
+                <td class="py-3 px-3">{c.description}</td>
+                <td class="py-3 px-3">
+                  <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline flex items-center gap-1 font-mono text-[11px]">
+                    Link ↗
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Data Provenance & Licenses -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8">
+      <h2 class="text-lg font-bold text-white mb-4">Data Provenance & Regulatory Standards</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="font-bold text-slate-200 mb-1">Google Air Quality API</div>
+          <p class="text-slate-400">High-resolution hourly hyper-local air quality grid with 1x1 km spatial interpolation.</p>
+        </div>
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="font-bold text-slate-200 mb-1">OpenAQ Open Data</div>
+          <p class="text-slate-400">Global open-source ground monitoring reference stations, including CPCB CAAQMS.</p>
+        </div>
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="font-bold text-slate-200 mb-1">Open-Meteo & CAMS</div>
+          <p class="text-slate-400">European Centre for Medium-Range Weather Forecasts (ECMWF) atmospheric chemistry ensemble.</p>
+        </div>
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="font-bold text-slate-200 mb-1">CPCB NAQI & CAQM GRAP</div>
+          <p class="text-slate-400">Government of India official National Air Quality Index breakpoints & graded response actions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
