@@ -81,7 +81,8 @@ airdelta/
   - Monorepo typechecks with 0 errors, 0 warnings, 0 hints (`pnpm typecheck`).
 
 ## Development Progress
-- **Current Status:** Phase 0, Phase 1 & Phase 2 Complete. Ready for Phase 3.
+- **Current Status:** Remote GitHub repo connected & synchronized. Phase 0, Phase 1 & Phase 2 Complete. Ready for Phase 3.
+- **Remote Origin:** `https://github.com/AJAYMYTH/AirDelta.git` (`main` branch synchronized).
 - Sequential phase execution model established:
   - **[DONE] Phase 0:** Monorepo setup, foundational docs, shared Zod schemas.
   - **[DONE] Phase 1:** Air Data Service, adapters (Google AQ, OpenAQ v3, Open-Meteo, Replay), spatial cache, Today air view.
