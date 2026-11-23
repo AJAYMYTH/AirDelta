@@ -95,17 +95,32 @@ airdelta/
   - All 30 tests passing green across 8 test suites (`vitest`).
   - Monorepo typechecks with 0 errors, 0 warnings, 0 hints (`pnpm typecheck`).
   - Static site generates `/index.html`, `/plan/index.html`, and `/indoor/index.html`.
+- [x] **Phase 4 Completed & Verified:**
+  - CAQM GRAP Stage Policy Rules database implemented in `@airdelta/schemas`:
+    - Official mandates for Stages I, II, III, and IV categorized by audience (RWAs, Schools, Workplaces, Citizens).
+  - `AdvisoryService` implemented supporting all 12 major Indian regional languages with WhatsApp and Telegram copy-paste cards.
+  - API endpoints verified:
+    - `POST /v1/advisories` (generates tailored notices with formatted shareable text cards).
+    - `GET /v1/advisories/groups/:id/impact` (enforces $k \ge 5$ community anonymity threshold).
+  - Interactive `/community` page in `apps/web`:
+    - Audience selector & language switcher.
+    - Active GRAP Stage alert card with One-Tap "Copy WhatsApp Notice" button.
+    - CAQM GRAP Stages Policy Matrix.
+    - $k$-anonymous Community Impact Tally ($k \ge 5$).
+  - All 33 tests passing green across 9 test suites (`vitest`).
+  - Monorepo typechecks with 0 errors (`pnpm typecheck`).
+  - Static site builds `/index.html`, `/plan/index.html`, `/indoor/index.html`, and `/community/index.html`.
 
 ## Development Progress
-- **Current Status:** Remote GitHub repo connected & synchronized. Phase 0, Phase 1, Phase 2 & Phase 3 Complete. Ready for Phase 4.
+- **Current Status:** Remote GitHub repo connected & synchronized. Phase 0, Phase 1, Phase 2, Phase 3 & Phase 4 Complete. Ready for Phase 5.
 - **Remote Origin:** `https://github.com/AJAYMYTH/AirDelta.git` (`main` branch synchronized).
 - Sequential phase execution model established:
   - **[DONE] Phase 0:** Monorepo setup, foundational docs, shared Zod schemas.
   - **[DONE] Phase 1:** Air Data Service, adapters (Google AQ, OpenAQ v3, Open-Meteo, Replay), spatial cache, Today air view.
   - **[DONE] Phase 2:** Pure TS engine, planner orchestrator, Gemini narration + validator, Plan A vs B view.
   - **[DONE] Phase 3:** Indoor photo audit engine.
-  - **[IN PROGRESS] Phase 4:** Multilingual community advisories & policy table.
-  - **Phase 5:** Telegram bot channel & morning brief.
+  - **[DONE] Phase 4:** Multilingual community advisories & policy table.
+  - **[IN PROGRESS] Phase 5:** Telegram bot channel & morning brief.
   - **Phase 6:** Supabase Postgres production migration, RLS & hardening.
   - **Phase 7:** Replay demonstration room, Playwright E2E tests, submission kit.
 
@@ -138,18 +153,15 @@ airdelta/
 - [x] Phase 1: Air Data Service & Multi-Provider Adapters (Verified green).
 - [x] Phase 2: Exposure & Impact Engine & Planner Orchestrator (Verified green).
 - [x] Phase 3: Indoor Photo Audit Engine (Verified green).
-- [ ] Phase 4: Multilingual Community Advisories & Policy Integration:
-  - [ ] Implement CAQM GRAP Stage Policy Rules database (Stages I, II, III, IV actions for RWAs, Schools, Workplaces)
-  - [ ] Implement Advisory Service in `apps/api`:
-    - [ ] `advisory.service.ts` (Generates targeted advisories in all 12 Indian regional languages)
-    - [ ] Endpoint `POST /v1/advisories` (generates formatted shareable notices)
-    - [ ] Endpoint `GET /v1/groups/:id/impact` (enforces $k \ge 5$ community privacy)
-  - [ ] Implement `/community` page in `apps/web`:
-    - [ ] Target audience selector (`RWA Residents`, `School`, `Workplace`)
-    - [ ] Regional language switcher
-    - [ ] Formatted advisory preview with One-Tap Copy / WhatsApp & Telegram share card
-    - [ ] GRAP Stage action guidelines matrix
-  - [ ] Verify Phase 4: Advisory generator tests, k-anonymity privacy tests, and build check.
+- [x] Phase 4: Multilingual Community Advisories & Policy Integration (Verified green).
+- [ ] Phase 5: Telegram Bot Channel & Morning Brief (Option B):
+  - [ ] Implement `apps/api/src/bot/telegram.ts` via `grammY`
+  - [ ] Button-driven 60-second onboarding
+  - [ ] Commands: `/start`, `/today`, `/plan`, `/indoor`, `/advisory`, `/lang`
+  - [ ] Provenance badge rendering in chat messages (`[Measured]`, `[Forecast]`, `[Modelled]`)
+  - [ ] Automated 07:00 morning briefing worker
+  - [ ] Webhook endpoint `POST /webhooks/telegram` with secret token authentication
+  - [ ] Verify Phase 5: Bot webhook tests, command handlers, and build check.
 
 ## Next Steps
-Begin Phase 4 implementation.
+Begin Phase 5 implementation.

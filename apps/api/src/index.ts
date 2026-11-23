@@ -6,8 +6,10 @@ import { AirDataService } from "@airdelta/air-adapters";
 import { createAirRoutes } from "./routes/air.route.js";
 import { createPlanRoutes } from "./routes/plans.route.js";
 import { createIndoorRoutes } from "./routes/indoor.route.js";
+import { createAdvisoryRoutes } from "./routes/advisory.route.js";
 import { PlannerService } from "./services/planner.service.js";
 import { VisionService } from "./services/vision.service.js";
+import { AdvisoryService } from "./services/advisory.service.js";
 
 dotenv.config();
 
@@ -34,17 +36,19 @@ export function createApp(serviceOverride?: AirDataService) {
     replayMode: process.env.REPLAY_MODE === "true"
   });
 
-  // Initialize Planner & Vision Services
+  // Initialize Planner, Vision & Advisory Services
   const plannerService = new PlannerService(airService);
   const visionService = new VisionService({
     apiKey: process.env.GEMINI_API_KEY,
     modelName: process.env.GEMINI_MODEL_VISION
   });
+  const advisoryService = new AdvisoryService();
 
   // Mount versioned routes
   app.route("/v1/air", createAirRoutes(airService));
   app.route("/v1/plans", createPlanRoutes(plannerService));
   app.route("/v1/indoor-audits", createIndoorRoutes(visionService));
+  app.route("/v1/advisories", createAdvisoryRoutes(advisoryService, airService));
 
   return app;
 }
