@@ -8,6 +8,7 @@ import { createPlanRoutes } from "./routes/plans.route.js";
 import { createIndoorRoutes } from "./routes/indoor.route.js";
 import { createAdvisoryRoutes } from "./routes/advisory.route.js";
 import { createTelegramRoutes } from "./routes/telegram.route.js";
+import { createJobRoutes } from "./routes/jobs.route.js";
 import { PlannerService } from "./services/planner.service.js";
 import { VisionService } from "./services/vision.service.js";
 import { AdvisoryService } from "./services/advisory.service.js";
@@ -55,6 +56,7 @@ export function createApp(serviceOverride?: AirDataService) {
   app.route("/v1/plans", createPlanRoutes(plannerService));
   app.route("/v1/indoor-audits", createIndoorRoutes(visionService));
   app.route("/v1/advisories", createAdvisoryRoutes(advisoryService, airService));
+  app.route("/v1/jobs", createJobRoutes());
   app.route("/webhooks/telegram", createTelegramRoutes(botService));
 
   return app;
