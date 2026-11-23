@@ -79,16 +79,32 @@ airdelta/
     - Assumptions used inspection accordion.
   - All 24 tests passing green across 6 test suites (`vitest`).
   - Monorepo typechecks with 0 errors, 0 warnings, 0 hints (`pnpm typecheck`).
+- [x] **Phase 3 Completed & Verified:**
+  - `@airdelta/fix-library` implemented:
+    - Curated database of indoor mitigation interventions categorized by budget (`none`, `low`, `medium`, `high`) with CADR metrics and literature citations (US EPA / EPIC India).
+    - Helper queries for budget filtering and source-matched interventions.
+  - Indoor Photo Audit in `apps/api`:
+    - `vision.service.ts` (Gemini Multimodal Vision prompt with prompt-injection defense + heuristic rule-based fallback).
+    - `POST /v1/indoor-audits` (photo analysis returning detected sources and budget-tiered fixes).
+    - `POST /v1/indoor-audits/confirm` (human-in-the-loop confirmation recalculating single-compartment indoor mass balance).
+  - Interactive `/indoor` audit page in `apps/web`:
+    - Client EXIF metadata stripping dropzone.
+    - Step 1: Human-in-the-loop candidate confirmation checkboxes.
+    - Step 2: Modelled mass balance physics forecast (e.g. -79% indoor PM2.5 reduction).
+    - Step 3: Ranked mitigation library cards with action steps and budget badges.
+  - All 30 tests passing green across 8 test suites (`vitest`).
+  - Monorepo typechecks with 0 errors, 0 warnings, 0 hints (`pnpm typecheck`).
+  - Static site generates `/index.html`, `/plan/index.html`, and `/indoor/index.html`.
 
 ## Development Progress
-- **Current Status:** Remote GitHub repo connected & synchronized. Phase 0, Phase 1 & Phase 2 Complete. Ready for Phase 3.
+- **Current Status:** Remote GitHub repo connected & synchronized. Phase 0, Phase 1, Phase 2 & Phase 3 Complete. Ready for Phase 4.
 - **Remote Origin:** `https://github.com/AJAYMYTH/AirDelta.git` (`main` branch synchronized).
 - Sequential phase execution model established:
   - **[DONE] Phase 0:** Monorepo setup, foundational docs, shared Zod schemas.
   - **[DONE] Phase 1:** Air Data Service, adapters (Google AQ, OpenAQ v3, Open-Meteo, Replay), spatial cache, Today air view.
   - **[DONE] Phase 2:** Pure TS engine, planner orchestrator, Gemini narration + validator, Plan A vs B view.
-  - **[IN PROGRESS] Phase 3:** Indoor photo audit engine.
-  - **Phase 4:** Multilingual community advisories & policy table.
+  - **[DONE] Phase 3:** Indoor photo audit engine.
+  - **[IN PROGRESS] Phase 4:** Multilingual community advisories & policy table.
   - **Phase 5:** Telegram bot channel & morning brief.
   - **Phase 6:** Supabase Postgres production migration, RLS & hardening.
   - **Phase 7:** Replay demonstration room, Playwright E2E tests, submission kit.
@@ -121,19 +137,19 @@ airdelta/
 - [x] Phase 0: Scaffolding, Documentation & Core Schemas (Verified green).
 - [x] Phase 1: Air Data Service & Multi-Provider Adapters (Verified green).
 - [x] Phase 2: Exposure & Impact Engine & Planner Orchestrator (Verified green).
-- [ ] Phase 3: Indoor Photo Audit Engine:
-  - [ ] Implement `packages/fix-library`:
-    - [ ] Curated database of indoor mitigation interventions categorized by budget (`none`, `low`, `medium`, `high`)
-    - [ ] Action steps, CADR delivery estimates, and literature source citations
-  - [ ] Implement Indoor Audit in `apps/api`:
-    - [ ] Gemini Vision integration in `vision.service.ts` (identifying unvented stoves, incense, window/door gaps, lack of exhaust)
-    - [ ] Fallback rule-based candidate detection when vision model or image upload is unavailable
-    - [ ] Endpoints: `POST /v1/indoor-audits` (upload/process) and `POST /v1/indoor-audits/:id/confirm` (human-in-the-loop confirmation)
-  - [ ] Implement `/indoor` audit page in `apps/web`:
-    - [ ] Client-side image upload with EXIF metadata stripping and resolution downscaling
-    - [ ] Candidate source checklist with confirmation checkboxes (human-in-the-loop)
-    - [ ] Budget-tiered ranked fix cards with modeled indoor concentration reduction (%)
-  - [ ] Verify Phase 3: Unit tests, image sanitization tests, and build check.
+- [x] Phase 3: Indoor Photo Audit Engine (Verified green).
+- [ ] Phase 4: Multilingual Community Advisories & Policy Integration:
+  - [ ] Implement CAQM GRAP Stage Policy Rules database (Stages I, II, III, IV actions for RWAs, Schools, Workplaces)
+  - [ ] Implement Advisory Service in `apps/api`:
+    - [ ] `advisory.service.ts` (Generates targeted advisories in all 12 Indian regional languages)
+    - [ ] Endpoint `POST /v1/advisories` (generates formatted shareable notices)
+    - [ ] Endpoint `GET /v1/groups/:id/impact` (enforces $k \ge 5$ community privacy)
+  - [ ] Implement `/community` page in `apps/web`:
+    - [ ] Target audience selector (`RWA Residents`, `School`, `Workplace`)
+    - [ ] Regional language switcher
+    - [ ] Formatted advisory preview with One-Tap Copy / WhatsApp & Telegram share card
+    - [ ] GRAP Stage action guidelines matrix
+  - [ ] Verify Phase 4: Advisory generator tests, k-anonymity privacy tests, and build check.
 
 ## Next Steps
-Begin Phase 3 implementation.
+Begin Phase 4 implementation.

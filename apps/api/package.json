@@ -14,6 +14,7 @@
   "dependencies": {
     "@airdelta/air-adapters": "workspace:*",
     "@airdelta/engine": "workspace:*",
+    "@airdelta/fix-library": "workspace:*",
     "@airdelta/i18n": "workspace:*",
     "@airdelta/schemas": "workspace:*",
     "@google/genai": "^3.6.1",

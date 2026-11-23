@@ -12,6 +12,7 @@
   "dependencies": {
     "@airdelta/air-adapters": "workspace:*",
     "@airdelta/engine": "workspace:*",
+    "@airdelta/fix-library": "workspace:*",
     "@airdelta/i18n": "workspace:*",
     "@airdelta/schemas": "workspace:*",
     "@tailwindcss/vite": "^4.0.0",
