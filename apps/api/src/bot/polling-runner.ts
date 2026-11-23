@@ -1,0 +1,46 @@
+import dotenv from "dotenv";
+dotenv.config();
+
+import { AirDataService } from "@airdelta/air-adapters";
+import { AdvisoryService } from "@airdelta/schemas";
+import { VisionService } from "../services/vision.service.js";
+import { AirDeltaBot } from "./telegram.js";
+
+const token = process.env.TELEGRAM_BOT_TOKEN;
+if (!token || token.includes("your_telegram") || token.length < 15) {
+  console.error("\n❌ TELEGRAM_BOT_TOKEN is not configured in .env");
+  console.log("👉 Get a bot token from https://t.me/BotFather");
+  console.log("   Then add it to your .env file.\n");
+  process.exit(1);
+}
+
+const airService = new AirDataService({
+  googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
+  openaqApiKey: process.env.OPENAQ_API_KEY,
+  replayMode: process.env.REPLAY_MODE === "true"
+});
+
+const advisoryService = new AdvisoryService();
+const visionService = new VisionService({
+  apiKey: process.env.GEMINI_API_KEY,
+  modelName: process.env.GEMINI_MODEL_VISION
+});
+
+const botService = new AirDeltaBot(airService, advisoryService, visionService, { token });
+
+if (!botService.bot) {
+  console.error("Failed to initialize Bot instance.");
+  process.exit(1);
+}
+
+console.log("\n==========================================");
+console.log("  AirDelta Telegram Bot - Polling Mode    ");
+console.log("==========================================");
+console.log("🤖 Starting long-polling for local testing...");
+console.log("👉 Open Telegram and send /start to your bot!\n");
+
+botService.bot.start({
+  onStart: (botInfo) => {
+    console.log(`✅ Bot @${botInfo.username} (${botInfo.first_name}) is online and listening!`);
+  }
+});
