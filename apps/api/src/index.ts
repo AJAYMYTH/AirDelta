@@ -7,9 +7,11 @@ import { createAirRoutes } from "./routes/air.route.js";
 import { createPlanRoutes } from "./routes/plans.route.js";
 import { createIndoorRoutes } from "./routes/indoor.route.js";
 import { createAdvisoryRoutes } from "./routes/advisory.route.js";
+import { createTelegramRoutes } from "./routes/telegram.route.js";
 import { PlannerService } from "./services/planner.service.js";
 import { VisionService } from "./services/vision.service.js";
 import { AdvisoryService } from "./services/advisory.service.js";
+import { AirDeltaBot } from "./bot/telegram.js";
 
 dotenv.config();
 
@@ -43,12 +45,17 @@ export function createApp(serviceOverride?: AirDataService) {
     modelName: process.env.GEMINI_MODEL_VISION
   });
   const advisoryService = new AdvisoryService();
+  const botService = new AirDeltaBot(airService, advisoryService, visionService, {
+    token: process.env.TELEGRAM_BOT_TOKEN,
+    webhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET
+  });
 
   // Mount versioned routes
   app.route("/v1/air", createAirRoutes(airService));
   app.route("/v1/plans", createPlanRoutes(plannerService));
   app.route("/v1/indoor-audits", createIndoorRoutes(visionService));
   app.route("/v1/advisories", createAdvisoryRoutes(advisoryService, airService));
+  app.route("/webhooks/telegram", createTelegramRoutes(botService));
 
   return app;
 }

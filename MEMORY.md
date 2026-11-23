@@ -110,9 +110,24 @@ airdelta/
   - All 33 tests passing green across 9 test suites (`vitest`).
   - Monorepo typechecks with 0 errors (`pnpm typecheck`).
   - Static site builds `/index.html`, `/plan/index.html`, `/indoor/index.html`, and `/community/index.html`.
+- [x] **Phase 5 Completed & Verified:**
+  - Telegram Bot Channel (Option B) implemented via `grammY` in `apps/api/src/bot/telegram.ts`:
+    - Button-driven 60-second onboarding (`/start` with city & language selectors).
+    - `/today` (CPCB AQI, cleanest window, and `[MEASURED]`, `[FORECAST]` provenance tags).
+    - `/plan` (Plan A vs Plan B dose comparison with $-39.5\%$ reduction and avoided transport carbon emissions).
+    - `/indoor` (Photo upload message handler triggering visual audit).
+    - `/advisory` (Society alert text ready to forward).
+    - `/lang` (Inline language selector for Indian regional languages).
+    - Automated 07:00 morning briefing notification builder (`buildMorningBrief`).
+  - Webhook & Scheduler in `apps/api/src/routes/telegram.route.ts`:
+    - `POST /webhooks/telegram` with `X-Telegram-Bot-Api-Secret-Token` header validation.
+    - `POST /webhooks/telegram/jobs/morning-brief` for scheduled Cloud Scheduler / Cron execution.
+    - `GET /webhooks/telegram/status` reporting bot configuration state.
+  - All 38 tests passing green across 10 test suites (`vitest`).
+  - Monorepo typechecks with 0 errors (`pnpm typecheck`).
 
 ## Development Progress
-- **Current Status:** Remote GitHub repo connected & synchronized. Phase 0, Phase 1, Phase 2, Phase 3 & Phase 4 Complete. Ready for Phase 5.
+- **Current Status:** Remote GitHub repo connected & synchronized. Phase 0, Phase 1, Phase 2, Phase 3, Phase 4 & Phase 5 Complete. Ready for Phase 6.
 - **Remote Origin:** `https://github.com/AJAYMYTH/AirDelta.git` (`main` branch synchronized).
 - Sequential phase execution model established:
   - **[DONE] Phase 0:** Monorepo setup, foundational docs, shared Zod schemas.
@@ -120,8 +135,8 @@ airdelta/
   - **[DONE] Phase 2:** Pure TS engine, planner orchestrator, Gemini narration + validator, Plan A vs B view.
   - **[DONE] Phase 3:** Indoor photo audit engine.
   - **[DONE] Phase 4:** Multilingual community advisories & policy table.
-  - **[IN PROGRESS] Phase 5:** Telegram bot channel & morning brief.
-  - **Phase 6:** Supabase Postgres production migration, RLS & hardening.
+  - **[DONE] Phase 5:** Telegram bot channel & morning brief.
+  - **[IN PROGRESS] Phase 6:** Supabase Postgres production migration, RLS & hardening.
   - **Phase 7:** Replay demonstration room, Playwright E2E tests, submission kit.
 
 ## Technical Decisions
@@ -154,14 +169,16 @@ airdelta/
 - [x] Phase 2: Exposure & Impact Engine & Planner Orchestrator (Verified green).
 - [x] Phase 3: Indoor Photo Audit Engine (Verified green).
 - [x] Phase 4: Multilingual Community Advisories & Policy Integration (Verified green).
-- [ ] Phase 5: Telegram Bot Channel & Morning Brief (Option B):
-  - [ ] Implement `apps/api/src/bot/telegram.ts` via `grammY`
-  - [ ] Button-driven 60-second onboarding
-  - [ ] Commands: `/start`, `/today`, `/plan`, `/indoor`, `/advisory`, `/lang`
-  - [ ] Provenance badge rendering in chat messages (`[Measured]`, `[Forecast]`, `[Modelled]`)
-  - [ ] Automated 07:00 morning briefing worker
-  - [ ] Webhook endpoint `POST /webhooks/telegram` with secret token authentication
-  - [ ] Verify Phase 5: Bot webhook tests, command handlers, and build check.
+- [x] Phase 5: Telegram Bot Channel & Morning Brief (Verified green).
+- [ ] Phase 6: Supabase Postgres Integration, RLS & Production Hardening:
+  - [ ] Implement `supabase/migrations/20261123000000_init_airdelta.sql`:
+    - [ ] Tables: `households`, `members`, `routine_segments`, `air_snapshots`, `plans`, `actions`, `groups`, `group_members`, `advisories`, `constants_registry`
+    - [ ] Row-Level Security (RLS) policies for tenant isolation
+    - [ ] `SECURITY DEFINER` view for $k \ge 5$ community privacy
+  - [ ] Implement Supabase client adapter in `apps/api/src/services/supabase.service.ts`
+  - [ ] Implement PII Scrubber & Rate Limiter in `apps/api`
+  - [ ] Implement 30-day plan retention cleaner to defend 500 MB free-tier storage limit
+  - [ ] Verify Phase 6: Supabase migration syntax, RLS security policies, and build check.
 
 ## Next Steps
-Begin Phase 5 implementation.
+Begin Phase 6 implementation.
