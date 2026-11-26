@@ -30,6 +30,8 @@ if (!token || token.includes("your_telegram") || token.length < 15) {
 const airService = new AirDataService({
   googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
   openaqApiKey: process.env.OPENAQ_API_KEY,
+  enableGoogle: process.env.GOOGLE_AQ_ENABLED === "true",
+  enableOpenAQ: process.env.OPENAQ_ENABLED !== "false",
   replayMode: process.env.REPLAY_MODE === "true"
 });
 

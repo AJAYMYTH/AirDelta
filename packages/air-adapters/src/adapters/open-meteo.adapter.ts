@@ -67,13 +67,18 @@ export class OpenMeteoAdapter implements AirQualityAdapter {
       badge: "forecast"
     }));
 
+    // Filter to upcoming/current hours when finding the cleanest 3-hour window
+    const cutoffMs = Date.now() - 3600 * 1000;
+    const futureStart = items.findIndex((item) => Date.parse(item.ts) >= cutoffMs);
+    const searchItems = futureStart >= 0 ? items.slice(futureStart) : items;
+
     // Find cleanest 3-hour window
     let cleanestWindow = null;
     let minAvgPm25 = Infinity;
     let bestStartIdx = -1;
 
-    for (let i = 0; i <= items.length - 3; i++) {
-      const slice = items.slice(i, i + 3);
+    for (let i = 0; i <= searchItems.length - 3; i++) {
+      const slice = searchItems.slice(i, i + 3);
       const valid = slice.filter((item) => item.pm25 !== null) as { pm25: number }[];
       if (valid.length === 3) {
         const avg = (valid[0].pm25 + valid[1].pm25 + valid[2].pm25) / 3;
@@ -86,8 +91,8 @@ export class OpenMeteoAdapter implements AirQualityAdapter {
 
     if (bestStartIdx >= 0) {
       cleanestWindow = {
-        startTs: items[bestStartIdx].ts,
-        endTs: items[bestStartIdx + 2].ts,
+        startTs: searchItems[bestStartIdx].ts,
+        endTs: searchItems[bestStartIdx + 2].ts,
         expectedPm25: Math.round(minAvgPm25 * 10) / 10,
         reason: "Modelled minimum pollution period based on meteorological dispersion"
       };

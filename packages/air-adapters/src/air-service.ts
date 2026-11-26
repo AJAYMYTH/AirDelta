@@ -1,5 +1,5 @@
 import { AirSnapshot, AirForecast } from "@airdelta/schemas";
-import { AirQualityAdapter, toCellId, CachedEntry } from "./types.js";
+import { toCellId, CachedEntry } from "./types.js";
 import { GoogleAirQualityAdapter } from "./adapters/google-aq.adapter.js";
 import { OpenAQAdapter } from "./adapters/openaq.adapter.js";
 import { OpenMeteoAdapter } from "./adapters/open-meteo.adapter.js";
@@ -25,7 +25,7 @@ export class AirDataService {
   private inFlightCurrent = new Map<string, Promise<AirSnapshot>>();
   private inFlightForecast = new Map<string, Promise<AirForecast>>();
 
-  // Circuit breaker state for primary Google AQ
+  // Circuit breaker state for primary OpenAQ provider
   private primaryFailureCount = 0;
   private circuitOpenUntil = 0;
 
@@ -104,13 +104,13 @@ export class AirDataService {
     const now = Date.now();
     const isCircuitOpen = now < this.circuitOpenUntil;
 
-    // Step 1: Google Air Quality API (Primary)
-    if (!isCircuitOpen && this.config.enableGoogle !== false && (await this.googleAdapter.isAvailable())) {
+    // Step 1 (Default Primary): OpenAQ v3 Measured Ground Stations
+    if (!isCircuitOpen && this.config.enableOpenAQ !== false && (await this.openaqAdapter.isAvailable())) {
       try {
-        const snapshot = await this.googleAdapter.fetchCurrent(lat, lng);
+        const snapshot = await this.openaqAdapter.fetchCurrent(lat, lng);
         this.primaryFailureCount = 0;
         return snapshot;
-      } catch (err) {
+      } catch {
         this.primaryFailureCount++;
         if (this.primaryFailureCount >= 3) {
           this.circuitOpenUntil = now + 120000; // Trip circuit for 2 minutes
@@ -118,20 +118,20 @@ export class AirDataService {
       }
     }
 
-    // Step 2: OpenAQ v3 (Measured Ground Stations)
-    if (this.config.enableOpenAQ !== false && (await this.openaqAdapter.isAvailable())) {
-      try {
-        return await this.openaqAdapter.fetchCurrent(lat, lng);
-      } catch {
-        // Fallback to next tier
-      }
-    }
-
-    // Step 3: Open-Meteo European CAMS (Free Fallback)
+    // Step 2: Open-Meteo European CAMS (Free Modelled Fallback)
     try {
       return await this.openMeteoAdapter.fetchCurrent(lat, lng);
     } catch {
-      // Fallback to replay
+      // Fallback to optional Google AQ or stale cache
+    }
+
+    // Step 3: Optional Google Air Quality API (disabled unless explicitly enabled via enableGoogle: true)
+    if (this.config.enableGoogle === true && (await this.googleAdapter.isAvailable())) {
+      try {
+        return await this.googleAdapter.fetchCurrent(lat, lng);
+      } catch {
+        // Fallback to stale cache
+      }
     }
 
     // Step 4: Stale cache fallback (up to 6 hours)
@@ -153,23 +153,20 @@ export class AirDataService {
       return this.replayAdapter.fetchForecast(lat, lng);
     }
 
-    const now = Date.now();
-    const isCircuitOpen = now < this.circuitOpenUntil;
+    // Step 1 (Default Forecast): Open-Meteo CAMS Forecast (free, zero Google AQ dependency)
+    try {
+      return await this.openMeteoAdapter.fetchForecast(lat, lng);
+    } catch {
+      // Fallback
+    }
 
-    // Step 1: Google Forecast
-    if (!isCircuitOpen && this.config.enableGoogle !== false && (await this.googleAdapter.isAvailable())) {
+    // Step 2: Optional Google Forecast (disabled unless explicitly enabled)
+    if (this.config.enableGoogle === true && (await this.googleAdapter.isAvailable())) {
       try {
         return await this.googleAdapter.fetchForecast(lat, lng);
       } catch {
         // Fallback
       }
-    }
-
-    // Step 2: Open-Meteo Forecast
-    try {
-      return await this.openMeteoAdapter.fetchForecast(lat, lng);
-    } catch {
-      // Fallback
     }
 
     // Step 3: Replay Forecast

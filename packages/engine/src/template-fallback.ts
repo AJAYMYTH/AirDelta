@@ -11,7 +11,8 @@ export class TemplateFallbackService {
     planA: PlanAOutput,
     planB: PlanBOutput
   ): NarrationOutput {
-    const aqi = air.indexValue || 385;
+    const aqi = air.indexValue ?? 385;
+    const category = air.category || "Elevated";
     const savingPercent = Math.round(planB.netSavingPercent);
     const savingUg = Math.round(planB.netSavingUg);
     const doseA = Math.round(planA.totalDoseUg.mid);
@@ -135,8 +136,8 @@ export class TemplateFallbackService {
       default:
         return {
           lang: "en",
-          headline: `AQI ${aqi}: Plan B saves ${savingPercent}% of daily inhaled PM2.5`,
-          body: `Ambient air quality is Severe (AQI ${aqi}). Your unadjusted Plan A routine results in an estimated ${doseA} µg of inhaled PM2.5. By applying Plan B adjustments, you can reduce this to ${doseB} µg, preventing ${savingUg} µg (${savingPercent}%) from entering your lungs.`,
+          headline: `AQI ${aqi} (${category}): Plan B saves ${savingPercent}% of daily inhaled PM2.5`,
+          body: `Ambient air quality is ${category} (AQI ${aqi}). Your unadjusted Plan A routine results in an estimated ${doseA} µg of inhaled PM2.5. By applying Plan B adjustments, you can reduce this to ${doseB} µg, preventing ${savingUg} µg (${savingPercent}%) from entering your lungs.`,
           keyActions,
           source: "template"
         };

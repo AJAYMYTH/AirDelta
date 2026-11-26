@@ -6,7 +6,7 @@ import { AirSnapshot, PlanAOutput, PlanBOutput } from "@airdelta/schemas";
 
 describe("Planner & Grounding Validator test suite", () => {
   const airService = new AirDataService({ replayMode: true });
-  const app = createApp(airService);
+  const app = createApp(airService, { disableLlm: true });
 
   const mockAir: AirSnapshot = {
     cell: "28.61:77.21",

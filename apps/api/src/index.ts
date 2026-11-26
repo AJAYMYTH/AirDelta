@@ -26,7 +26,10 @@ if (fs.existsSync(localEnv)) {
   dotenv.config();
 }
 
-export function createApp(serviceOverride?: AirDataService) {
+export function createApp(
+  serviceOverride?: AirDataService,
+  options: { disableLlm?: boolean } = {}
+) {
   const app = new Hono();
 
   // CORS middleware
@@ -40,17 +43,17 @@ export function createApp(serviceOverride?: AirDataService) {
   app.get("/healthz", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
   app.get("/readyz", (c) => c.json({ status: "ready" }));
 
-  // Initialize Air Data Service
+  // Initialize Air Data Service (OpenAQ primary by default; Google AQ opt-in only)
   const airService = serviceOverride || new AirDataService({
     googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
     openaqApiKey: process.env.OPENAQ_API_KEY,
-    enableGoogle: process.env.GOOGLE_AQ_ENABLED !== "false",
+    enableGoogle: process.env.GOOGLE_AQ_ENABLED === "true",
     enableOpenAQ: process.env.OPENAQ_ENABLED !== "false",
     replayMode: process.env.REPLAY_MODE === "true"
   });
 
   // Initialize Planner, Vision & Advisory Services
-  const plannerService = new PlannerService(airService);
+  const plannerService = new PlannerService(airService, undefined, Boolean(options.disableLlm));
   const visionService = new VisionService({
     apiKey: process.env.GEMINI_API_KEY,
     modelName: process.env.GEMINI_MODEL_VISION

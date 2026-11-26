@@ -1,5 +1,6 @@
 import { animate, stagger } from "animejs";
-import { UI_TRANSLATIONS, SUPPORTED_LANGUAGES } from "@airdelta/i18n";
+import { getTranslation, SUPPORTED_LANGUAGES } from "@airdelta/i18n";
+import { wireTransitionsDropdown, initAutoDropdowns, refreshAllDropdownLabels, setTransitionDropdownValue } from "./dropdown.ts";
 
 declare global {
   interface Window {
@@ -7,6 +8,9 @@ declare global {
       applyLanguage: (lang: string) => void;
       getCurrentLanguage: () => string;
       animateButton: (el: HTMLElement) => void;
+      wireTransitionsDropdown: typeof wireTransitionsDropdown;
+      setTransitionDropdownValue: typeof setTransitionDropdownValue;
+      t: (key: string) => string;
     };
   }
 }
@@ -18,31 +22,26 @@ export function applyLanguage(lang: string) {
   const safeLang = SUPPORTED_LANGUAGES[lang] ? lang : "en";
   localStorage.setItem("airdelta_lang", safeLang);
   document.documentElement.lang = safeLang;
+  document.documentElement.dir = SUPPORTED_LANGUAGES[safeLang]?.direction || "ltr";
 
-  const dict = UI_TRANSLATIONS[safeLang] || UI_TRANSLATIONS.en;
-  const fallback = UI_TRANSLATIONS.en;
-
-  // Update text nodes
+  // Update text nodes using full merged dictionary (core UI_TRANSLATIONS + PAGE_TRANSLATIONS)
   document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => {
-    const key = el.getAttribute("data-i18n") as keyof typeof dict;
+    const key = el.getAttribute("data-i18n");
     if (key) {
-      const val = (dict && dict[key]) || (fallback && fallback[key]);
-      if (val) {
-        el.innerText = val;
-      }
+      el.textContent = getTranslation(key, safeLang);
     }
   });
 
   // Update HTML nodes
   document.querySelectorAll<HTMLElement>("[data-i18n-html]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-html") as keyof typeof dict;
+    const key = el.getAttribute("data-i18n-html");
     if (key) {
-      const val = (dict && dict[key]) || (fallback && fallback[key]);
-      if (val) {
-        el.innerHTML = val;
-      }
+      el.innerHTML = getTranslation(key, safeLang);
     }
   });
+
+  // Refresh selected display text inside all <TransitionDropdown> triggers
+  refreshAllDropdownLabels();
 
   // Update Language dropdown display label
   const labelEl = document.getElementById("lang-display-name");
@@ -51,17 +50,18 @@ export function applyLanguage(lang: string) {
     labelEl.innerText = meta ? meta.nativeName : "English";
   }
 
-  // Update active status in custom dropdown
+  // Update active status in language menu dropdown
   document.querySelectorAll<HTMLElement>(".lang-menu-item").forEach((item) => {
     const code = item.getAttribute("data-lang-code");
     const checkEl = item.querySelector(".lang-check");
+    item.setAttribute("aria-checked", String(code === safeLang));
     if (code === safeLang) {
       item.classList.add("bg-[#fff7ed]", "text-[#ea580c]", "font-bold");
-      item.classList.remove("text-[#595959]", "hover:bg-[#f7f9fa]");
+      item.classList.remove("text-[#525252]", "hover:bg-[#f7f9fa]");
       if (checkEl) checkEl.classList.remove("opacity-0");
     } else {
       item.classList.remove("bg-[#fff7ed]", "text-[#ea580c]", "font-bold");
-      item.classList.add("text-[#595959]", "hover:bg-[#f7f9fa]");
+      item.classList.add("text-[#525252]", "hover:bg-[#f7f9fa]");
       if (checkEl) checkEl.classList.add("opacity-0");
     }
   });
@@ -85,14 +85,14 @@ export function applyLanguage(lang: string) {
       url.searchParams.set("lang", safeLang);
       window.history.replaceState({}, "", url.toString());
     }
-  } catch (e) {
+  } catch {
     // Ignore URL rewrite failures in restricted environments
   }
 
   // Emit custom event for page-specific component reactions
   window.dispatchEvent(
     new CustomEvent("airdelta:langchange", {
-      detail: { lang: safeLang, translations: dict }
+      detail: { lang: safeLang }
     })
   );
 }
@@ -130,113 +130,86 @@ if (typeof window !== "undefined") {
   window.AirDeltaRuntime = {
     applyLanguage,
     getCurrentLanguage,
-    animateButton
+    animateButton,
+    wireTransitionsDropdown,
+    setTransitionDropdownValue,
+    t: (key: string) => getTranslation(key, getCurrentLanguage())
   };
 }
 
 // Initialize on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Initial Language Application
+  // 1. Auto-wire all <TransitionDropdown> instances site-wide
+  initAutoDropdowns(animateButton);
+
+  // 2. Setup Transitions.dev Menu Dropdown (Language Switcher)
+  wireTransitionsDropdown({
+    trigger: document.getElementById("btn-lang-dropdown"),
+    menu: document.getElementById("lang-dropdown-menu"),
+    chevron: document.getElementById("lang-chevron"),
+    itemSelector: ".lang-menu-item",
+    align: "end",
+    animateTrigger: animateButton,
+    onSelect: (item) => {
+      const code = item.getAttribute("data-lang-code");
+      if (code) applyLanguage(code);
+    }
+  });
+
+  // 3. Initial Language Application (after dropdown wiring so labels translate cleanly)
   const initialLang = getCurrentLanguage();
   applyLanguage(initialLang);
 
-  // 2. Setup Transitions.dev-style Dropdown Menu
-  const triggerBtn = document.getElementById("btn-lang-dropdown");
-  const dropdownMenu = document.getElementById("lang-dropdown-menu");
-  const chevron = document.getElementById("lang-chevron");
-
-  let isDropdownOpen = false;
-
-  function toggleDropdown(forceClose = false) {
-    if (!dropdownMenu) return;
-    if (isDropdownOpen || forceClose) {
-      // Close dropdown
-      isDropdownOpen = false;
-      if (chevron) {
-        chevron.style.transform = "rotate(0deg)";
-      }
-      try {
-        animate(dropdownMenu, {
-          opacity: [1, 0],
-          translateY: [0, -8],
-          scale: [1, 0.95],
-          duration: 150,
-          ease: "inQuad"
-        });
-      } catch (e) {}
-      setTimeout(() => {
-        dropdownMenu.classList.add("hidden");
-      }, 150);
-    } else {
-      // Open dropdown
-      isDropdownOpen = true;
-      dropdownMenu.classList.remove("hidden");
-      if (chevron) {
-        chevron.style.transform = "rotate(180deg)";
-      }
-      try {
-        animate(dropdownMenu, {
-          opacity: [0, 1],
-          translateY: [-8, 0],
-          scale: [0.95, 1],
-          duration: 220,
-          ease: "outCubic"
-        });
-      } catch (e) {}
-    }
-  }
-
-  if (triggerBtn) {
-    triggerBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      animateButton(triggerBtn);
-      toggleDropdown();
-    });
-  }
-
-  // Language options click inside dropdown
-  document.querySelectorAll<HTMLElement>(".lang-menu-item").forEach((item) => {
-    item.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const code = item.getAttribute("data-lang-code");
-      if (code) {
-        applyLanguage(code);
-        toggleDropdown(true);
-      }
-    });
-  });
-
-  // Close dropdown on outside click or escape
-  document.addEventListener("click", (e) => {
-    if (isDropdownOpen && dropdownMenu && !dropdownMenu.contains(e.target as Node)) {
-      toggleDropdown(true);
-    }
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && isDropdownOpen) {
-      toggleDropdown(true);
-    }
-  });
-
-  // 3. Tactile Feedback on all buttons with anime.js
+  // 4. Tactile Feedback on all buttons with anime.js
   document.querySelectorAll<HTMLElement>("button, a.btn-action").forEach((btn) => {
     btn.addEventListener("mousedown", () => {
       animateButton(btn);
     });
   });
 
-  // 4. Staggered card entrance animation
-  const staggerCards = document.querySelectorAll(".stagger-card");
-  if (staggerCards.length > 0) {
+  // 5. Staggered card entrance animation — clear transform afterwards to avoid trapping fixed/popover contexts
+  const staggerCards = document.querySelectorAll<HTMLElement>(".stagger-card");
+  if (staggerCards.length > 0 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     try {
       animate(staggerCards, {
         opacity: [0, 1],
-        translateY: [16, 0],
-        delay: stagger(40),
-        duration: 350,
-        ease: "outQuad"
+        translateY: [12, 0],
+        delay: stagger(35),
+        duration: 280,
+        ease: "outQuad",
+        onComplete: () => {
+          staggerCards.forEach((el) => {
+            el.style.transform = "";
+          });
+        }
       });
-    } catch (e) {}
+    } catch {}
+  }
+
+  // 5. Sync global top alert banner from session cache or live OpenAQ API on secondary pages
+  const globalAlertText = document.getElementById("global-alert-text");
+  const globalAlertTitle = document.getElementById("global-alert-title");
+  if (globalAlertText && !document.getElementById("city-select")) {
+    try {
+      const cached = sessionStorage.getItem("airdelta_last_snapshot");
+      if (cached) {
+        const { snapshot, cityLabel } = JSON.parse(cached);
+        if (globalAlertTitle) globalAlertTitle.textContent = `${cityLabel} (${String(snapshot.source).toUpperCase()}):`;
+        globalAlertText.textContent = `AQI ${snapshot.indexValue ?? "--"} (${snapshot.category ?? "Moderate"}) · Fine Dust ${snapshot.pm25 ?? "--"} µg/m³`;
+      } else {
+        const apiBase = ((import.meta as any).env?.PUBLIC_API_URL || "http://localhost:3000").replace(/\/$/, "");
+        fetch(`${apiBase}/v1/air?lat=28.6139&lng=77.2090`, { signal: AbortSignal.timeout(5000) })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((snapshot) => {
+            if (snapshot && globalAlertText) {
+              if (globalAlertTitle) globalAlertTitle.textContent = `Delhi-NCR (${String(snapshot.source).toUpperCase()}):`;
+              globalAlertText.textContent = `AQI ${snapshot.indexValue ?? "--"} (${snapshot.category ?? "Moderate"}) · Fine Dust ${snapshot.pm25 ?? "--"} µg/m³`;
+            }
+          })
+          .catch(() => {
+            if (globalAlertText) globalAlertText.textContent = "Offline Demo Mode Ready";
+          });
+      }
+    } catch {}
   }
 });

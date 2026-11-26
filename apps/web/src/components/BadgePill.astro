@@ -10,9 +10,10 @@ interface Props {
 
 const { badge, lang = "en", className = "" } = Astro.props;
 
-const badgeConfig: Record<Badge, { labelKey: string; bg: string; text: string; border: string; dot: string }> = {
+const badgeConfig: Record<Badge, { labelKey: string; i18nKey: string; bg: string; text: string; border: string; dot: string }> = {
   measured: {
     labelKey: "badge_measured",
+    i18nKey: "badgeMeasured",
     bg: "bg-emerald-50",
     text: "text-emerald-800",
     border: "border-emerald-200",
@@ -20,6 +21,7 @@ const badgeConfig: Record<Badge, { labelKey: string; bg: string; text: string; b
   },
   forecast: {
     labelKey: "badge_forecast",
+    i18nKey: "badgeForecast",
     bg: "bg-orange-50",
     text: "text-orange-900",
     border: "border-orange-200",
@@ -27,6 +29,7 @@ const badgeConfig: Record<Badge, { labelKey: string; bg: string; text: string; b
   },
   modelled: {
     labelKey: "badge_modelled",
+    i18nKey: "badgeModelled",
     bg: "bg-slate-100",
     text: "text-slate-800",
     border: "border-slate-200",
@@ -34,6 +37,7 @@ const badgeConfig: Record<Badge, { labelKey: string; bg: string; text: string; b
   },
   assumed: {
     labelKey: "badge_assumed",
+    i18nKey: "badgeAssumed",
     bg: "bg-amber-50",
     text: "text-amber-800",
     border: "border-amber-200",
@@ -47,5 +51,5 @@ const label = getGlossaryTerm(cfg.labelKey, lang);
 
 <span class={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${cfg.bg} ${cfg.text} ${cfg.border} font-mono tracking-tight shadow-xs ${className}`}>
   <span class={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>
-  <span>{label}</span>
+  <span data-i18n={cfg.i18nKey}>{label}</span>
 </span>

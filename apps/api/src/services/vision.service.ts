@@ -14,13 +14,16 @@ export interface VisionServiceConfig {
 
 export class VisionService {
   private ai: GoogleGenAI | null = null;
-  private modelName: string;
+  private modelCandidates: string[];
 
   constructor(config: VisionServiceConfig = {}) {
-    const key = config.apiKey || process.env.GEMINI_API_KEY;
-    this.modelName = config.modelName || process.env.GEMINI_MODEL_VISION || "gemini-2.0-flash";
+    const key = config.apiKey ?? process.env.GEMINI_API_KEY;
+    const primaryModel = config.modelName || process.env.GEMINI_MODEL_VISION || "gemini-3.6-flash";
+    this.modelCandidates = Array.from(
+      new Set([primaryModel, "gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash"])
+    );
 
-    if (key && key.trim().length > 0) {
+    if (key && key.trim().length > 0 && !key.includes("your_gemini") && process.env.LLM_ENABLED !== "false") {
       this.ai = new GoogleGenAI({ apiKey: key });
     }
   }
@@ -38,11 +41,9 @@ export class VisionService {
     const auditId = randomUUID();
     let detectedSources: CandidatePollutionSource[] = [];
 
-    // Attempt Gemini 2.0 Flash Multimodal Vision
     if (this.ai && base64Image && base64Image.length > 100) {
-      try {
-        const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, "");
-        const prompt = `
+      const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, "");
+      const prompt = `
 Analyze this indoor room image specifically for indoor air pollution sources, combustion equipment, ventilation gaps, or aerosol generators.
 
 VALID SOURCES TO DETECT:
@@ -68,40 +69,49 @@ JSON Schema:
 ]
 `;
 
-        const response = await this.ai.models.generateContent({
-          model: this.modelName,
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: prompt },
+      for (const model of this.modelCandidates) {
+        try {
+          const response = await Promise.race([
+            this.ai.models.generateContent({
+              model,
+              contents: [
                 {
-                  inlineData: {
-                    mimeType,
-                    data: cleanBase64
-                  }
+                  role: "user",
+                  parts: [
+                    { text: prompt },
+                    {
+                      inlineData: {
+                        mimeType,
+                        data: cleanBase64
+                      }
+                    }
+                  ]
                 }
-              ]
-            }
-          ],
-          config: {
-            responseMimeType: "application/json"
-          }
-        });
+              ],
+              config: {
+                responseMimeType: "application/json"
+              }
+            }),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error("Gemini vision timeout")), 8000)
+            )
+          ]);
 
-        const text = response.text;
-        if (text) {
-          const rawItems: any[] = JSON.parse(text);
-          detectedSources = rawItems.map((item) => ({
-            id: `src-${randomUUID().slice(0, 8)}`,
-            sourceKey: item.sourceKey,
-            label: item.label,
-            confidence: typeof item.confidence === "number" ? item.confidence : 0.85,
-            detectedReason: item.detectedReason || "Detected via visual audit"
-          }));
+          const text = response.text;
+          if (text) {
+            const rawItems: any[] = JSON.parse(text);
+            detectedSources = rawItems.map((item) => ({
+              id: `src-${randomUUID().slice(0, 8)}`,
+              sourceKey: item.sourceKey,
+              label: item.label,
+              confidence: typeof item.confidence === "number" ? item.confidence : 0.85,
+              detectedReason: item.detectedReason || "Detected via visual audit"
+            }));
+            if (detectedSources.length > 0) break;
+          }
+        } catch {
+          // Try next Flash fallback candidate
         }
-      } catch (err) {
-        // Fallback to heuristic rule-based detection
       }
     }
 

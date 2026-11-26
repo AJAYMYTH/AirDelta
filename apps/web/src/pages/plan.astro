@@ -1,19 +1,20 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
-import { AirDataService } from "@airdelta/air-adapters";
+import AirWaveLoader from "../components/AirWaveLoader.tsx";
+import TransitionDropdown from "../components/TransitionDropdown.astro";
+import delhiSmogData from "../../../../fixtures/delhi-smog-nov2026.json";
 import { optimizeHouseholdPlan, TemplateFallbackService } from "@airdelta/engine";
-import { 
-  Leaf, 
-  AlertCircle, 
-  ArrowRight, 
-  Sparkles, 
-  Check 
-} from "lucide-astro";
+import type { AirSnapshot, AirForecast } from "@airdelta/schemas";
+import Leaf from "lucide-astro/Leaf";
+import AlertCircle from "lucide-astro/AlertCircle";
+import ArrowRight from "lucide-astro/ArrowRight";
+import Sparkles from "lucide-astro/Sparkles";
+import Check from "lucide-astro/Check";
+import SlidersHorizontal from "lucide-astro/SlidersHorizontal";
 
-const airService = new AirDataService({ replayMode: true });
-const snapshot = await airService.getAirSnapshot(28.6139, 77.2090);
-const forecast = await airService.getAirForecast(28.6139, 77.2090);
+const snapshot = delhiSmogData.snapshot as AirSnapshot;
+const forecast = delhiSmogData.forecast as AirForecast;
 
 const profile = {
   cityCode: "DELHI",
@@ -24,229 +25,285 @@ const profile = {
   hasExhaust: false,
   hasPurifier: false,
   members: [
-    { id: "m-1", ageBand: "adult" as const, cautionMode: false, label: "Parent (Adult)" },
-    { id: "m-2", ageBand: "child" as const, cautionMode: true, label: "Child (6yo)" }
+    { id: "m-1", ageBand: "adult" as const, cautionMode: false, label: "Adult" }
   ],
   routines: [
-    {
-      id: "r-walk",
-      memberId: "m-1",
-      kind: "walk" as const,
-      startHour: 7,
-      durationMinutes: 45,
-      isIndoor: false,
-      maskUsed: false
-    },
-    {
-      id: "r-commute",
-      memberId: "m-1",
-      kind: "commute" as const,
-      mode: "two_wheeler" as const,
-      startHour: 9,
-      durationMinutes: 45,
-      isIndoor: false,
-      maskUsed: false
-    },
-    {
-      id: "r-cook",
-      memberId: "m-1",
-      kind: "cooking" as const,
-      startHour: 19,
-      durationMinutes: 60,
-      isIndoor: true,
-      maskUsed: false
-    }
+    { id: "r-walk", memberId: "m-1", kind: "walk" as const, startHour: 7, durationMinutes: 45, isIndoor: false, maskUsed: false },
+    { id: "r-commute", memberId: "m-1", kind: "commute" as const, mode: "two_wheeler" as const, startHour: 9, durationMinutes: 45, isIndoor: false, maskUsed: false },
+    { id: "r-cook", memberId: "m-1", kind: "cooking" as const, startHour: 19, durationMinutes: 60, isIndoor: true, maskUsed: false }
   ]
 };
 
 const engineResult = optimizeHouseholdPlan(profile, snapshot, forecast);
-const fallbackService = new TemplateFallbackService();
-const narrative = fallbackService.generateTemplateNarration(
-  "en",
-  snapshot,
-  engineResult.planA,
-  engineResult.planB
-);
-
+const narrative = new TemplateFallbackService().generateTemplateNarration("en", snapshot, engineResult.planA, engineResult.planB);
 const { planA, planB, emissions, assumptions } = engineResult;
+const cityOptions = [
+  { value: "DELHI", label: "Delhi-NCR" },
+  { value: "MUMBAI", label: "Mumbai" },
+  { value: "BENGALURU", label: "Bengaluru" },
+  { value: "KANPUR", label: "Kanpur" },
+  { value: "PATNA", label: "Patna" },
+  { value: "LUCKNOW", label: "Lucknow" }
+];
+const ageOptions = [
+  { value: "adult", label: "Adult (18–60)", i18nKey: "optAdult" },
+  { value: "child", label: "Child (3–6)", i18nKey: "optChild" },
+  { value: "senior", label: "Senior (65+)", i18nKey: "optSenior" },
+  { value: "teen", label: "Teen (13–17)", i18nKey: "optTeen" }
+];
+const commuteOptions = [
+  { value: "two_wheeler", label: "Motorbike / Scooter", i18nKey: "optTwoWheeler" },
+  { value: "car", label: "Car", i18nKey: "optCar" },
+  { value: "auto", label: "Auto-Rickshaw", i18nKey: "optAuto" },
+  { value: "bus", label: "City Bus", i18nKey: "optBus" },
+  { value: "metro", label: "Metro Train", i18nKey: "optMetro" },
+  { value: "walk", label: "Walking", i18nKey: "optWalk" }
+];
+const budgetOptions = [
+  { value: "low", label: "Low (Under ₹1,500)", i18nKey: "optLow" },
+  { value: "none", label: "Free Changes Only", i18nKey: "optNone" },
+  { value: "medium", label: "DIY Filter (₹1,500–₹3,500)", i18nKey: "optMedium" },
+  { value: "high", label: "HEPA Purifier", i18nKey: "optHigh" }
+];
 ---
 
-<Layout title="AirDelta — Plan A vs Plan B Optimizer">
-  <div class="space-y-8 max-w-5xl mx-auto">
-    <!-- Header Title -->
+<Layout title="AirDelta — Your Daily Clean Air Plan">
+  <div class="space-y-7 max-w-5xl mx-auto">
+    <!-- Header -->
     <div>
       <div class="flex items-center gap-2 mb-1.5">
-        <a href="/" class="text-xs font-semibold text-[#8c8c8c] hover:text-[#ea580c] transition-colors">← Back to Today</a>
-        <span class="text-xs text-[#d9d9d9]">/</span>
-        <span class="text-xs text-[#ea580c] font-semibold" data-i18n="planTitle">Household Exposure Optimizer</span>
+        <a href="/" class="text-xs font-semibold text-[#737373] hover:text-[#ea580c] transition-colors" data-i18n="backToToday">← Back to Today</a>
+        <span class="text-xs text-[#d4d4d4]">/</span>
+        <span class="text-xs text-[#ea580c] font-bold" data-i18n="planTitle">Your Daily Plan</span>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]">Plan A vs Plan B Exposure Ledger</h1>
-          <p class="text-xs sm:text-sm text-[#595959] mt-1">
-            Deterministic dose simulation based on actual physical routine segments · Delhi-NCR (ITO Grid)
+          <h1 class="text-3xl font-extrabold tracking-tight text-[#171717]" data-i18n="planHeading">Normal Day vs. Safer Day</h1>
+          <p id="plan-subtitle" class="text-xs sm:text-sm text-[#525252] mt-1" data-i18n="planSubtitle">
+            See how much polluted dust your family avoids with simple daily swaps.
           </p>
         </div>
         <div class="flex items-center gap-2">
           <BadgePill badge="modelled" />
-          <span class="text-xs text-[#595959] font-mono bg-[#f7f9fa] border border-[#e8e8e8] px-2.5 py-1 rounded-full">Engine v1.0.0</span>
+          <span id="plan-air-source-badge" class="text-xs text-[#525252] font-mono bg-white border border-[#e5e5e5] px-3 py-1 rounded-full font-semibold">
+            OpenAQ
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- AI & Grounded Narrative Banner (DJI Showroom Alert Card) -->
-    <div class="p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-2xl shadow-xs stagger-card">
+    <!-- Personalize Your Day Form -->
+    <form id="plan-builder-form" aria-labelledby="builder-heading" class="p-6 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-5 stagger-card">
+      <div class="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
+        <div class="flex items-center gap-2">
+          <SlidersHorizontal class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+          <h2 id="builder-heading" class="text-base font-extrabold text-[#171717]" data-i18n="personalizeHeading">Personalize Your Day</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <AirWaveLoader client:load id="plan-wave-loader" size={18} color="#ea580c" origin="bottom" duration={950} playState="paused" />
+          <span id="plan-form-status" role="status" aria-live="polite" class="text-[11px] font-mono text-[#525252] font-semibold" data-i18n="readyLabel">Ready</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+        <div class="flex flex-col gap-1.5">
+          <span class="font-bold text-[#171717]" data-i18n="labelCity">City</span>
+          <TransitionDropdown id="plan-city" name="city" heading="Select OpenAQ City" headingI18n="selectCityTitle" options={cityOptions} selectedValue="DELHI" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <span class="font-bold text-[#171717]" data-i18n="labelAgeGroup">Who is this for?</span>
+          <TransitionDropdown id="plan-age-band" name="ageBand" options={ageOptions} selectedValue="adult" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <span class="font-bold text-[#171717]" data-i18n="labelCommute">Daily Travel</span>
+          <TransitionDropdown id="plan-commute-mode" name="commuteMode" options={commuteOptions} selectedValue="two_wheeler" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <span class="font-bold text-[#171717]" data-i18n="labelBudget">Budget for Fixes</span>
+          <TransitionDropdown id="plan-budget" name="budgetBand" options={budgetOptions} selectedValue="low" />
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+        <div class="flex flex-wrap items-center gap-5 text-xs">
+          <label for="plan-caution" class="inline-flex items-center gap-2 cursor-pointer font-semibold text-[#171717]">
+            <input id="plan-caution" name="cautionMode" type="checkbox" class="rounded border-[#d4d4d4] accent-[#ea580c] w-4 h-4" />
+            <span data-i18n="labelCaution">Extra sensitive (asthma, kids, elderly)</span>
+          </label>
+          <label for="plan-exhaust" class="inline-flex items-center gap-2 cursor-pointer font-semibold text-[#171717]">
+            <input id="plan-exhaust" name="hasExhaust" type="checkbox" class="rounded border-[#d4d4d4] accent-[#ea580c] w-4 h-4" />
+            <span data-i18n="labelExhaust">We use a kitchen exhaust fan</span>
+          </label>
+        </div>
+
+        <button
+          id="btn-generate-plan"
+          type="submit"
+          class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer press-scale"
+        >
+          <Sparkles class="w-4 h-4" aria-hidden="true" />
+          <span data-i18n="btnUpdatePlan">Update My Plan</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- Smart Summary Banner -->
+    <div class="p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-3xl shadow-xs stagger-card">
       <div class="flex items-center justify-between mb-2">
         <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles class="w-3.5 h-3.5 text-[#ea580c]" /> Grounded Health Guidance
+          <Sparkles class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" /> <span data-i18n="smartSummaryLabel">Today's Smart Summary</span>
         </span>
-        <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-white text-[#595959] font-mono border border-[#fed7aa]">
-          Source: {narrative.source === "llm" ? "Gemini 2.0 Flash (Verified)" : "Deterministic Template"}
-        </span>
+        <div class="flex items-center gap-2">
+          <AirWaveLoader client:load id="plan-ai-wave" size={16} color="#ea580c" origin="center" duration={900} playState="paused" />
+          <span id="narrative-source-tag" class="text-[10px] px-2.5 py-0.5 rounded-full bg-white text-[#525252] font-mono border border-[#fed7aa]" data-i18n="instantSummary">
+            Instant Summary
+          </span>
+        </div>
       </div>
-      <h2 class="text-lg font-bold text-[#262626]">{narrative.headline}</h2>
-      <p class="text-xs sm:text-sm text-[#595959] mt-1.5 leading-relaxed">{narrative.body}</p>
+      <h2 id="narrative-headline" class="text-lg font-extrabold text-[#171717]">{narrative.headline}</h2>
+      <p id="narrative-body" class="text-xs sm:text-sm text-[#525252] mt-1.5 leading-relaxed">{narrative.body}</p>
     </div>
 
-    <!-- Comparative Dose Cards Grid -->
+    <!-- Normal Day vs Safer Day -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-card">
-      <!-- Plan A (Normal Day - Showroom Neutral Baseline) -->
-      <div class="p-6 bg-[#f7f9fa] border border-[#e8e8e8] rounded-3xl space-y-4">
+      <div class="p-6 bg-white border border-[#e5e5e5] rounded-3xl space-y-4 shadow-xs">
         <div class="flex items-center justify-between">
           <div>
-            <span class="text-[11px] uppercase font-bold text-[#8c8c8c] tracking-wider" data-i18n="planA">Plan A</span>
-            <h3 class="text-lg font-bold text-[#262626]">Normal Routine</h3>
+            <span class="text-[11px] uppercase font-bold text-[#737373] tracking-wider" data-i18n="planA">Normal Day</span>
+            <h3 class="text-lg font-extrabold text-[#171717]" data-i18n="withoutChanges">Without Changes</h3>
           </div>
-          <span class="px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-[#fee2e2] text-[#dc2626] border border-[#fca5a5]">
-            Unmitigated
+          <span class="px-2.5 py-1 rounded-full text-xs font-mono font-semibold bg-[#fee2e2] text-[#dc2626] border border-[#fca5a5]" data-i18n="higherRisk">
+            Higher Risk
           </span>
         </div>
 
-        <div class="py-4 border-y border-[#e8e8e8]">
-          <span class="text-xs text-[#595959] block">Total Inhaled PM2.5 Dose</span>
+        <div class="py-4 border-y border-[#e5e5e5]">
+          <span class="text-xs text-[#525252] block font-medium" data-i18n="fineDustBreathed">Fine Dust Breathed Today</span>
           <div class="flex items-baseline gap-2 mt-1">
-            <span class="text-4xl font-extrabold text-[#262626] font-mono tracking-tight">{planA.totalDoseUg.mid}</span>
-            <span class="text-sm font-semibold text-[#8c8c8c]">µg / day</span>
+            <span id="plan-a-dose-display" class="text-4xl font-extrabold text-[#171717] font-mono tracking-tight">{planA.totalDoseUg.mid}</span>
+            <span class="text-sm font-semibold text-[#737373]" data-i18n="ugPerDay">µg / day</span>
           </div>
-          <span class="text-[11px] text-[#8c8c8c] font-mono mt-1 block">
-            Uncertainty range: {planA.totalDoseUg.low} – {planA.totalDoseUg.high} µg
+          <span id="plan-a-range-display" class="text-[11px] text-[#737373] font-mono mt-1 block">
+            {planA.totalDoseUg.low} – {planA.totalDoseUg.high} µg
           </span>
         </div>
 
-        <!-- Segments breakdown -->
         <div class="space-y-2">
-          <span class="text-xs font-bold text-[#595959] block">Exposure by Routine Segment:</span>
-          {planA.segments.map((seg) => (
-            <div class="flex items-center justify-between text-xs p-3 bg-white rounded-xl border border-[#e8e8e8]">
-              <span class="capitalize text-[#262626] font-semibold">{seg.kind.replace("_", " ")}</span>
-              <span class="font-mono text-[#595959] font-medium">{seg.doseUg} µg</span>
-            </div>
-          ))}
+          <span class="text-xs font-bold text-[#525252] block" data-i18n="whereItComesFrom">Where it comes from:</span>
+          <div id="plan-a-segments" class="space-y-2">
+            {planA.segments.map((seg) => (
+              <div class="flex items-center justify-between text-xs p-3 bg-[#f7f9fa] rounded-xl border border-[#e5e5e5]">
+                <span class="capitalize text-[#171717] font-semibold">{seg.kind.replace("_", " ")}</span>
+                <span class="font-mono text-[#525252] font-bold">{seg.doseUg} µg</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <!-- Plan B (Optimized Day - Flagship Showroom Highlight Card) -->
       <div class="p-6 bg-white border-2 border-[#ea580c] rounded-3xl space-y-4 shadow-sm relative overflow-hidden">
         <div class="flex items-center justify-between">
           <div>
-            <span class="text-[11px] uppercase font-bold text-[#ea580c] tracking-wider" data-i18n="planB">Plan B · Flagship</span>
-            <h3 class="text-lg font-bold text-[#262626]">AirDelta Guided Day</h3>
+            <span class="text-[11px] uppercase font-bold text-[#ea580c] tracking-wider" data-i18n="planB">Safer Day · Recommended</span>
+            <h3 class="text-lg font-extrabold text-[#171717]" data-i18n="withSimpleSwaps">With Simple Swaps</h3>
           </div>
-          <span id="plan-b-saving-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] transition-all">
-            -{planB.netSavingPercent}% Inhaled Dose
+          <span id="plan-b-saving-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]">
+            -{planB.netSavingPercent}%
           </span>
         </div>
 
         <div class="py-4 border-y border-[#fed7aa]/60">
-          <span class="text-xs text-[#595959] block">Optimized Inhaled PM2.5 Dose</span>
+          <span class="text-xs text-[#525252] block font-medium" data-i18n="fineDustWithPlan">Fine Dust Breathed With Plan</span>
           <div class="flex items-baseline gap-2 mt-1">
             <span id="plan-b-dose-display" class="text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight">{planB.totalDoseUg.mid}</span>
-            <span class="text-sm font-semibold text-[#ea580c]">µg / day</span>
+            <span class="text-sm font-semibold text-[#ea580c]" data-i18n="ugPerDay">µg / day</span>
           </div>
-          <span class="text-[11px] text-[#595959] font-mono mt-1 block">
-            Net Saving: <span id="plan-b-net-ug" class="font-bold text-[#ea580c]">-{planB.netSavingUg} µg</span> (<span id="plan-b-net-pct">{planB.netSavingPercent}%</span> reduction)
+          <span class="text-[11px] text-[#525252] font-mono mt-1 block">
+            <span id="plan-b-net-ug" class="font-bold text-[#ea580c]">-{planB.netSavingUg} µg</span> (<span id="plan-b-net-pct">{planB.netSavingPercent}%</span>)
           </span>
         </div>
 
-        <!-- Recommended Changes (Interactive Intervention Toggle) -->
         <div class="space-y-2.5">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-[#262626] block">Interactive Interventions:</span>
-            <span class="text-[10px] text-[#8c8c8c] font-mono">Click to toggle impact</span>
+            <span class="text-xs font-bold text-[#171717] block" data-i18n="recommendedSwaps">Recommended Swaps:</span>
+            <span class="text-[10px] text-[#737373] font-mono" data-i18n="tapToToggle">Tap any card to toggle</span>
           </div>
-          {planB.changes.map((c, i) => (
-            <div 
-              class="intervention-card p-3.5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] space-y-1 hover:border-[#ea580c] transition-all cursor-pointer press-scale" 
-              data-delta={c.deltaUg} 
-              data-index={i}
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="intervention-check w-4 h-4 rounded-md bg-[#ea580c] text-white flex items-center justify-center text-[10px]">
-                    <Check class="w-3 h-3" />
+          <div id="plan-b-interventions" class="space-y-2.5">
+            {planB.changes.map((c, i) => (
+              <div 
+                class="intervention-card p-3.5 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5] space-y-1 hover:border-[#ea580c] transition-all cursor-pointer press-scale" 
+                data-delta={c.deltaUg} 
+                data-index={i}
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="intervention-check w-4 h-4 rounded-md bg-[#ea580c] text-white flex items-center justify-center text-[10px]">
+                      <Check class="w-3 h-3" aria-hidden="true" />
+                    </div>
+                    <span class="text-xs font-bold text-[#171717]">{c.title}</span>
                   </div>
-                  <span class="text-xs font-bold text-[#262626]">{c.title}</span>
+                  <span class="text-xs font-mono font-bold text-[#ea580c]">{c.deltaUg} µg</span>
                 </div>
-                <span class="text-xs font-mono font-bold text-[#ea580c]">{c.deltaUg} µg</span>
+                <p class="text-[11px] text-[#525252] leading-snug pl-6">{c.description}</p>
               </div>
-              <p class="text-[11px] text-[#595959] leading-snug pl-6">{c.description}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Dual Ledgers: Avoided Emissions & Trade-off Analysis -->
+    <!-- Clean Air Bonus & Good to Know -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-card">
-      <!-- Emissions Ledger -->
-      <div class="p-6 bg-white border border-[#e8e8e8] rounded-3xl space-y-3 shadow-xs">
+      <div class="p-6 bg-white border border-[#e5e5e5] rounded-3xl space-y-3 shadow-xs">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <Leaf class="w-4 h-4 text-[#15803d]" />
-            <h3 class="text-sm font-bold text-[#262626]" data-i18n="co2eAvoided">Avoided Transport Emissions</h3>
+            <Leaf class="w-4 h-4 text-[#15803d]" aria-hidden="true" />
+            <h3 class="text-sm font-extrabold text-[#171717]" data-i18n="co2eAvoided">Clean Travel Bonus</h3>
           </div>
           <BadgePill badge={emissions.badge} />
         </div>
         <div class="flex items-baseline gap-2">
-          <span class="text-3xl font-extrabold text-[#ea580c] font-mono tracking-tight">
+          <span id="emissions-delta-display" class="text-3xl font-extrabold text-[#ea580c] font-mono tracking-tight">
             {Math.abs(emissions.deltaGramsCo2e)}
           </span>
-          <span class="text-xs font-semibold text-[#595959]">g CO₂e avoided per day</span>
+          <span class="text-xs font-semibold text-[#525252]" data-i18n="co2SavedUnit">g CO₂ saved today</span>
         </div>
-        <p class="text-xs text-[#595959] leading-relaxed">
-          Shifting from two-wheeler to electric Metro reduces tailpipe greenhouse gas emissions while removing roadside particulate exposure.
+        <p class="text-xs text-[#525252] leading-relaxed" data-i18n="cleanTravelDesc">
+          Switching from an open bike or petrol car to Metro cuts both what you breathe and tailpipe emissions.
         </p>
       </div>
 
-      <!-- Trade-off Card -->
-      <div class="p-6 bg-white border border-[#e8e8e8] rounded-3xl space-y-3 shadow-xs">
+      <div class="p-6 bg-white border border-[#e5e5e5] rounded-3xl space-y-3 shadow-xs">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <AlertCircle class="w-4 h-4 text-[#ea580c]" />
-            <h3 class="text-sm font-bold text-[#262626]">Exposure vs Emissions Trade-off</h3>
+            <AlertCircle class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+            <h3 class="text-sm font-extrabold text-[#171717]" data-i18n="goodToKnow">Good to Know</h3>
           </div>
-          <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-[#fef3c7] text-[#92400e] border border-[#fde68a] font-semibold">
-            Severe Day Warning
+          <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-[#fef3c7] text-[#92400e] border border-[#fde68a] font-semibold" data-i18n="healthTipBadge">
+            Health Tip
           </span>
         </div>
-        <p class="text-xs text-[#595959] leading-relaxed">
-          <strong class="text-[#262626]">Cycling vs Metro on a 380+ AQI Day:</strong> While cycling produces 0 g tailpipe emissions, heavy exertion breathing (<span class="font-mono font-semibold text-[#ea580c]">2.1 m³/h</span>) directly in ambient roadside smog triples your inhaled PM2.5 dose. On Severe days, public Metro transit is medically safer.
+        <p class="text-xs text-[#525252] leading-relaxed" data-i18n="healthTipDesc">
+          Heavy pedaling makes you breathe 2.1 m³/h of roadside exhaust. On high-AQI days, enclosed Metro + an N95 mask keeps your lungs much cleaner.
         </p>
       </div>
     </div>
 
-    <!-- Assumptions Accordion -->
-    <div class="p-6 bg-[#f7f9fa] border border-[#e8e8e8] rounded-3xl space-y-3 stagger-card">
+    <!-- Science & Assumptions -->
+    <div class="p-6 bg-white border border-[#e5e5e5] rounded-3xl space-y-3 stagger-card">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-bold text-[#262626]" data-i18n="assumptionsUsed">Constants & Literature Assumptions Used</h3>
-        <a href="/method" class="text-xs text-[#ea580c] font-semibold hover:underline flex items-center gap-1">
-          <span>Full Registry</span>
-          <ArrowRight class="w-3.5 h-3.5" />
+        <h3 class="text-sm font-extrabold text-[#171717]" data-i18n="assumptionsUsed">Science &amp; Constants Used</h3>
+        <a href="/method" class="text-xs text-[#ea580c] font-bold hover:underline flex items-center gap-1">
+          <span data-i18n="seeFormulas">See Formulas</span>
+          <ArrowRight class="w-3.5 h-3.5" aria-hidden="true" />
         </a>
       </div>
-      <div class="flex flex-wrap gap-2">
+      <div id="assumptions-list" class="flex flex-wrap gap-2">
         {assumptions.map((item) => (
-          <span class="text-[11px] font-mono px-2.5 py-1 rounded-full bg-white text-[#595959] border border-[#e8e8e8]">
+          <span class="text-[11px] font-mono px-2.5 py-1 rounded-full bg-[#f7f9fa] text-[#525252] border border-[#e5e5e5]">
             {item}
           </span>
         ))}
@@ -254,52 +311,282 @@ const { planA, planB, emissions, assumptions } = engineResult;
     </div>
   </div>
 
-  <script define:vars={{ baseDoseA: planA.totalDoseUg.mid, baseDoseB: planB.totalDoseUg.mid }}>
-    // Interactive Plan B Interventions Dynamic Toggle
-    let activeSavings = {};
-    const cards = document.querySelectorAll(".intervention-card");
-    const doseDisplay = document.getElementById("plan-b-dose-display");
-    const netUgDisplay = document.getElementById("plan-b-net-ug");
-    const netPctDisplay = document.getElementById("plan-b-net-pct");
-    const badge = document.getElementById("plan-b-saving-badge");
+  <script>
+    import { getTranslation } from "@airdelta/i18n";
+    import { apiFetchJson, dispatchWaveUpdate, CITY_PRESETS, getSelectedCity, setSelectedCity } from "../scripts/api-client.ts";
+    import { setTransitionDropdownValue } from "../scripts/dropdown.ts";
 
-    cards.forEach((card) => {
-      const idx = card.getAttribute("data-index");
-      const delta = Math.abs(parseFloat(card.getAttribute("data-delta") || "0"));
-      activeSavings[idx] = delta;
+    const getLang = () => localStorage.getItem("airdelta_lang") || "en";
+    const tr = (key: string) => getTranslation(key, getLang());
 
-      card.addEventListener("click", () => {
-        const checkIcon = card.querySelector(".intervention-check");
-        if (activeSavings[idx] > 0) {
-          // Deactivate
-          activeSavings[idx] = 0;
-          card.classList.add("opacity-50", "bg-white");
-          card.classList.remove("bg-[#f7f9fa]");
-          if (checkIcon) {
-            checkIcon.classList.remove("bg-[#ea580c]");
-            checkIcon.classList.add("bg-[#d9d9d9]");
+    const form = document.getElementById("plan-builder-form") as HTMLFormElement | null;
+    const citySelect = document.getElementById("plan-city") as HTMLInputElement | null;
+    const ageSelect = document.getElementById("plan-age-band") as HTMLInputElement | null;
+    const commuteSelect = document.getElementById("plan-commute-mode") as HTMLInputElement | null;
+    const budgetSelect = document.getElementById("plan-budget") as HTMLInputElement | null;
+    const cautionCheck = document.getElementById("plan-caution") as HTMLInputElement | null;
+    const exhaustCheck = document.getElementById("plan-exhaust") as HTMLInputElement | null;
+    const submitBtn = document.getElementById("btn-generate-plan") as HTMLButtonElement | null;
+    const statusEl = document.getElementById("plan-form-status");
+
+    let currentBaseDoseA = 0;
+    let activeSavings: Record<string, number> = {};
+    let activeRequestSeq = 0;
+
+    function bindInterventionToggles(baseDoseA: number) {
+      currentBaseDoseA = baseDoseA;
+      activeSavings = {};
+      const cards = document.querySelectorAll(".intervention-card");
+      const doseDisplay = document.getElementById("plan-b-dose-display");
+      const netUgDisplay = document.getElementById("plan-b-net-ug");
+      const netPctDisplay = document.getElementById("plan-b-net-pct");
+      const badge = document.getElementById("plan-b-saving-badge");
+
+      cards.forEach((card) => {
+        const idx = card.getAttribute("data-index") || "0";
+        const delta = Math.abs(parseFloat(card.getAttribute("data-delta") || "0"));
+        activeSavings[idx] = delta;
+
+        card.addEventListener("click", () => {
+          const checkIcon = card.querySelector(".intervention-check");
+          if (activeSavings[idx] > 0) {
+            activeSavings[idx] = 0;
+            card.classList.add("opacity-50", "bg-white");
+            card.classList.remove("bg-[#f7f9fa]");
+            if (checkIcon) {
+              checkIcon.classList.remove("bg-[#ea580c]");
+              checkIcon.classList.add("bg-[#d4d4d4]");
+            }
+          } else {
+            activeSavings[idx] = delta;
+            card.classList.remove("opacity-50", "bg-white");
+            card.classList.add("bg-[#f7f9fa]");
+            if (checkIcon) {
+              checkIcon.classList.add("bg-[#ea580c]");
+              checkIcon.classList.remove("bg-[#d4d4d4]");
+            }
           }
-        } else {
-          // Activate
-          activeSavings[idx] = delta;
-          card.classList.remove("opacity-50", "bg-white");
-          card.classList.add("bg-[#f7f9fa]");
-          if (checkIcon) {
-            checkIcon.classList.add("bg-[#ea580c]");
-            checkIcon.classList.remove("bg-[#d9d9d9]");
-          }
-        }
 
-        // Recalculate
-        const totalSaved = Object.values(activeSavings).reduce((a, b) => a + b, 0);
-        const currentDose = Math.max(10, baseDoseA - totalSaved);
-        const currentPct = Math.round((totalSaved / baseDoseA) * 100);
+          const totalSaved = Object.values(activeSavings).reduce((a, b) => a + b, 0);
+          const currentDose = Math.max(5, currentBaseDoseA - totalSaved);
+          const currentPct = currentBaseDoseA > 0 ? Math.round((totalSaved / currentBaseDoseA) * 1000) / 10 : 0;
 
-        if (doseDisplay) doseDisplay.innerText = currentDose.toFixed(1);
-        if (netUgDisplay) netUgDisplay.innerText = `-${totalSaved.toFixed(1)} µg`;
-        if (netPctDisplay) netPctDisplay.innerText = `${currentPct}%`;
-        if (badge) badge.innerText = `-${currentPct}% Inhaled Dose`;
+          if (doseDisplay) doseDisplay.textContent = currentDose.toFixed(1);
+          if (netUgDisplay) netUgDisplay.textContent = `-${totalSaved.toFixed(1)} µg`;
+          if (netPctDisplay) netPctDisplay.textContent = `${currentPct}%`;
+          if (badge) badge.textContent = `-${currentPct}% Less Smoke`;
+        });
       });
+    }
+
+    function updateNarrativeOnly(plan: any) {
+      const sourceTag = document.getElementById("narrative-source-tag");
+      const headline = document.getElementById("narrative-headline");
+      const body = document.getElementById("narrative-body");
+      if (sourceTag) {
+        const key = plan.narrative.source === "llm" ? "aiPersonalized" : "instantSummary";
+        sourceTag.setAttribute("data-i18n", key);
+        sourceTag.textContent = tr(key);
+      }
+      if (headline) headline.textContent = plan.narrative.headline;
+      if (body) body.textContent = plan.narrative.body;
+    }
+
+    function renderPlanResponse(plan: any) {
+      const airBadge = document.getElementById("plan-air-source-badge");
+      const subtitle = document.getElementById("plan-subtitle");
+      const doseAEl = document.getElementById("plan-a-dose-display");
+      const rangeAEl = document.getElementById("plan-a-range-display");
+      const segsWrap = document.getElementById("plan-a-segments");
+      const doseBEl = document.getElementById("plan-b-dose-display");
+      const netUgEl = document.getElementById("plan-b-net-ug");
+      const netPctEl = document.getElementById("plan-b-net-pct");
+      const savingBadge = document.getElementById("plan-b-saving-badge");
+      const intWrap = document.getElementById("plan-b-interventions");
+      const emissionsEl = document.getElementById("emissions-delta-display");
+      const assumptionsEl = document.getElementById("assumptions-list");
+
+      if (airBadge) {
+        airBadge.textContent = `${String(plan.air.source).toUpperCase()} · AQI ${plan.air.indexValue ?? "--"}`;
+      }
+      if (subtitle) {
+        const stationName = String(plan.air.attribution || "").replace("OpenAQ Station: ", "");
+        subtitle.textContent = `Live reading from ${stationName} (${plan.air.pm25 ?? "--"} µg/m³ fine dust)`;
+      }
+
+      updateNarrativeOnly(plan);
+
+      if (doseAEl) doseAEl.textContent = String(plan.planA.totalDoseUg.mid);
+      if (rangeAEl) rangeAEl.textContent = `Typical range: ${plan.planA.totalDoseUg.low} – ${plan.planA.totalDoseUg.high} µg`;
+
+      if (segsWrap) {
+        const nodes = (plan.planA.segments || []).map((seg: any) => {
+          const row = document.createElement("div");
+          row.className = "flex items-center justify-between text-xs p-3 bg-[#f7f9fa] rounded-xl border border-[#e5e5e5]";
+          const left = document.createElement("span");
+          left.className = "capitalize text-[#171717] font-semibold";
+          left.textContent = String(seg.kind || "").replace("_", " ");
+          const right = document.createElement("span");
+          right.className = "font-mono text-[#525252] font-bold";
+          right.textContent = `${seg.doseUg} µg`;
+          row.replaceChildren(left, right);
+          return row;
+        });
+        segsWrap.replaceChildren(...nodes);
+      }
+
+      if (doseBEl) doseBEl.textContent = String(plan.planB.totalDoseUg.mid);
+      if (netUgEl) netUgEl.textContent = `-${plan.planB.netSavingUg} µg`;
+      if (netPctEl) netPctEl.textContent = `${plan.planB.netSavingPercent}%`;
+      if (savingBadge) savingBadge.textContent = `-${plan.planB.netSavingPercent}% Less Smoke`;
+
+      if (intWrap) {
+        const cards = (plan.planB.changes || []).map((c: any, idx: number) => {
+          const card = document.createElement("div");
+          card.className = "intervention-card p-3.5 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5] space-y-1 hover:border-[#ea580c] transition-all cursor-pointer press-scale";
+          card.setAttribute("data-delta", String(c.deltaUg));
+          card.setAttribute("data-index", String(idx));
+
+          const top = document.createElement("div");
+          top.className = "flex items-center justify-between";
+          const left = document.createElement("div");
+          left.className = "flex items-center gap-2";
+          const checkBox = document.createElement("div");
+          checkBox.className = "intervention-check w-4 h-4 rounded-md bg-[#ea580c] text-white flex items-center justify-center text-[10px]";
+          checkBox.textContent = "✓";
+          const title = document.createElement("span");
+          title.className = "text-xs font-bold text-[#171717]";
+          title.textContent = c.title;
+          left.replaceChildren(checkBox, title);
+
+          const delta = document.createElement("span");
+          delta.className = "text-xs font-mono font-bold text-[#ea580c]";
+          delta.textContent = `${c.deltaUg} µg`;
+          top.replaceChildren(left, delta);
+
+          const desc = document.createElement("p");
+          desc.className = "text-[11px] text-[#525252] leading-snug pl-6";
+          desc.textContent = c.description;
+
+          card.replaceChildren(top, desc);
+          return card;
+        });
+        intWrap.replaceChildren(...cards);
+      }
+
+      if (emissionsEl) emissionsEl.textContent = String(Math.abs(plan.emissions.deltaGramsCo2e));
+      if (assumptionsEl) {
+        const chips = (plan.assumptions || []).map((item: string) => {
+          const s = document.createElement("span");
+          s.className = "text-[11px] font-mono px-2.5 py-1 rounded-full bg-[#f7f9fa] text-[#525252] border border-[#e5e5e5]";
+          s.textContent = item;
+          return s;
+        });
+        assumptionsEl.replaceChildren(...chips);
+      }
+
+      bindInterventionToggles(plan.planA.totalDoseUg.mid);
+    }
+
+    function buildPayload(includeLlm: boolean) {
+      const cityCode = citySelect?.value || getSelectedCity().code;
+      const preset = CITY_PRESETS[cityCode] || getSelectedCity();
+      const targetLang = localStorage.getItem("airdelta_lang") || "en";
+
+      return {
+        targetLang,
+        includeLlm,
+        profile: {
+          cityCode: preset.code,
+          gridCell: preset.cell,
+          lang: targetLang,
+          budgetBand: budgetSelect?.value || "low",
+          cooksIndoors: true,
+          hasExhaust: Boolean(exhaustCheck?.checked),
+          hasPurifier: (budgetSelect?.value || "low") === "high",
+          members: [
+            {
+              id: "m-1",
+              ageBand: ageSelect?.value || "adult",
+              cautionMode: Boolean(cautionCheck?.checked),
+              label: "Primary Member"
+            }
+          ],
+          routines: [
+            { id: "r-walk", memberId: "m-1", kind: "walk", startHour: 7, durationMinutes: 45, isIndoor: false, maskUsed: false },
+            { id: "r-commute", memberId: "m-1", kind: "commute", mode: commuteSelect?.value || "two_wheeler", startHour: 9, durationMinutes: 45, isIndoor: false, maskUsed: false },
+            { id: "r-cook", memberId: "m-1", kind: "cooking", startHour: 19, durationMinutes: 60, isIndoor: true, maskUsed: false }
+          ]
+        }
+      };
+    }
+
+    async function runLivePlan() {
+      const reqSeq = ++activeRequestSeq;
+      if (submitBtn) submitBtn.disabled = true;
+      if (statusEl) statusEl.textContent = tr("calculatingLabel");
+      dispatchWaveUpdate("plan-wave-loader", { color: "#ea580c", playState: "running", duration: 900 });
+      dispatchWaveUpdate("plan-ai-wave", { color: "#ea580c", playState: "running", duration: 850 });
+
+      try {
+        // Phase 1: Instant live OpenAQ + deterministic numbers (<300ms)
+        const fastPlan = await apiFetchJson<any>("/v1/plans", {
+          method: "POST",
+          body: JSON.stringify(buildPayload(false))
+        }, 8000);
+        if (reqSeq !== activeRequestSeq) return;
+        renderPlanResponse(fastPlan);
+        if (statusEl) statusEl.textContent = `Updated (${fastPlan.air.source.toUpperCase()})`;
+        dispatchWaveUpdate("plan-wave-loader", { color: "#15803d", playState: "paused" });
+        if (submitBtn) submitBtn.disabled = false;
+
+        // Phase 2: Async Gemini summary upgrade in background (never blocks UI)
+        apiFetchJson<any>("/v1/plans", {
+          method: "POST",
+          body: JSON.stringify(buildPayload(true))
+        }, 12000)
+          .then((llmPlan) => {
+            if (reqSeq === activeRequestSeq && llmPlan?.narrative?.source === "llm") {
+              updateNarrativeOnly(llmPlan);
+            }
+            if (reqSeq === activeRequestSeq) {
+              dispatchWaveUpdate("plan-ai-wave", { color: "#15803d", playState: "paused" });
+            }
+          })
+          .catch(() => {
+            if (reqSeq === activeRequestSeq) {
+              dispatchWaveUpdate("plan-ai-wave", { color: "#737373", playState: "paused" });
+            }
+          });
+      } catch {
+        if (statusEl) statusEl.textContent = tr("offlineSampleMsg");
+        dispatchWaveUpdate("plan-wave-loader", { color: "#d97706", playState: "paused" });
+        dispatchWaveUpdate("plan-ai-wave", { color: "#d97706", playState: "paused" });
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+
+    const initialCity = getSelectedCity();
+    if (CITY_PRESETS[initialCity.code]) {
+      setTransitionDropdownValue("plan-city", initialCity.code, false);
+    }
+    const initialDoseA = parseFloat(document.getElementById("plan-a-dose-display")?.textContent || "185");
+    bindInterventionToggles(initialDoseA);
+
+    citySelect?.addEventListener("change", () => {
+      setSelectedCity(citySelect.value);
+      runLivePlan();
     });
+
+    form?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      runLivePlan();
+    });
+
+    window.addEventListener("airdelta:langchange", () => {
+      runLivePlan();
+    });
+
+    runLivePlan();
   </script>
 </Layout>

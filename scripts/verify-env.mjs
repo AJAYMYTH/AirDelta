@@ -46,12 +46,37 @@ async function verifyGoogle() {
     }
   }
 
-  const gmapsKey = envVars.GOOGLE_MAPS_API_KEY;
-  if (!gmapsKey || gmapsKey.includes("your_google") || gmapsKey.length < 15) {
-    console.log("ℹ️  Google Air Quality API: [OPTIONAL / NOT CONFIGURED] (Using OpenAQ & Replay fixtures)");
-    console.log("    Enable at: https://console.cloud.google.com/apis/library/airquality.googleapis.com");
+  const googleEnabled = envVars.GOOGLE_AQ_ENABLED === "true";
+  if (!googleEnabled) {
+    console.log("ℹ️  Google Air Quality API: [DISABLED BY DEFAULT] (Using OpenAQ v3 primary + Open-Meteo fallback)");
   } else {
-    console.log("✅ Google Maps Air Quality Key: [FOUND]");
+    const gmapsKey = envVars.GOOGLE_MAPS_API_KEY;
+    if (!gmapsKey || gmapsKey.includes("your_google") || gmapsKey.length < 15) {
+      console.log("⚠️  Google Air Quality API: [ENABLED BUT KEY MISSING]");
+    } else {
+      console.log("✅ Google Maps Air Quality Key: [FOUND]");
+    }
+  }
+}
+
+async function verifyOpenAQ() {
+  const openaqKey = envVars.OPENAQ_API_KEY;
+  if (!openaqKey || openaqKey.includes("your_openaq") || openaqKey.length < 15) {
+    console.log("⚠️  OpenAQ v3 API (Default Primary): [NOT CONFIGURED]");
+    console.log("    Register free key at: https://explore.openaq.org/register");
+  } else {
+    try {
+      const res = await fetch("https://api.openaq.org/v3/locations?coordinates=28.6139,77.2090&radius=25000&limit=1", {
+        headers: { "X-API-Key": openaqKey, "User-Agent": "AirDelta/1.0" }
+      });
+      if (res.ok) {
+        console.log("✅ OpenAQ v3 API (Default Primary): [CONNECTED & ACTIVE]");
+      } else {
+        console.log(`⚠️  OpenAQ v3 API (Default Primary): [ERROR] HTTP ${res.status}`);
+      }
+    } catch {
+      console.log("⚠️  OpenAQ v3 API (Default Primary): [NETWORK TIMEOUT / OFFLINE]");
+    }
   }
 }
 
@@ -100,6 +125,7 @@ async function verifyTelegram() {
 }
 
 async function run() {
+  await verifyOpenAQ();
   await verifyGoogle();
   await verifySupabase();
   await verifyTelegram();

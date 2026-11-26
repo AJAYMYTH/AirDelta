@@ -1,37 +1,36 @@
 ---
 import "../styles/global.css";
 import { getAllLanguages } from "@airdelta/i18n";
-import { 
-  Sun, 
-  Scale, 
-  Home, 
-  Users, 
-  History, 
-  BookOpen, 
-  Settings, 
-  Globe, 
-  ChevronDown, 
-  Check, 
-  ExternalLink,
-  Wind
-} from "lucide-astro";
+import Sun from "lucide-astro/Sun";
+import Scale from "lucide-astro/Scale";
+import Home from "lucide-astro/Home";
+import Users from "lucide-astro/Users";
+import History from "lucide-astro/History";
+import BookOpen from "lucide-astro/BookOpen";
+import Settings from "lucide-astro/Settings";
+import Globe from "lucide-astro/Globe";
+import ChevronDown from "lucide-astro/ChevronDown";
+import Check from "lucide-astro/Check";
+import ExternalLink from "lucide-astro/ExternalLink";
+import Wind from "lucide-astro/Wind";
+import Radio from "lucide-astro/Radio";
 
 interface Props {
   title?: string;
   lang?: string;
 }
 
-const { title = "AirDelta — Smog Action Engine", lang = "en" } = Astro.props;
+const { title = "AirDelta — Daily Clean Air Guide", lang = "en" } = Astro.props;
 const languages = getAllLanguages();
 const currentPath = Astro.url.pathname;
 
 const navItems = [
   { href: "/", label: "Today", i18nKey: "navToday", icon: Sun },
-  { href: "/plan", label: "Plan A vs B", i18nKey: "navPlan", icon: Scale },
-  { href: "/indoor", label: "Indoor Audit", i18nKey: "navIndoor", icon: Home },
-  { href: "/community", label: "Community", i18nKey: "navCommunity", icon: Users },
-  { href: "/replay", label: "Smog Replay", i18nKey: "navReplay", icon: History },
-  { href: "/method", label: "Methodology", i18nKey: "navMethod", icon: BookOpen },
+  { href: "/plan", label: "Daily Plan", i18nKey: "navPlan", icon: Scale },
+  { href: "/indoor", label: "Room Check", i18nKey: "navIndoor", icon: Home },
+  { href: "/community", label: "Share Alert", i18nKey: "navCommunity", icon: Users },
+  { href: "/replay", label: "Replay", i18nKey: "navReplay", icon: History },
+  { href: "/method", label: "How It Works", i18nKey: "navMethod", icon: BookOpen },
   { href: "/settings", label: "Settings", i18nKey: "navSettings", icon: Settings }
 ];
 ---
@@ -43,91 +42,106 @@ const navItems = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#ffffff" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col bg-[#f7f9fa] text-[#262626] font-sans antialiased pb-20 md:pb-0">
-    <!-- Announcement / Emergency Alert Bar (DESIGN.md specification) -->
-    <div class="bg-[#fff7ed] border-b border-[#fed7aa] px-4 py-2 text-center text-xs text-[#9a3412] flex items-center justify-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-[#ea580c] animate-pulse"></span>
+  <body class="min-h-screen flex flex-col bg-[#f7f9fa] text-[#171717] font-sans antialiased pb-20 md:pb-0">
+    <a href="#main-content" class="visually-hidden fixed top-2 left-2 z-[60] px-4 py-2 rounded-full bg-[#ea580c] text-white text-xs font-bold shadow-md" data-i18n="skipToMain">
+      Skip to main content
+    </a>
+
+    <!-- Live Air Bar -->
+    <div id="global-alert-bar" class="bg-[#fff7ed] border-b border-[#fed7aa] px-4 py-2 text-center text-xs text-[#9a3412] flex items-center justify-center gap-2">
+      <Radio class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
       <span>
-        <strong data-i18n="severeAirWarning">Delhi-NCR Smog Advisory:</strong>
-        <span class="ml-1">CPCB AQI 385 (Severe). CAQM GRAP Stage III Active. Postpone outdoor morning cardio.</span>
+        <strong id="global-alert-title" data-i18n="severeAirWarning">Live Air Update:</strong>
+        <span id="global-alert-text" class="ml-1 font-medium" data-i18n="connectingOpenAq">Checking nearest OpenAQ station...</span>
       </span>
-      <a href="/community" class="font-bold underline text-[#c2410c] hover:text-[#9a3412] hidden sm:inline ml-1">Society Notice →</a>
+      <a href="/community" class="font-bold underline text-[#c2410c] hover:text-[#9a3412] hidden sm:inline ml-1" data-i18n="shareNoticeLink">Share Notice →</a>
     </div>
 
-    <!-- Main Navigation Bar (DESIGN.md: nav-bar 64px on white canvas) -->
-    <header class="border-b border-[#e8e8e8] bg-white sticky top-0 z-50 shadow-2xs">
-      <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-3 group press-scale">
+    <!-- Main Navigation Bar -->
+    <header class="border-b border-[#e5e5e5] bg-white/95 backdrop-blur sticky top-0 z-50 shadow-2xs">
+      <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+        <a href="/" class="flex items-center gap-3 group press-scale shrink-0">
           <div class="w-9 h-9 rounded-xl bg-[#ea580c] flex items-center justify-center text-white shadow-sm group-hover:bg-[#c2410c] transition-all">
-            <Wind class="w-5 h-5" />
+            <Wind class="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-extrabold text-lg tracking-tight text-[#262626]">AirDelta</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono font-bold tracking-tight">CPCB NAQI</span>
+              <span class="font-extrabold text-lg tracking-tight text-[#171717]">AirDelta</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono font-bold tracking-tight">OpenAQ</span>
             </div>
-            <span class="text-[10px] text-[#8c8c8c] block -mt-1 font-medium" data-i18n="tagline">Public Health Smog Action Engine</span>
+            <span class="text-[11px] text-[#737373] block -mt-0.5 font-medium" data-i18n="tagline">Daily Clean Air Guide</span>
           </div>
         </a>
 
-        <!-- Desktop Navigation Items with Lucide Icons -->
-        <nav class="hidden md:flex items-center gap-1 text-xs font-semibold text-[#595959]">
+        <!-- Desktop Navigation -->
+        <nav aria-label="Primary" class="hidden md:flex items-center gap-1 text-xs font-semibold text-[#525252]">
           {navItems.map((item) => {
             const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
             const IconComp = item.icon;
             return (
               <a 
                 href={item.href} 
-                class={`px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5 press-scale ${
+                class={`px-3 py-2 rounded-full transition-all flex items-center gap-1.5 press-scale whitespace-nowrap ${
                   isActive 
                     ? "bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] font-bold shadow-2xs" 
-                    : "hover:text-[#262626] hover:bg-[#f5f5f5]"
+                    : "hover:text-[#171717] hover:bg-[#f5f5f5]"
                 }`}
               >
-                <IconComp class="w-3.5 h-3.5" />
+                <IconComp class="w-3.5 h-3.5" aria-hidden="true" />
                 <span data-i18n={item.i18nKey}>{item.label}</span>
               </a>
             );
           })}
         </nav>
 
-        <!-- Right Side: Transitions.dev Animated Language Dropdown -->
-        <div class="relative">
+        <!-- Transitions.dev Language Switcher Dropdown -->
+        <div class="relative shrink-0">
           <button 
             id="btn-lang-dropdown" 
             type="button" 
-            class="px-3.5 py-1.5 bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d9d9d9] text-xs font-bold rounded-full text-[#262626] flex items-center gap-2 transition-all cursor-pointer shadow-2xs press-scale"
-            aria-haspopup="true"
+            class="px-3.5 py-1.5 bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold rounded-full text-[#171717] flex items-center gap-2 transition-all cursor-pointer shadow-2xs press-scale"
+            aria-haspopup="menu"
             aria-expanded="false"
+            aria-controls="lang-dropdown-menu"
           >
-            <Globe class="w-3.5 h-3.5 text-[#ea580c]" />
+            <Globe class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
             <span id="lang-display-name">English</span>
-            <ChevronDown id="lang-chevron" class="w-3.5 h-3.5 text-[#8c8c8c] transition-transform duration-200" />
+            <ChevronDown id="lang-chevron" class="w-3.5 h-3.5 text-[#737373] transition-transform duration-200" aria-hidden="true" />
           </button>
 
-          <!-- Dropdown Menu Surface (transitions.dev / loading.dev elevated styling) -->
           <div 
             id="lang-dropdown-menu" 
-            class="hidden dropdown-surface rounded-2xl p-1.5 w-64 absolute right-0 top-full mt-2 z-50 max-h-80 overflow-y-auto space-y-0.5"
+            popover="manual"
+            class="t-dropdown dropdown-surface rounded-2xl p-1.5 w-64 space-y-0.5"
+            data-origin="top-right"
+            data-align="end"
             role="menu"
+            aria-labelledby="btn-lang-dropdown"
+            inert
           >
-            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8c8c8c] border-b border-[#e8e8e8]/70 mb-1">
-              Select Regional Language
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#737373] border-b border-[#e5e5e5]/70 mb-1" data-i18n="chooseLangTitle">
+              Choose Your Language
             </div>
             {languages.map((l) => (
               <button 
                 type="button" 
                 data-lang-code={l.code}
-                class="lang-menu-item w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer text-[#595959] hover:bg-[#f7f9fa]"
+                class="lang-menu-item w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer text-[#525252] hover:bg-[#f7f9fa]"
                 role="menuitem"
               >
                 <div class="flex flex-col">
-                  <span class="font-bold text-[#262626] leading-tight">{l.nativeName}</span>
-                  <span class="text-[10px] text-[#8c8c8c] leading-none">{l.name} ({l.code})</span>
+                  <span class="font-bold text-[#171717] leading-tight">{l.nativeName}</span>
+                  <span class="text-[10px] text-[#737373] leading-none">{l.name} ({l.code})</span>
                 </div>
-                <Check class="lang-check w-4 h-4 text-[#ea580c] opacity-0 transition-opacity" />
+                <Check class="lang-check w-4 h-4 text-[#ea580c] opacity-0 transition-opacity" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -135,35 +149,35 @@ const navItems = [
       </div>
     </header>
 
-    <!-- Main Content Area on Soft Canvas -->
-    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+    <!-- Main Content -->
+    <main id="main-content" tabindex="-1" class="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
       <slot />
     </main>
 
-    <!-- Charcoal Engineering Footer (DESIGN.md: footer #272727) -->
-    <footer class="bg-[#272727] text-[#b3b3b3] border-t border-[#414141] py-10 text-xs mt-16">
+    <!-- Footer -->
+    <footer class="bg-[#18181b] text-[#a1a1aa] border-t border-[#27272a] py-10 text-xs mt-16">
       <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <span class="w-5 h-5 rounded-md bg-[#ea580c] text-white flex items-center justify-center font-bold text-[10px]">Δ</span>
-            <span class="font-bold text-white text-sm tracking-tight">AirDelta System</span>
-            <span class="text-[10px] px-2 py-0.2 rounded-full bg-[#383838] text-[#ea580c] font-mono font-bold">v1.0.0</span>
+            <span class="w-6 h-6 rounded-lg bg-[#ea580c] text-white flex items-center justify-center font-extrabold text-xs font-mono">Δ</span>
+            <span class="font-extrabold text-white text-sm tracking-tight">AirDelta</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#27272a] text-[#fb923c] font-mono font-bold">OpenAQ + CPCB</span>
           </div>
-          <p class="text-[#8c8c8c] text-[11px]">Strict Deterministic Exposure Engine · Zero Hallucinated Doses · PromptWars Hackathon 2026</p>
+          <p class="text-[#a1a1aa] text-[11px]" data-i18n="footerTagline">Clear, science-backed daily actions to help your family breathe cleaner air.</p>
         </div>
-        <div class="flex flex-wrap items-center gap-5 text-[11px] font-medium text-[#b3b3b3]">
-          <a href="/method" class="hover:text-white transition-colors">Methodology & Constants</a>
-          <a href="/settings" class="hover:text-white transition-colors">Privacy Guarantee</a>
-          <a href="https://t.me/AirDeltaBot" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-full bg-[#383838] hover:bg-[#ea580c] hover:text-white text-[#f5f5f5] transition-all flex items-center gap-1.5 font-bold press-scale">
-            <span>Telegram Bot</span>
-            <ExternalLink class="w-3 h-3" />
+        <div class="flex flex-wrap items-center gap-5 text-[11px] font-semibold text-[#d4d4d8]">
+          <a href="/method" class="hover:text-white transition-colors" data-i18n="navMethod">How It Works</a>
+          <a href="/settings" class="hover:text-white transition-colors" data-i18n="privacyDataLink">Privacy &amp; Data</a>
+          <a href="https://t.me/airdeltabot" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-full bg-[#27272a] hover:bg-[#ea580c] hover:text-white text-white transition-all flex items-center gap-1.5 font-bold press-scale">
+            <span data-i18n="telegramAlertsLink">Telegram Alerts</span>
+            <ExternalLink class="w-3 h-3" aria-hidden="true" />
           </a>
         </div>
       </div>
     </footer>
 
-    <!-- Mobile Fixed Bottom Navigation (White Showroom Surface with Lucide Icons) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur border-t border-[#e8e8e8] flex items-center justify-around z-50 px-2 shadow-lg">
+    <!-- Mobile Fixed Bottom Navigation -->
+    <nav aria-label="Mobile quick navigation" class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur border-t border-[#e5e5e5] flex items-center justify-around z-50 px-2 shadow-lg">
       {navItems.slice(0, 5).map((item) => {
         const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
         const IconComp = item.icon;
@@ -171,17 +185,16 @@ const navItems = [
           <a 
             href={item.href}
             class={`flex flex-col items-center justify-center w-14 h-full text-[10px] gap-1 transition-colors press-scale ${
-              isActive ? "text-[#ea580c] font-extrabold" : "text-[#595959] hover:text-[#262626]"
+              isActive ? "text-[#ea580c] font-extrabold" : "text-[#525252] hover:text-[#171717]"
             }`}
           >
-            <IconComp class="w-4 h-4" />
+            <IconComp class="w-4 h-4" aria-hidden="true" />
             <span data-i18n={item.i18nKey}>{item.label}</span>
           </a>
         );
       })}
     </nav>
 
-    <!-- Client-side Interactive Runtime (i18n, anime.js, dropdown transitions) -->
     <script src="../scripts/client-runtime.ts"></script>
   </body>
 </html>

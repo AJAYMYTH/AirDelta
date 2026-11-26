@@ -1,58 +1,68 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
-import { AirDataService } from "@airdelta/air-adapters";
-import { getGrapStageForAqi, getAllGrapStages, AdvisoryService } from "@airdelta/schemas";
-import { 
-  Copy, 
-  Check, 
-  ShieldAlert 
-} from "lucide-astro";
+import TransitionDropdown from "../components/TransitionDropdown.astro";
+import delhiSmogData from "../../../../fixtures/delhi-smog-nov2026.json";
+import { getGrapStageForAqi, getAllGrapStages, AdvisoryService, type AirSnapshot } from "@airdelta/schemas";
+import { getAllLanguages } from "@airdelta/i18n";
+import Copy from "lucide-astro/Copy";
+import Check from "lucide-astro/Check";
+import ShieldAlert from "lucide-astro/ShieldAlert";
 
-const airService = new AirDataService({ replayMode: true });
-const snapshot = await airService.getAirSnapshot(28.6139, 77.2090);
+const snapshot = delhiSmogData.snapshot as AirSnapshot;
 
 const aqi = snapshot.indexValue || 385;
 const activeGrapRule = getGrapStageForAqi(aqi);
 const allStages = getAllGrapStages();
+const languages = getAllLanguages();
 
 const advisoryService = new AdvisoryService();
 const rwaAdvisoryHindi = advisoryService.generateAdvisory("rwa_residents", snapshot, "hi");
-const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapshot, "en");
+
+const audienceOptions = [
+  { value: "rwa_residents", label: "Housing Society & Apartments", i18nKey: "audSocieties" },
+  { value: "school_community", label: "School & College Campus", i18nKey: "audSchools" },
+  { value: "workplace", label: "Office & Workplace", i18nKey: "audWorkplaces" },
+  { value: "general_public", label: "General Public", i18nKey: "audPublic" }
+];
+const noticeLangOptions = languages.map((l) => ({
+  value: l.code,
+  label: `${l.nativeName} (${l.name})`
+}));
 ---
 
-<Layout title="AirDelta — Multilingual Community Advisories">
+<Layout title="AirDelta — Share Air Alerts">
   <div class="space-y-8 max-w-5xl mx-auto">
     <!-- Header -->
     <div>
       <div class="flex items-center gap-2 mb-1.5">
-        <a href="/" class="text-xs font-semibold text-[#8c8c8c] hover:text-[#ea580c] transition-colors">← Back to Today</a>
-        <span class="text-xs text-[#d9d9d9]">/</span>
-        <span class="text-xs text-[#ea580c] font-semibold" data-i18n="communityTitle">Society & Campus Notices</span>
+        <a href="/" class="text-xs font-semibold text-[#737373] hover:text-[#ea580c] transition-colors" data-i18n="backHome">← Home</a>
+        <span class="text-xs text-[#d4d4d4]">/</span>
+        <span class="text-xs text-[#ea580c] font-semibold" data-i18n="communityTitle">Share Alert</span>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]">Multilingual Community Advisories</h1>
-          <p class="text-xs sm:text-sm text-[#595959] mt-1">
-            Authoritative, non-alarmist action notices for RWAs, schools, and offices · Delhi-NCR
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171717]" data-i18n="communityHeading">Neighborhood Air Alerts</h1>
+          <p id="community-subtitle" class="text-xs sm:text-sm text-[#525252] mt-1" data-i18n="communitySubtitle">
+            Clear, ready-to-share alerts for housing societies, schools, and offices using live OpenAQ data
           </p>
         </div>
-        <div class="flex items-center gap-2">
-          <BadgePill badge="forecast" />
-          <span class="text-xs text-[#ea580c] bg-[#fff7ed] border border-[#fed7aa] px-3.5 py-1 rounded-full font-mono font-bold flex items-center gap-1.5">
-            <ShieldAlert class="w-3.5 h-3.5" />
+        <div class="flex items-center gap-2 flex-wrap">
+          <BadgePill badge="measured" />
+          <span id="community-grap-pill" class="text-xs text-[#ea580c] bg-[#fff7ed] border border-[#fed7aa] px-3.5 py-1 rounded-full font-mono font-bold flex items-center gap-1.5">
+            <ShieldAlert class="w-3.5 h-3.5" aria-hidden="true" />
             <span>{activeGrapRule.stageName} Active</span>
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Active Advisory Preview Card (DJI Showroom Card) -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-6 stagger-card">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e8e8e8]">
+    <!-- Active Advisory Preview Card -->
+    <div class="p-6 sm:p-8 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-6 stagger-card">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e5e5e5]">
         <div>
-          <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Target: RWA & Apartment Society Residents</span>
-          <h2 id="advisory-headline" class="text-xl font-bold text-[#262626] mt-1">{rwaAdvisoryHindi.headline}</h2>
+          <span id="advisory-audience-label" class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">For: Housing Societies &amp; Apartments</span>
+          <h2 id="advisory-headline" class="text-xl font-bold text-[#171717] mt-1">{rwaAdvisoryHindi.headline}</h2>
         </div>
 
         <div class="flex items-center gap-2 self-start sm:self-auto">
@@ -61,82 +71,83 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
             type="button"
             class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer press-scale"
           >
-            <Copy id="copy-icon" class="w-4 h-4" />
-            <span id="copy-btn-text" data-i18n="copyNotice">Copy WhatsApp Notice</span>
+            <Copy id="copy-icon" class="w-4 h-4" aria-hidden="true" />
+            <span id="copy-btn-text" data-i18n="copyNotice">Copy for WhatsApp</span>
           </button>
         </div>
       </div>
 
-      <!-- Quick Language Switch Tabs -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-        <span class="text-[#8c8c8c] font-semibold mr-1 text-[11px]">Notice Language:</span>
-        <button id="btn-lang-hi" type="button" class="px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors press-scale">
-          हिन्दी (Hindi)
-        </button>
-        <button id="btn-lang-en" type="button" class="px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale">
-          English
-        </button>
+      <!-- Audience & 13-Language Transitions.dev Dropdown Controls -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div class="flex flex-col gap-1.5">
+          <span class="font-bold text-[#171717]" data-i18n="whoIsThisFor">Who Is This For?</span>
+          <TransitionDropdown id="advisory-audience" name="audience" options={audienceOptions} selectedValue="rwa_residents" />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <span class="font-bold text-[#171717]" data-i18n="chooseNoticeLang">Choose Language (13 Supported)</span>
+          <TransitionDropdown id="advisory-lang" name="lang" heading="Choose Your Language" headingI18n="chooseLangTitle" options={noticeLangOptions} selectedValue="hi" />
+        </div>
       </div>
 
-      <p id="advisory-body" class="text-xs sm:text-sm text-[#595959] leading-relaxed">{rwaAdvisoryHindi.body}</p>
+      <p id="advisory-body" class="text-xs sm:text-sm text-[#525252] leading-relaxed">{rwaAdvisoryHindi.body}</p>
 
       <!-- Action Bullet Points -->
       <div class="space-y-2.5">
-        <span class="text-xs font-bold text-[#262626] uppercase tracking-wider block">Official Mandates & Protocol:</span>
+        <span class="text-xs font-bold text-[#171717] uppercase tracking-wider block" data-i18n="whatToDoToday">What to Do Today:</span>
         <div id="advisory-bullets" class="space-y-2">
           {rwaAdvisoryHindi.actionBulletPoints.map((point) => (
-            <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl text-xs text-[#262626]">
-              <span class="text-[#ea580c] text-sm leading-none mt-0.5">⚠️</span>
+            <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e5e5e5] rounded-2xl text-xs text-[#171717]">
+              <span class="w-2 h-2 rounded-full bg-[#ea580c] mt-1.5 shrink-0" aria-hidden="true"></span>
               <span class="leading-relaxed">{point}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <!-- Raw text storage for clipboard -->
-      <pre id="share-text-box" class="hidden">{rwaAdvisoryHindi.shareCardText}</pre>
-      <pre id="share-text-box-en" class="hidden">{rwaAdvisoryEng.shareCardText}</pre>
-
-      <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#595959]">
-        <span class="flex items-center gap-2 font-medium">
-          <span class="w-2 h-2 rounded-full bg-[#15803d]"></span> Verified CPCB NAQI Emergency Action Framework
+      <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#525252]">
+        <span id="advisory-status-line" role="status" aria-live="polite" class="flex items-center gap-2 font-medium">
+          <span class="w-2 h-2 rounded-full bg-[#15803d]"></span> Matched to live OpenAQ readings &amp; official GRAP rules
         </span>
-        <span class="font-mono text-[#ea580c] font-semibold">Ready to forward on WhatsApp / Telegram</span>
+        <span class="font-mono text-[#ea580c] font-semibold" data-i18n="readyToPaste">Ready to paste in WhatsApp or Telegram</span>
       </div>
 
-      <div id="copy-toast" class="hidden p-4 bg-[#dcfce7] border border-[#86efac] text-[#15803d] rounded-2xl text-xs font-semibold text-center flex items-center justify-center gap-2">
-        <Check class="w-4 h-4 text-[#15803d]" />
-        <span data-i18n="noticeCopied">Notice copied to clipboard! Paste directly into your resident WhatsApp group.</span>
+      <div id="copy-toast" role="status" aria-live="polite" class="hidden p-4 bg-[#dcfce7] border border-[#86efac] text-[#15803d] rounded-2xl text-xs font-semibold text-center flex items-center justify-center gap-2">
+        <Check class="w-4 h-4 text-[#15803d]" aria-hidden="true" />
+        <span data-i18n="noticeCopied">Notice copied! Paste it directly into your neighborhood WhatsApp group.</span>
       </div>
     </div>
 
     <!-- Anonymous Community Impact Ledger (k >= 5 Anonymity Standard) -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 stagger-card">
-      <div class="flex items-center justify-between">
+    <div class="p-6 sm:p-8 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-4 stagger-card">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <span class="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#dcfce7] text-[#15803d] border border-[#86efac] font-bold">
-            k ≥ 5 Privacy Standard
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#dcfce7] text-[#15803d] border border-[#86efac] font-bold" data-i18n="privacyStandardBadge">
+            Privacy Protected (5+ Homes)
           </span>
-          <h2 class="text-base sm:text-lg font-bold text-[#262626] mt-1.5">Sector 14 RWA Collective Action Ledger</h2>
+          <h2 class="text-base sm:text-lg font-bold text-[#171717] mt-1.5" data-i18n="communityLedgerHeading">Sector 14 Neighborhood Clean-Air Impact</h2>
         </div>
-        <span class="text-xs font-mono text-[#8c8c8c]">Gurugram / Delhi Grid</span>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-[#525252] font-medium" data-i18n="testGroupSize">Test Group Size:</span>
+          <button type="button" class="k-sim-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer" data-k="18" data-i18n="homesShown">18 Homes (Shown)</button>
+          <button type="button" class="k-sim-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#525252] border border-[#e5e5e5] font-semibold cursor-pointer" data-k="3" data-i18n="homesHidden">3 Homes (&lt;5 Hidden)</button>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <span class="text-[#595959] block font-medium">Participating Households</span>
-          <span class="text-2xl font-extrabold text-[#262626] font-mono mt-1 block">18 Families</span>
-          <span class="text-[10px] text-[#15803d] font-medium">k ≥ 5 satisfied (Zero individual tracking)</span>
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5]">
+          <span class="text-[#525252] block font-medium" data-i18n="participatingHomes">Participating Homes</span>
+          <span id="k-households" class="text-2xl font-extrabold text-[#171717] font-mono mt-1 block">18 Families</span>
+          <span id="k-status-note" class="text-[10px] text-[#15803d] font-medium">5+ homes rule met (zero individual tracking)</span>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <span class="text-[#595959] block font-medium">Prevented Inhaled PM2.5</span>
-          <span class="text-2xl font-extrabold text-[#ea580c] font-mono mt-1 block">1.15 kg</span>
-          <span class="text-[10px] text-[#595959]">Cumulative exposure avoided</span>
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5]">
+          <span class="text-[#525252] block font-medium" data-i18n="dustKeptOut">Dust Kept Out of Lungs</span>
+          <span id="k-pm25-saved" class="text-2xl font-extrabold text-[#ea580c] font-mono mt-1 block">3.3 g</span>
+          <span class="text-[10px] text-[#525252]" data-i18n="totalAvoidedNote">Total neighborhood exposure avoided</span>
         </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <span class="text-[#595959] block font-medium">Avoided Vehicle Emissions</span>
-          <span class="text-2xl font-extrabold text-[#15803d] font-mono mt-1 block">5.4 kg CO₂e</span>
-          <span class="text-[10px] text-[#15803d] font-medium">Metro switches & carpooling</span>
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5]">
+          <span class="text-[#525252] block font-medium" data-i18n="safeHabitsCompleted">Safe Habits Completed</span>
+          <span id="k-actions-count" class="text-2xl font-extrabold text-[#15803d] font-mono mt-1 block">72 Actions</span>
+          <span class="text-[10px] text-[#15803d] font-medium" data-i18n="safeHabitsNote">Metro switches, window timing &amp; exhaust fans</span>
         </div>
       </div>
     </div>
@@ -144,8 +155,8 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
     <!-- Official CAQM GRAP Policy Stages Matrix -->
     <div class="space-y-4 stagger-card">
       <div>
-        <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Statutory Framework</span>
-        <h2 class="text-lg font-bold text-[#262626]">CAQM Graded Response Action Plan (GRAP) Matrix</h2>
+        <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block" data-i18n="officialAlertLevels">Official Alert Levels</span>
+        <h2 class="text-lg font-bold text-[#171717]" data-i18n="grapMatrixHeading">Graded Response Action Plan (GRAP) Stages</h2>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -156,15 +167,13 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
             : "border border-[#e8e8e8] bg-white shadow-xs";
 
           return (
-            <div class={`p-5 rounded-2xl ${cardClass} space-y-3 flex flex-col justify-between`}>
+            <div data-grap-stage={stage.stage} class={`grap-stage-card p-5 rounded-2xl ${cardClass} space-y-3 flex flex-col justify-between`}>
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-bold font-mono text-[#8c8c8c]">{stage.stage}</span>
-                  {isActive && (
-                    <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-[#ea580c] text-white font-bold uppercase">
-                      Current
-                    </span>
-                  )}
+                  <span class={`grap-current-pill text-[10px] px-2.5 py-0.5 rounded-full bg-[#ea580c] text-white font-bold uppercase ${isActive ? "" : "hidden"}`} data-i18n="grapCurrentLabel">
+                    Current
+                  </span>
                 </div>
                 <h3 class="text-sm font-bold text-[#262626]">{stage.stageName}</h3>
                 <span class="text-[11px] font-mono text-[#ea580c] font-semibold block">{stage.aqiThreshold}</span>
@@ -172,7 +181,7 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
               </div>
 
               <div class="pt-2 border-t border-[#e8e8e8] text-[10px] text-[#595959] leading-tight">
-                <strong class="text-[#262626]">Key Mandate:</strong> {stage.rwaMandates[0]}
+                <strong class="text-[#262626]" data-i18n="keyMandateLabel">Key Mandate:</strong> {stage.rwaMandates[0]}
               </div>
             </div>
           );
@@ -181,74 +190,153 @@ const rwaAdvisoryEng = advisoryService.generateAdvisory("rwa_residents", snapsho
     </div>
   </div>
 
-  <script define:vars={{ rwaAdvisoryHindi, rwaAdvisoryEng }}>
+  <script>
+    import { apiFetchJson, getSelectedCity } from "../scripts/api-client.ts";
+    import { setTransitionDropdownValue } from "../scripts/dropdown.ts";
+
     const copyBtn = document.getElementById("btn-copy-notice");
     const copyBtnText = document.getElementById("copy-btn-text");
     const toast = document.getElementById("copy-toast");
     const headline = document.getElementById("advisory-headline");
     const body = document.getElementById("advisory-body");
     const bullets = document.getElementById("advisory-bullets");
-    const btnHi = document.getElementById("btn-lang-hi");
-    const btnEn = document.getElementById("btn-lang-en");
+    const audienceSelect = document.getElementById("advisory-audience") as HTMLInputElement | null;
+    const langSelect = document.getElementById("advisory-lang") as HTMLInputElement | null;
+    const grapPill = document.getElementById("community-grap-pill");
+    const statusLine = document.getElementById("advisory-status-line");
 
-    let currentCard = rwaAdvisoryHindi.shareCardText;
+    let currentShareCard = "";
 
-    function renderHindi() {
-      if (btnHi) btnHi.className = "px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors press-scale";
-      if (btnEn) btnEn.className = "px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale";
-      if (headline) headline.innerText = rwaAdvisoryHindi.headline;
-      if (body) body.innerText = rwaAdvisoryHindi.body;
-      currentCard = rwaAdvisoryHindi.shareCardText;
-      if (bullets) {
-        bullets.innerHTML = rwaAdvisoryHindi.actionBulletPoints.map(p => `
-          <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl text-xs text-[#262626]">
-            <span class="text-[#ea580c] text-sm leading-none mt-0.5">⚠️</span>
-            <span class="leading-relaxed">${p}</span>
-          </div>
-        `).join("");
+    function renderAdvisory(adv: any) {
+      if (headline) headline.textContent = adv.headline;
+      if (body) body.textContent = adv.body;
+      currentShareCard = adv.shareCardText || "";
+
+      if (bullets && Array.isArray(adv.actionBulletPoints)) {
+        const nodes = adv.actionBulletPoints.map((p: string) => {
+          const row = document.createElement("div");
+          row.className = "flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl text-xs text-[#262626]";
+          const icon = document.createElement("span");
+          icon.className = "w-2 h-2 rounded-full bg-[#ea580c] mt-1.5 shrink-0";
+          icon.setAttribute("aria-hidden", "true");
+          const txt = document.createElement("span");
+          txt.className = "leading-relaxed";
+          txt.textContent = p;
+          row.replaceChildren(icon, txt);
+          return row;
+        });
+        bullets.replaceChildren(...nodes);
+      }
+
+      // Update active GRAP stage card
+      document.querySelectorAll(".grap-stage-card").forEach((card) => {
+        const st = card.getAttribute("data-grap-stage");
+        const pill = card.querySelector(".grap-current-pill");
+        if (st === adv.grapStage) {
+          card.classList.add("border-2", "border-[#ea580c]", "bg-[#fff7ed]/50");
+          card.classList.remove("border", "border-[#e8e8e8]", "bg-white");
+          pill?.classList.remove("hidden");
+        } else {
+          card.classList.remove("border-2", "border-[#ea580c]", "bg-[#fff7ed]/50");
+          card.classList.add("border", "border-[#e8e8e8]", "bg-white");
+          pill?.classList.add("hidden");
+        }
+      });
+
+      if (grapPill) {
+        const span = grapPill.querySelector("span");
+        if (span) span.textContent = `${adv.grapStage === "NONE" ? "Baseline" : adv.grapStage.replace("_", " ")} Active`;
       }
     }
 
-    function renderEnglish() {
-      if (btnEn) btnEn.className = "px-4 py-1.5 rounded-full bg-[#ea580c] text-white font-semibold cursor-pointer transition-colors press-scale";
-      if (btnHi) btnHi.className = "px-4 py-1.5 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale";
-      if (headline) headline.innerText = rwaAdvisoryEng.headline;
-      if (body) body.innerText = rwaAdvisoryEng.body;
-      currentCard = rwaAdvisoryEng.shareCardText;
-      if (bullets) {
-        bullets.innerHTML = rwaAdvisoryEng.actionBulletPoints.map(p => `
-          <div class="flex items-start gap-3 p-3.5 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl text-xs text-[#262626]">
-            <span class="text-[#ea580c] text-sm leading-none mt-0.5">⚠️</span>
-            <span class="leading-relaxed">${p}</span>
-          </div>
-        `).join("");
+    async function fetchLiveAdvisory() {
+      const city = getSelectedCity();
+      const audience = audienceSelect?.value || "rwa_residents";
+      const lang = langSelect?.value || "hi";
+
+      try {
+        const adv = await apiFetchJson<any>("/v1/advisories", {
+          method: "POST",
+          body: JSON.stringify({
+            audience,
+            lang,
+            gridCell: city.cell
+          })
+        });
+        renderAdvisory(adv);
+        if (statusLine) statusLine.textContent = `Generated live for ${city.label} in ${lang.toUpperCase()} via OpenAQ`;
+      } catch {
+        if (statusLine) statusLine.textContent = "API offline — displaying build-time Hindi/English fallback";
       }
     }
 
-    btnHi?.addEventListener("click", renderHindi);
-    btnEn?.addEventListener("click", renderEnglish);
+    async function loadGroupImpact(memberCount: number) {
+      const hhEl = document.getElementById("k-households");
+      const noteEl = document.getElementById("k-status-note");
+      const pmEl = document.getElementById("k-pm25-saved");
+      const actEl = document.getElementById("k-actions-count");
 
-    // Sync with global language switcher event
-    window.addEventListener("airdelta:langchange", (e) => {
+      try {
+        const res = await apiFetchJson<any>(`/v1/advisories/groups/sec-14-rwa/impact?memberCount=${memberCount}`);
+        if (res.isAnonymitySatisfied) {
+          if (hhEl) hhEl.textContent = `${res.activeHouseholds} Families`;
+          if (noteEl) {
+            noteEl.textContent = "5+ homes rule met (zero individual tracking)";
+            noteEl.className = "text-[10px] text-[#15803d] font-medium";
+          }
+          if (pmEl) pmEl.textContent = `${res.estimatedCommunityPm25PreventedGrams} g`;
+          if (actEl) actEl.textContent = `${res.totalActionsTaken} Actions`;
+        } else {
+          if (hhEl) hhEl.textContent = "Hidden (< 5)";
+          if (noteEl) {
+            noteEl.textContent = "Hidden to protect privacy when fewer than 5 homes participate";
+            noteEl.className = "text-[10px] text-[#ea580c] font-bold";
+          }
+          if (pmEl) pmEl.textContent = "Hidden";
+          if (actEl) actEl.textContent = "Hidden";
+        }
+      } catch {
+        // ignore if offline
+      }
+    }
+
+    audienceSelect?.addEventListener("change", fetchLiveAdvisory);
+    langSelect?.addEventListener("change", fetchLiveAdvisory);
+
+    document.querySelectorAll(".k-sim-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const k = parseInt(btn.getAttribute("data-k") || "18", 10);
+        document.querySelectorAll(".k-sim-btn").forEach((b) => {
+          b.className = "k-sim-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8] font-semibold cursor-pointer";
+        });
+        btn.className = "k-sim-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer";
+        loadGroupImpact(k);
+      });
+    });
+
+    window.addEventListener("airdelta:langchange", (e: any) => {
       const lang = e.detail?.lang;
-      if (lang === "en") {
-        renderEnglish();
-      } else {
-        renderHindi();
+      if (lang) {
+        setTransitionDropdownValue("advisory-lang", lang, false);
+        fetchLiveAdvisory();
       }
     });
 
     copyBtn?.addEventListener("click", () => {
-      navigator.clipboard.writeText(currentCard).then(() => {
-        if (copyBtnText) copyBtnText.innerText = "Copied!";
+      const textToCopy = currentShareCard || `${headline?.textContent}\n\n${body?.textContent}`;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        if (copyBtnText) copyBtnText.textContent = "Copied!";
         if (toast) {
           toast.classList.remove("hidden");
           setTimeout(() => {
             toast.classList.add("hidden");
-            if (copyBtnText) copyBtnText.innerText = "Copy WhatsApp Notice";
+            if (copyBtnText) copyBtnText.textContent = "Copy for WhatsApp";
           }, 3000);
         }
       });
     });
+
+    fetchLiveAdvisory();
+    loadGroupImpact(18);
   </script>
 </Layout>

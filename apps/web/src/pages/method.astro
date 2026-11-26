@@ -1,11 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import { CONSTANTS_REGISTRY, CONSTANTS_VERSION } from "@airdelta/engine";
-import { 
-  Atom, 
-  Database, 
-  ExternalLink 
-} from "lucide-astro";
+import Atom from "lucide-astro/Atom";
+import Database from "lucide-astro/Database";
+import ExternalLink from "lucide-astro/ExternalLink";
 
 const constantsList = Object.values(CONSTANTS_REGISTRY);
 ---
@@ -17,17 +15,17 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
       <div class="flex items-center gap-2 mb-2">
         <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] flex items-center gap-1.5">
           <Atom class="w-3.5 h-3.5" />
-          <span>Core Architecture Principle</span>
+          <span data-i18n="corePrinciple">Core Design Principle</span>
         </span>
         <span class="px-3 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8]">
           Registry: {CONSTANTS_VERSION}
         </span>
       </div>
       <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]" data-i18n="methodTitle">
-        Deterministic Exposure Methodology
+        How AirDelta Calculates Safe Air
       </h1>
-      <p class="text-xs sm:text-sm text-[#595959] mt-2 max-w-3xl leading-relaxed">
-        AirDelta operates under a strict ironclad architectural boundary: <strong class="text-[#ea580c] font-bold">LLMs Never Do Math</strong>. Every dose number, percentage reduction, indoor equilibrium concentration, and carbon emissions figure is computed deterministically by verified physics and biological equations. Gemini solely generates personalized explanations, regional language translations, and structured contextual advice.
+      <p class="text-xs sm:text-sm text-[#595959] mt-2 max-w-3xl leading-relaxed" data-i18n="methodDesc">
+        AirDelta operates under a strict ironclad architectural boundary: LLMs Never Do Math. Every dose number, percentage reduction, indoor equilibrium concentration, and carbon emissions figure is computed deterministically by verified physics and biological equations. Gemini solely generates personalized explanations, regional language translations, and structured contextual advice.
       </p>
     </div>
 
@@ -37,7 +35,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
       <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#ea580c] transition-colors">
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 1</span>
-          <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3">Inhaled PM2.5 Dose</h3>
+          <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3" data-i18n="eq1Title">Inhaled PM2.5 Dose</h3>
           <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             D = Σ (C_micro × VE × Δt)<br/>
             C_micro = C_amb × F_micro × (1 - η_mask)
@@ -56,7 +54,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
       <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#ea580c] transition-colors">
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 2</span>
-          <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3">Indoor Mass Balance</h3>
+          <h3 class="text-lg font-bold text-[#171717] mt-1 mb-3" data-i18n="eq2Title">Room Clean-Air Balance</h3>
           <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             C_ss = (P·a·C_out + S/V) /<br/>
                    (a + k_dep + CADR/V)
@@ -75,7 +73,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
       <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:border-[#ea580c] transition-colors">
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 3</span>
-          <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3">Carbon Co-benefit Ledger</h3>
+          <h3 class="text-lg font-bold text-[#171717] mt-1 mb-3" data-i18n="eq3Title">CO₂ &amp; Clean Air Bonus</h3>
           <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             E_co2e = Σ (distance_km × EF_mode)
           </div>
@@ -94,8 +92,8 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
     <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 class="text-lg font-bold text-[#262626]">Constants Registry ({CONSTANTS_VERSION})</h2>
-          <p class="text-xs text-[#595959] mt-1">
+          <h2 class="text-lg font-bold text-[#171717]" data-i18n="constantsHeading">Verified Science Constants ({CONSTANTS_VERSION})</h2>
+          <p class="text-xs text-[#595959] mt-1" data-i18n="constantsDesc">
             Every coefficient in AirDelta is versioned, peer-reviewed, and cited with open research links.
           </p>
         </div>
@@ -148,23 +146,23 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
 
     <!-- Data Provenance & Licenses -->
     <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
-      <h2 class="text-lg font-bold text-[#262626] mb-4">Data Provenance & Regulatory Standards</h2>
+      <h2 class="text-lg font-bold text-[#171717] mb-4" data-i18n="dataSourcesHeading">Data Sources &amp; Official Standards</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <div class="font-bold text-[#262626] mb-1">Google Air Quality API</div>
-          <p class="text-[#595959] leading-relaxed">High-resolution hourly hyper-local air quality grid with 1x1 km spatial interpolation.</p>
-        </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <div class="font-bold text-[#262626] mb-1">OpenAQ Open Data</div>
-          <p class="text-[#595959] leading-relaxed">Global open-source ground monitoring reference stations, including CPCB CAAQMS.</p>
+        <div class="p-4 bg-[#fff7ed] rounded-2xl border border-[#fed7aa]">
+          <div class="font-bold text-[#ea580c] mb-1">OpenAQ v3 (Default Primary)</div>
+          <p class="text-[#595959] leading-relaxed">Live open-source physical ground monitoring stations (CPCB, DPCC, MPCB, UPPCB, BSPCB) within 25 km.</p>
         </div>
         <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <div class="font-bold text-[#262626] mb-1">Open-Meteo & CAMS</div>
-          <p class="text-[#595959] leading-relaxed">European Centre for Medium-Range Weather Forecasts (ECMWF) atmospheric chemistry ensemble.</p>
+          <p class="text-[#595959] leading-relaxed">European Centre for Medium-Range Weather Forecasts (ECMWF) 72h atmospheric chemistry dispersion forecast.</p>
         </div>
         <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
           <div class="font-bold text-[#262626] mb-1">CPCB NAQI & CAQM GRAP</div>
           <p class="text-[#595959] leading-relaxed">Government of India official National Air Quality Index breakpoints & graded response actions.</p>
+        </div>
+        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
+          <div class="font-bold text-[#262626] mb-1">Google AQ (Optional / Off)</div>
+          <p class="text-[#595959] leading-relaxed">Disabled by default (`GOOGLE_AQ_ENABLED=false`) so all monitoring uses free OpenAQ & Open-Meteo APIs.</p>
         </div>
       </div>
     </div>

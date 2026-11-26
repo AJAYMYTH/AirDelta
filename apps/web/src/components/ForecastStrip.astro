@@ -2,7 +2,8 @@
 import type { AirForecast } from "@airdelta/schemas";
 import { getGlossaryTerm } from "@airdelta/i18n";
 import BadgePill from "./BadgePill.astro";
-import { Clock, Sparkles } from "lucide-astro";
+import Clock from "lucide-astro/Clock";
+import Sparkles from "lucide-astro/Sparkles";
 
 interface Props {
   forecast: AirForecast;
@@ -26,57 +27,64 @@ const formattedHourly = forecast.hourly.slice(0, 12).map((item) => {
     pm25Formatted: item.pm25 ? Math.round(item.pm25) : "--",
     height,
     barColor,
-    timeLabel: new Date(item.ts).toLocaleTimeString([], { hour: "2-digit" })
+    timeLabel: new Date(item.ts).toLocaleTimeString([], { hour: "2-digit", hour12: false }) + ":00"
   };
 });
 ---
 
-<div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs">
+<div id="forecast-strip-card" class="bg-white border border-[#e5e5e5] rounded-3xl p-6 sm:p-8 shadow-xs">
   <div class="flex items-center justify-between mb-5">
     <div class="flex items-center gap-2.5">
-      <Clock class="w-4 h-4 text-[#ea580c]" />
-      <h3 class="text-base font-bold text-[#262626]">Hourly Exposure Horizon</h3>
-      <BadgePill badge={forecast.badge} lang={lang} />
+      <div class="w-8 h-8 rounded-xl bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
+        <Clock class="w-4 h-4" aria-hidden="true" />
+      </div>
+      <div>
+        <h3 class="text-base font-extrabold text-[#171717]" data-i18n="forecastTitle">Next Hours Air Trend</h3>
+        <span class="text-[11px] text-[#737373]" data-i18n="forecastSubtitle">Expected fine dust (µg/m³) hour by hour</span>
+      </div>
     </div>
-    <span class="text-xs text-[#8c8c8c] font-medium font-mono">96-Hour CAMS Model</span>
+    <div class="flex items-center gap-2">
+      <span id="forecast-badge-wrap"><BadgePill badge={forecast.badge} lang={lang} /></span>
+      <span id="forecast-source-label" class="text-xs text-[#737373] font-medium font-mono hidden sm:inline">Open-Meteo Forecast</span>
+    </div>
   </div>
 
   {cleanest && (
-    <div class="mb-6 p-4 bg-[#fff7ed] border border-[#fed7aa] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div id="forecast-cleanest-box" class="mb-6 p-4 bg-[#fff7ed] border border-[#fed7aa] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
-        <div class="flex items-center gap-2">
-          <Sparkles class="w-4 h-4 text-[#ea580c]" />
-          <span class="text-xs font-bold uppercase tracking-wider text-[#ea580c]" data-i18n="cleanestWindowLabel">{cleanestLabel}</span>
-          <span class="text-xs text-[#9a3412] font-mono font-semibold bg-white/80 px-2.5 py-0.5 rounded-full border border-[#ffedd5]">
-            {new Date(cleanest.startTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} – {new Date(cleanest.endTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        <div class="flex flex-wrap items-center gap-2">
+          <Sparkles class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#ea580c]" data-i18n="cleanestWindowLabel">{cleanestLabel}</span>
+          <span id="forecast-cleanest-range" class="text-xs text-[#9a3412] font-mono font-bold bg-white px-2.5 py-0.5 rounded-full border border-[#fed7aa]">
+            {new Date(cleanest.startTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })} – {new Date(cleanest.endTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}
           </span>
         </div>
-        <p class="text-xs text-[#7c2d12] mt-1.5 leading-relaxed">{cleanest.reason}</p>
+        <p id="forecast-cleanest-reason" class="text-xs text-[#7c2d12] mt-1.5 leading-relaxed" data-i18n="forecastReason">Lowest outdoor dust levels expected during this window — best time to open windows briefly.</p>
       </div>
-      <div class="text-left sm:text-right">
-        <span class="text-[11px] text-[#9a3412] block font-medium">Expected Low PM2.5</span>
-        <span class="text-base font-extrabold text-[#ea580c] font-mono">{cleanest.expectedPm25} µg/m³</span>
+      <div class="text-left sm:text-right shrink-0">
+        <span class="text-[11px] text-[#9a3412] block font-semibold" data-i18n="lowestExpectedPm25">Lowest Expected PM2.5</span>
+        <span id="forecast-cleanest-pm25" class="text-lg font-extrabold text-[#ea580c] font-mono">{cleanest.expectedPm25} µg/m³</span>
       </div>
     </div>
   )}
 
   <div class="overflow-x-auto pb-2 -mx-1 px-1">
-    <div class="flex items-end gap-3 min-w-max pt-2">
+    <div id="forecast-bars-container" class="flex items-end gap-3 min-w-max pt-2">
       {formattedHourly.map((item) => (
         <div class="flex flex-col items-center gap-2 w-14">
-          <span class="text-[11px] font-mono font-bold text-[#595959]">{item.pm25Formatted}</span>
-          <div class="w-8 bg-[#f5f5f5] rounded-t-md flex items-end h-28 p-1 border-x border-t border-[#e8e8e8]">
+          <span class="text-[11px] font-mono font-bold text-[#525252]">{item.pm25Formatted}</span>
+          <div class="w-8 bg-[#f5f5f5] rounded-t-lg flex items-end h-28 p-1 border-x border-t border-[#e5e5e5]">
             <div class={`w-full rounded-t ${item.barColor} transition-all`} style={`height: ${item.height}%;`}></div>
           </div>
-          <span class="text-[10px] text-[#8c8c8c] font-mono font-medium">
+          <span class="text-[10px] text-[#737373] font-mono font-medium">
             {item.timeLabel}
           </span>
         </div>
       ))}
     </div>
   </div>
-  <div class="flex justify-between text-[11px] text-[#8c8c8c] mt-4 pt-3 border-t border-[#f0f0f0]">
-    <span>Bar height proportional to ambient particulate concentration</span>
-    <span class="font-medium text-[#ea580c]">Orange = Severe Inversion Peak</span>
+  <div class="flex justify-between text-[11px] text-[#737373] mt-4 pt-3 border-t border-[#f0f0f0]">
+    <span data-i18n="forecastFooterLeft">Taller bar = higher dust levels</span>
+    <span class="font-semibold text-[#ea580c] font-mono" data-i18n="forecastFooterRight">Orange = Heavy Smoke · Green = Cleaner</span>
   </div>
 </div>

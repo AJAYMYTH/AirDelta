@@ -16,7 +16,6 @@ describe("Phase 6: Supabase Postgres & Security Hardening", () => {
       expect(sanitized).not.toContain("House No. 42B");
 
       expect(sanitized).toContain("[REDACTED_PHONE]");
-      expect(sanCTED_PHONE => sanitized.includes("[REDACTED_PHONE]")).toBeTruthy();
       expect(sanitized).toContain("[REDACTED_EMAIL]");
       expect(sanitized).toContain("[REDACTED_AADHAAR]");
       expect(sanitized).toContain("[REDACTED_ADDRESS]");
@@ -49,7 +48,7 @@ describe("Phase 6: Supabase Postgres & Security Hardening", () => {
 
   describe("SupabaseService & k-Anonymity", () => {
     it("enforces k >= 5 anonymity threshold on community impact views", async () => {
-      const db = new SupabaseService();
+      const db = new SupabaseService(undefined, undefined, { useMemory: true });
       const groupId = "test-group-sec14";
 
       // With 3 households (k < 5)
@@ -74,46 +73,63 @@ describe("Phase 6: Supabase Postgres & Security Hardening", () => {
     });
 
     it("saves and retrieves plans, actions, and purges expired plans", async () => {
-      const db = new SupabaseService();
-      const householdId = "hh-test-100";
+      const db = new SupabaseService(undefined, undefined, { useMemory: true });
+      const householdId = "00000000-0000-4000-8000-000000000100";
+      const planId = "00000000-0000-4000-8000-000000000001";
 
       const dummyPlan: PlanResponse = {
-        planId: "plan-uuid-1",
-        forDate: "2026-11-23",
+        planId,
+        forDate: "2026-11-26",
+        engineVersion: "1.0.0",
+        constantsVersion: "2026-11-a",
+        air: {
+          cell: "28.61:77.21",
+          ts: "2026-11-26T16:30:00Z",
+          pm25: 149,
+          pm10: 226,
+          indexValue: 322,
+          indexStandard: "ind_cpcb",
+          category: "Very Poor",
+          source: "openaq",
+          badge: "measured",
+          fetchedAt: "2026-11-26T16:35:00Z",
+          ttlSec: 1800,
+          license: "CC BY 4.0",
+          attribution: "OpenAQ Station: R K Puram, Delhi - DPCC"
+        },
         planA: {
-          totalDose: { mean: 120, low: 100, high: 140, unit: "ug" },
-          segments: [],
-          emissions: { co2eGrams: 500, unit: "gCO2e" }
+          totalDoseUg: { mid: 120, low: 96, high: 150, unit: "ug", badge: "modelled" },
+          segments: []
         },
         planB: {
-          totalDose: { mean: 70, low: 55, high: 85, unit: "ug" },
-          segments: [],
-          emissions: { co2eGrams: 300, unit: "gCO2e" }
+          totalDoseUg: { mid: 70, low: 56, high: 87.5, unit: "ug", badge: "modelled" },
+          changes: [],
+          netSavingUg: 50,
+          netSavingPercent: 41.7,
+          segments: []
         },
-        delta: {
-          doseAbsoluteReductionUg: 50,
-          dosePercentReduction: 41.7,
-          co2eDeltaGrams: -200,
-          isProtective: true
+        emissions: {
+          deltaGramsCo2e: -200,
+          factorsRef: ["EF.CO2e.metro@2026-11-a"],
+          badge: "assumed"
         },
-        transitTradeoffs: [],
-        narration: {
+        narrative: {
           lang: "en",
           headline: "41.7% dose reduction today",
-          summaryBullets: ["Switched to Metro"],
-          indoorActionNote: "Run exhaust when frying"
+          body: "Plan B lowers exposure by 50 ug.",
+          keyActions: ["Switched to Metro"],
+          source: "template"
         },
-        constantsVersion: "2026-11-a",
-        engineVersion: "1.0.0"
+        assumptions: ["VE.light_exercise.adult@2026-11-a"]
       };
 
       await db.savePlan(dummyPlan, householdId, { sampleInput: true });
-      const retrieved = await db.getPlan("plan-uuid-1");
+      const retrieved = await db.getPlan(planId);
       expect(retrieved).not.toBeNull();
-      expect(retrieved?.id).toBe("plan-uuid-1");
+      expect(retrieved?.id).toBe(planId);
 
       // Record action
-      const actionRes = await db.recordAction("plan-uuid-1", "mask.n95");
+      const actionRes = await db.recordAction(planId, "mask.n95");
       expect(actionRes.ok).toBe(true);
 
       // Retention purge with 30 days should keep brand new plan
@@ -121,7 +137,7 @@ describe("Phase 6: Supabase Postgres & Security Hardening", () => {
       expect(purgeFresh.deletedCount).toBe(0);
 
       // Verify plan is still present
-      const stillThere = await db.getPlan("plan-uuid-1");
+      const stillThere = await db.getPlan(planId);
       expect(stillThere).not.toBeNull();
     });
   });

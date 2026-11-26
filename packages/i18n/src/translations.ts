@@ -1,3 +1,5 @@
+import { PAGE_TRANSLATIONS } from "./page-translations.js";
+
 export interface UIStrings {
   appName: string;
   tagline: string;
@@ -34,45 +36,46 @@ export interface UIStrings {
   navSettings: string;
   copyNotice: string;
   noticeCopied: string;
+  [key: string]: string;
 }
 
 export const UI_TRANSLATIONS: Record<string, Partial<UIStrings>> = {
   en: {
     appName: "AirDelta",
-    tagline: "Public Health Smog Action Engine",
-    todayTitle: "Today's Air & Routine Action",
-    planTitle: "Plan A vs Plan B Exposure Ledger",
-    indoorTitle: "Indoor Air & Pollution Audit",
-    communityTitle: "Multilingual Community Advisories",
-    replayTitle: "Severe Smog Episode Replay",
-    methodTitle: "Deterministic Exposure Methodology",
+    tagline: "Daily Clean Air Guide",
+    todayTitle: "Today's Air Quality",
+    planTitle: "Your Daily Plan",
+    indoorTitle: "Room Air Check",
+    communityTitle: "Share Alert",
+    replayTitle: "Smog Replay",
+    methodTitle: "How It Works",
     settingsTitle: "Settings & Privacy",
-    planA: "Plan A (Normal Routine)",
-    planB: "Plan B (AirDelta Guided)",
-    netDoseSaved: "Net Inhaled PM2.5 Saved",
-    co2eAvoided: "Avoided Emissions",
-    cautionModeActive: "Caution Mode: Conservative Thresholds Active",
-    cleanestWindowLabel: "Cleanest Air Window",
-    assumptionsUsed: "Assumptions & Evidence Used",
-    markDone: "Mark Action Done",
-    shareAdvisory: "Share Advisory Card",
-    optimizeRoutine: "Optimize Today's Routine →",
-    severeAirWarning: "Severe Winter Inversion · Delhi-NCR ITO Grid",
-    action1Title: "1. Postpone Morning Cardio",
-    action1Desc: "Avoid morning running/cycling. Inversion layer traps heavy PM2.5 particulates until 10:00 IST.",
-    action2Title: "2. Airing Window: 13:00 - 15:00",
-    action2Desc: "Cleanest solar mixing window. Open cross-ventilation briefly for 30 minutes to reduce indoor CO2.",
-    action3Title: "3. Road Commute Protection",
-    action3Desc: "Switch roadside two-wheeler to electric Metro or use sealed N95 respirator mask.",
+    planA: "Normal Day",
+    planB: "Safer Day",
+    netDoseSaved: "Less Smoke Breathed",
+    co2eAvoided: "Clean Travel Bonus",
+    cautionModeActive: "Extra Safety Mode On",
+    cleanestWindowLabel: "Best Time to Open Windows",
+    assumptionsUsed: "Science & Constants Used",
+    markDone: "Mark Done",
+    shareAdvisory: "Copy for WhatsApp",
+    optimizeRoutine: "Build My Safer Plan →",
+    severeAirWarning: "Live Air Update:",
+    action1Title: "1. Skip Early Outdoor Workouts",
+    action1Desc: "Polluted air sits close to the ground before 10 AM. Exercise indoors instead.",
+    action2Title: "2. Open Windows in Clean Hours",
+    action2Desc: "Sunlight helps clear the air midday. Air out your home for 30 minutes.",
+    action3Title: "3. Protect Your Commute",
+    action3Desc: "Take the Metro instead of an open bike, or wear a snug N95 mask.",
     navToday: "Today",
-    navPlan: "Plan A vs B",
-    navIndoor: "Indoor Audit",
-    navCommunity: "Community",
-    navReplay: "Smog Replay",
-    navMethod: "Methodology",
+    navPlan: "Daily Plan",
+    navIndoor: "Room Check",
+    navCommunity: "Share Alert",
+    navReplay: "Replay",
+    navMethod: "How It Works",
     navSettings: "Settings",
-    copyNotice: "Copy WhatsApp Notice",
-    noticeCopied: "Notice copied to clipboard! Paste directly into resident WhatsApp group."
+    copyNotice: "Copy for WhatsApp",
+    noticeCopied: "Notice copied! Paste it into your family or society WhatsApp group."
   },
   hi: {
     appName: "AirDelta",
@@ -520,7 +523,16 @@ export const UI_TRANSLATIONS: Record<string, Partial<UIStrings>> = {
   }
 };
 
-export function getTranslation(key: keyof UIStrings, lang = "en"): string {
-  const dict = UI_TRANSLATIONS[lang] || UI_TRANSLATIONS.en;
-  return (dict && dict[key]) || UI_TRANSLATIONS.en[key] || String(key);
+export function getTranslation(key: string, lang = "en"): string {
+  const pageDict = PAGE_TRANSLATIONS[lang];
+  const coreDict = UI_TRANSLATIONS[lang] || UI_TRANSLATIONS.en;
+  return (
+    (pageDict && pageDict[key]) ||
+    (coreDict && coreDict[key]) ||
+    PAGE_TRANSLATIONS.en[key] ||
+    UI_TRANSLATIONS.en[key] ||
+    String(key)
+  );
 }
+
+export { PAGE_TRANSLATIONS };

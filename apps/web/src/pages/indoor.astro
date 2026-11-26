@@ -1,15 +1,21 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
+import AirWaveLoader from "../components/AirWaveLoader.tsx";
+import TransitionDropdown from "../components/TransitionDropdown.astro";
 import { getFixesForBudget } from "@airdelta/fix-library";
-import { calculateIndoorMassBalance } from "@airdelta/engine";
-import { 
-  Camera, 
-  Upload, 
-  ShieldCheck 
-} from "lucide-astro";
 
-const ambientPm25 = 382.5; // Nov 6 Delhi Smog baseline
+const roomOptions = [
+  { value: "kitchen", label: "Kitchen", i18nKey: "roomKitchen" },
+  { value: "bedroom", label: "Bedroom", i18nKey: "roomBedroom" },
+  { value: "living_room", label: "Living Room", i18nKey: "roomLiving" }
+];
+import { calculateIndoorMassBalance } from "@airdelta/engine";
+import Camera from "lucide-astro/Camera";
+import Upload from "lucide-astro/Upload";
+import ShieldCheck from "lucide-astro/ShieldCheck";
+
+const ambientPm25 = 382.5;
 const candidateSources = [
   {
     id: "src-stove",
@@ -39,7 +45,6 @@ const candidateSources = [
 
 const fixes = getFixesForBudget("high");
 
-// Pre-calculate baseline vs mitigated indoor air quality
 const massBalance = calculateIndoorMassBalance({
   ambientPm25,
   isCooking: true,
@@ -50,148 +55,152 @@ const massBalance = calculateIndoorMassBalance({
 });
 ---
 
-<Layout title="AirDelta — Indoor Photo Audit">
+<Layout title="AirDelta — Room Check">
   <div class="space-y-8 max-w-5xl mx-auto">
     <!-- Header -->
     <div>
       <div class="flex items-center gap-2 mb-1.5">
-        <a href="/" class="text-xs font-semibold text-[#8c8c8c] hover:text-[#ea580c] transition-colors">← Back to Today</a>
-        <span class="text-xs text-[#d9d9d9]">/</span>
-        <span class="text-xs text-[#ea580c] font-semibold" data-i18n="indoorTitle">Indoor AI Health Audit</span>
+        <a href="/" class="text-xs font-semibold text-[#737373] hover:text-[#ea580c] transition-colors" data-i18n="backHome">← Home</a>
+        <span class="text-xs text-[#d4d4d4]">/</span>
+        <span class="text-xs text-[#ea580c] font-semibold" data-i18n="indoorTitle">Room Check</span>
       </div>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]">Indoor Air & Pollution Audit</h1>
-          <p class="text-xs sm:text-sm text-[#595959] mt-1">
-            Visual emission detection + human-in-the-loop confirmation + budget-ranked fixes
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171717]" data-i18n="indoorHeading">Check Your Room Air</h1>
+          <p id="indoor-ambient-subtitle" class="text-xs sm:text-sm text-[#525252] mt-1" data-i18n="indoorSubtitle">
+            Upload or test a kitchen or room photo to spot hidden smoke and see easy ways to clean your indoor air.
           </p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <BadgePill badge="modelled" />
           <span class="text-xs text-[#15803d] bg-[#dcfce7] border border-[#86efac] px-3 py-1 rounded-full font-mono font-semibold flex items-center gap-1.5">
-            <ShieldCheck class="w-3.5 h-3.5" />
-            <span>EXIF Stripped · Privacy Preserved</span>
+            <ShieldCheck class="w-3.5 h-3.5" aria-hidden="true" />
+            <span data-i18n="gpsRemovedPrivate">GPS Removed · Private</span>
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Upload Dropzone & Privacy Guarantee (DJI Clean Surface with Loading.dev Radar) -->
+    <!-- Upload Dropzone & Privacy Guarantee -->
     <div 
       id="upload-dropzone" 
-      class="p-8 bg-[#f7f9fa] border-2 border-dashed border-[#d9d9d9] hover:border-[#ea580c] rounded-3xl text-center space-y-4 transition-all stagger-card"
+      class="p-8 bg-[#f7f9fa] border-2 border-dashed border-[#d4d4d4] hover:border-[#ea580c] rounded-3xl text-center space-y-4 transition-all stagger-card"
     >
-      <input type="file" id="photo-file-input" accept="image/*" class="hidden" />
+      <input type="file" id="photo-file-input" accept="image/*" class="visually-hidden" />
 
       <div id="radar-container" class="w-16 h-16 rounded-2xl bg-white border border-[#fed7aa] text-[#ea580c] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all">
-        <Camera class="w-7 h-7" />
+        <Camera class="w-7 h-7" aria-hidden="true" />
       </div>
 
       <div>
-        <h3 id="upload-status-title" class="text-base font-bold text-[#262626]">Upload Room Photo (Kitchen, Balcony Door, or Living Area)</h3>
-        <p class="text-xs text-[#595959] mt-1.5 max-w-md mx-auto leading-relaxed">
-          Client-side downscaling and EXIF geolocation stripping active. Photos are evaluated strictly as transient visual signals and never stored with personal identity.
+        <h2 id="upload-status-title" class="text-base font-bold text-[#171717]" data-i18n="uploadTitle">Upload a Room Photo (Kitchen, Balcony Door, or Living Room)</h2>
+        <p class="text-xs text-[#525252] mt-1.5 max-w-md mx-auto leading-relaxed" data-i18n="uploadDesc">
+          Your device strips photo GPS location before scanning for cooking smoke or open window drafts.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+        <div class="w-44">
+          <TransitionDropdown id="room-hint-select" name="roomHint" pill minWidth={190} options={roomOptions} selectedValue="kitchen" />
+        </div>
+
         <button 
           id="btn-browse-photo" 
           type="button" 
           class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer press-scale"
         >
-          <Upload class="w-4 h-4" />
-          <span id="btn-browse-label">Browse Photo...</span>
+          <Upload class="w-4 h-4" aria-hidden="true" />
+          <span id="btn-browse-label" data-i18n="choosePhoto">Choose Photo</span>
         </button>
         <button 
           id="btn-sample-scan" 
           type="button" 
-          class="px-4 py-2 bg-white hover:bg-[#f0f0f0] border border-[#d9d9d9] text-[#262626] text-xs font-semibold rounded-full transition-all cursor-pointer press-scale"
+          class="px-4 py-2 bg-white hover:bg-[#f0f0f0] border border-[#d4d4d4] text-[#171717] text-xs font-semibold rounded-full transition-all cursor-pointer press-scale"
+          data-i18n="trySamplePhoto"
         >
-          Scan Kitchen Sample
+          Try Sample Kitchen Photo
         </button>
       </div>
 
-      <!-- Live Scan Progress Indicator (Loading.dev Radar State) -->
-      <div id="scan-progress-box" class="hidden pt-2 flex items-center justify-center gap-2 text-xs font-mono font-bold text-[#ea580c]">
-        <div class="loader-spin"></div>
-        <span>Gemini Vision Neural Scan in Progress...</span>
+      <div id="scan-progress-box" role="status" aria-live="polite" class="hidden pt-2 flex items-center justify-center gap-2.5 text-xs font-mono font-bold text-[#ea580c]">
+        <AirWaveLoader client:load id="indoor-wave-loader" size={28} origin="bottom" color="#ea580c" duration={950} playState="running" />
+        <span id="scan-progress-text" data-i18n="scanningPhoto">Checking your photo for smoke sources...</span>
       </div>
     </div>
 
-    <!-- Step 1: Human-in-the-Loop Confirmation -->
-    <div id="step-1-container" class="p-6 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 stagger-card">
-      <div class="flex items-center justify-between">
+    <!-- Step 1: Confirm What's in Your Room -->
+    <div id="step-1-container" class="p-6 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-4 stagger-card">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
         <div>
-          <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 1: Confirm Detected Sources</span>
-          <h2 class="text-base font-bold text-[#262626] mt-0.5">Gemini Vision Candidate Detections</h2>
+          <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block" data-i18n="step1Tag">Step 1 · Confirm Sources</span>
+          <h2 class="text-base font-bold text-[#171717] mt-0.5" data-i18n="step1Heading">Check or Uncheck What Is in Your Room</h2>
         </div>
-        <span class="text-xs text-[#595959] font-mono bg-[#f7f9fa] border border-[#e8e8e8] px-3 py-1 rounded-full">
-          3 Sources Found
+        <span id="sources-count-pill" class="text-xs text-[#525252] font-mono bg-[#f7f9fa] border border-[#e5e5e5] px-3 py-1 rounded-full">
+          <span id="sources-count-num">3</span> <span data-i18n="sourcesFoundSuffix">Sources Found</span>
         </span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div id="candidate-sources-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
         {candidateSources.map((src) => (
-          <div class="p-4 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl space-y-2 hover:border-[#ea580c] transition-colors source-card" data-source-id={src.id} data-emission={src.emissionUgH}>
+          <div class="p-4 bg-[#f7f9fa] border border-[#e5e5e5] rounded-2xl space-y-2 hover:border-[#ea580c] transition-colors source-card" data-source-key={src.sourceKey}>
             <div class="flex items-start justify-between gap-2">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked class="source-checkbox rounded border-[#d9d9d9] text-[#ea580c] focus:ring-[#ea580c] bg-white cursor-pointer" />
-                <span class="text-xs font-bold text-[#262626]">{src.label}</span>
+                <input type="checkbox" checked value={src.sourceKey} class="source-checkbox rounded border-[#d4d4d4] text-[#ea580c] focus:ring-[#ea580c] bg-white cursor-pointer" />
+                <span class="text-xs font-bold text-[#171717]">{src.label}</span>
               </label>
               <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#fff7ed] text-[#ea580c] font-mono font-bold border border-[#fed7aa]">
                 {Math.round(src.confidence * 100)}%
               </span>
             </div>
-            <p class="text-[11px] text-[#595959] leading-snug">{src.detectedReason}</p>
+            <p class="text-[11px] text-[#525252] leading-snug">{src.detectedReason}</p>
           </div>
         ))}
       </div>
     </div>
 
-    <!-- Step 2: Mass Balance Impact Forecast (Showroom Impact Banner) -->
+    <!-- Step 2: Indoor Air Impact -->
     <div class="p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 stagger-card">
       <div>
-        <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 2: Modelled Physics Forecast</span>
-        <h3 class="text-lg font-bold text-[#262626] mt-0.5">Single-Compartment Indoor Air Quality Impact</h3>
-        <p class="text-xs text-[#595959] mt-1 max-w-xl leading-relaxed">
-          Deploying recommended exhaust ventilation and filtration drops indoor concentration from unmitigated levels of <span id="val-unmitigated" class="font-mono text-[#dc2626] font-semibold">{massBalance.unmitigatedConcentrationUgM3} µg/m³</span> down to <span id="val-mitigated" class="font-mono text-[#15803d] font-bold">{massBalance.indoorConcentrationUgM3} µg/m³</span>.
+        <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block" data-i18n="step2Tag">Step 2 · Indoor Air Impact</span>
+        <h2 class="text-lg font-bold text-[#171717] mt-0.5" data-i18n="step2Heading">How Much Cleaner Your Room Gets</h2>
+        <p class="text-xs text-[#525252] mt-1 max-w-xl leading-relaxed">
+          <span id="val-outdoor-pm25" class="font-mono font-bold text-[#171717]">{ambientPm25} µg/m³</span> → <span id="val-unmitigated" class="font-mono text-[#dc2626] font-semibold">{massBalance.unmitigatedConcentrationUgM3} µg/m³</span> → <span id="val-mitigated" class="font-mono text-[#15803d] font-bold">{massBalance.indoorConcentrationUgM3} µg/m³</span>
         </p>
       </div>
 
       <div class="flex items-baseline gap-4 text-right">
         <div>
-          <span class="text-xs text-[#8c8c8c] block">Mitigated PM2.5</span>
-          <span id="val-indoor-conc" class="text-4xl font-extrabold text-[#262626] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
-          <span class="text-xs text-[#595959] font-medium"> µg/m³</span>
+          <span class="text-xs text-[#737373] block" data-i18n="indoorFineDust">Indoor Fine Dust</span>
+          <span id="val-indoor-conc" class="text-4xl font-extrabold text-[#171717] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
+          <span class="text-xs text-[#525252] font-medium"> µg/m³</span>
         </div>
         <div class="px-4 py-2.5 rounded-2xl bg-[#ea580c] text-white shadow-sm">
-          <span id="val-pct-reduction" class="text-sm font-extrabold block">-{massBalance.percentageReduction}%</span>
-          <span class="text-[10px] text-white/90 font-mono font-medium">Reduction</span>
+          <span id="val-pct-reduction" class="text-sm font-mono font-extrabold block">-{massBalance.percentageReduction}%</span>
+          <span class="text-[10px] text-white/90 font-mono font-medium" data-i18n="lessDustBadge">Less Dust</span>
         </div>
       </div>
     </div>
 
-    <!-- Step 3: Ranked Fixes Library with Filter Tabs -->
+    <!-- Step 3: Ranked Fixes Library with Filter Tabs & Selection -->
     <div class="space-y-4 stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">Step 3: Ranked Mitigation Library</span>
-          <h2 class="text-lg font-bold text-[#262626]">Curated Interventions by Budget Tier</h2>
+          <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block" data-i18n="step3Tag">Step 3 · Budget-Friendly Fixes</span>
+          <h2 class="text-lg font-bold text-[#171717]" data-i18n="step3Heading">Pick Fixes to See Your Air Improve</h2>
         </div>
         
         <!-- Filter Tabs -->
         <div class="flex items-center gap-1.5 overflow-x-auto text-xs">
-          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer transition-colors press-scale" data-tier="all">
-            All Tiers
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer transition-colors press-scale" data-tier="all" data-i18n="tierAll">
+            All
           </button>
-          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale" data-tier="none">
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#525252] hover:text-[#171717] border border-[#e5e5e5] font-medium cursor-pointer transition-colors press-scale" data-tier="none" data-i18n="tierFree">
             Free
           </button>
-          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale" data-tier="low">
-            Under ₹1500
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#525252] hover:text-[#171717] border border-[#e5e5e5] font-medium cursor-pointer transition-colors press-scale" data-tier="low" data-i18n="tierLow">
+            Under ₹1,500
           </button>
-          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#595959] hover:text-[#262626] border border-[#e8e8e8] font-medium cursor-pointer transition-colors press-scale" data-tier="high">
+          <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#525252] hover:text-[#171717] border border-[#e5e5e5] font-medium cursor-pointer transition-colors press-scale" data-tier="high" data-i18n="tierHepa">
             HEPA
           </button>
         </div>
@@ -217,23 +226,31 @@ const massBalance = calculateIndoorMassBalance({
               ? "₹1,500 - ₹3,500"
               : "HEPA Purifier";
 
+          const defaultActive = fix.fixKey === "exhaust_during_cooking" || fix.fixKey === "hepa_air_purifier";
+
           return (
             <div class="fix-item-card p-6 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 flex flex-col justify-between hover:border-[#fed7aa] transition-all" data-budget-band={fix.budgetBand}>
               <div class="space-y-2.5">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-2">
                   <span class={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border uppercase font-bold ${badgeClass}`}>
                     {budgetLabel}
                   </span>
-                  <span class="text-xs font-mono font-bold text-[#15803d] bg-[#dcfce7] px-2.5 py-0.5 rounded-full">
-                    -{fix.estimatedReductionPercent}% PM2.5
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono font-bold text-[#15803d] bg-[#dcfce7] px-2.5 py-0.5 rounded-full">
+                      -{fix.estimatedReductionPercent}% PM2.5
+                    </span>
+                    <label class="inline-flex items-center gap-1 text-[11px] font-bold text-[#262626] cursor-pointer">
+                      <input type="checkbox" class="fix-apply-checkbox accent-[#ea580c] w-4 h-4" value={fix.fixKey} checked={defaultActive} />
+                      <span data-i18n="applyFix">Apply</span>
+                    </label>
+                  </div>
                 </div>
                 <h3 class="text-sm font-bold text-[#262626]">{fix.title}</h3>
                 <p class="text-xs text-[#595959] leading-relaxed">{fix.description}</p>
               </div>
 
               <div class="pt-3 border-t border-[#e8e8e8] space-y-2">
-                <span class="text-[11px] font-bold text-[#262626] block">Action Steps:</span>
+                <span class="text-[11px] font-bold text-[#262626] block" data-i18n="actionStepsLabel">Action Steps:</span>
                 <ul class="text-[11px] text-[#595959] space-y-1.5 list-disc list-inside">
                   {fix.actionSteps.map((step) => (
                     <li>{step}</li>
@@ -248,67 +265,191 @@ const massBalance = calculateIndoorMassBalance({
   </div>
 
   <script>
-    // File browse & scan simulation
+    import { apiFetchJson, getSelectedCity } from "../scripts/api-client.ts";
+
     const browseBtn = document.getElementById("btn-browse-photo");
-    const fileInput = document.getElementById("photo-file-input") as HTMLInputElement;
+    const fileInput = document.getElementById("photo-file-input") as HTMLInputElement | null;
     const sampleBtn = document.getElementById("btn-sample-scan");
+    const roomHintSelect = document.getElementById("room-hint-select") as HTMLInputElement | null;
     const radarContainer = document.getElementById("radar-container");
     const progressBox = document.getElementById("scan-progress-box");
+    const progressText = document.getElementById("scan-progress-text");
     const titleEl = document.getElementById("upload-status-title");
+    const sourcesGrid = document.getElementById("candidate-sources-grid");
+    const sourcesCountNum = document.getElementById("sources-count-num");
 
-    function runScanSimulation(fileName = "kitchen-photo.jpg") {
-      if (radarContainer) radarContainer.className = "w-16 h-16 rounded-2xl bg-white border border-[#fed7aa] text-[#ea580c] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all radar-pulse-ring";
+    let liveAmbientPm25 = 150;
+
+    async function loadLiveAmbient() {
+      try {
+        const city = getSelectedCity();
+        const snap = await apiFetchJson<any>(`/v1/air?lat=${city.lat}&lng=${city.lng}`);
+        if (typeof snap.pm25 === "number") {
+          liveAmbientPm25 = snap.pm25;
+          const outEl = document.getElementById("val-outdoor-pm25");
+          const subEl = document.getElementById("indoor-ambient-subtitle");
+          if (outEl) outEl.textContent = `${liveAmbientPm25} µg/m³`;
+          if (subEl) subEl.textContent = `Live ${city.label} (${String(snap.source).toUpperCase()} PM2.5: ${liveAmbientPm25} µg/m³) · Private photo check & indoor air model`;
+          await confirmAndCalculate();
+        }
+      } catch {
+        // retain SSR fallback
+      }
+    }
+
+    function stripExifViaCanvas(file: File): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const objUrl = URL.createObjectURL(file);
+        img.onload = () => {
+          const maxDim = 640;
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            URL.revokeObjectURL(objUrl);
+            reject(new Error("Canvas unavailable"));
+            return;
+          }
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(objUrl);
+          resolve(canvas.toDataURL("image/jpeg", 0.8));
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objUrl);
+          reject(new Error("Image decode failed"));
+        };
+        img.src = objUrl;
+      });
+    }
+
+    function renderDetectedSources(sources: any[]) {
+      if (!sourcesGrid) return;
+      if (sourcesCountNum) sourcesCountNum.textContent = String(sources.length);
+
+      const nodes = sources.map((src) => {
+        const card = document.createElement("div");
+        card.className = "p-4 bg-[#f7f9fa] border border-[#e8e8e8] rounded-2xl space-y-2 hover:border-[#ea580c] transition-colors source-card";
+        card.setAttribute("data-source-key", src.sourceKey);
+
+        const top = document.createElement("div");
+        top.className = "flex items-start justify-between gap-2";
+
+        const label = document.createElement("label");
+        label.className = "flex items-center gap-2 cursor-pointer";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = true;
+        cb.value = src.sourceKey;
+        cb.className = "source-checkbox rounded border-[#d9d9d9] text-[#ea580c] focus:ring-[#ea580c] bg-white cursor-pointer";
+        cb.addEventListener("change", confirmAndCalculate);
+
+        const spanTitle = document.createElement("span");
+        spanTitle.className = "text-xs font-bold text-[#262626]";
+        spanTitle.textContent = src.label;
+        label.replaceChildren(cb, spanTitle);
+
+        const conf = document.createElement("span");
+        conf.className = "text-[10px] px-2 py-0.5 rounded-full bg-[#fff7ed] text-[#ea580c] font-mono font-bold border border-[#fed7aa]";
+        conf.textContent = `${Math.round((src.confidence || 0.85) * 100)}%`;
+
+        top.replaceChildren(label, conf);
+
+        const reason = document.createElement("p");
+        reason.className = "text-[11px] text-[#595959] leading-snug";
+        reason.textContent = src.detectedReason;
+
+        card.replaceChildren(top, reason);
+        return card;
+      });
+
+      sourcesGrid.replaceChildren(...nodes);
+    }
+
+    async function runAuditApi(fileName: string, imageBase64?: string) {
+      if (radarContainer) {
+        radarContainer.className = "w-16 h-16 rounded-2xl bg-white border border-[#fed7aa] text-[#ea580c] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all radar-pulse-ring";
+      }
       if (progressBox) progressBox.classList.remove("hidden");
-      if (titleEl) titleEl.innerText = `Analyzing ${fileName}...`;
+      if (progressText) progressText.textContent = `Scanning ${fileName}...`;
+      if (titleEl) titleEl.textContent = `Checking ${fileName} (GPS removed)...`;
 
-      setTimeout(() => {
-        if (radarContainer) radarContainer.className = "w-16 h-16 rounded-2xl bg-[#dcfce7] border border-[#86efac] text-[#15803d] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all";
+      try {
+        const res = await apiFetchJson<any>("/v1/indoor-audits", {
+          method: "POST",
+          body: JSON.stringify({
+            imageBase64,
+            mimeType: "image/jpeg",
+            budgetBand: "high",
+            roomHint: roomHintSelect?.value || "kitchen"
+          })
+        });
+        renderDetectedSources(res.detectedSources || []);
+        if (radarContainer) {
+          radarContainer.className = "w-16 h-16 rounded-2xl bg-[#dcfce7] border border-[#86efac] text-[#15803d] flex items-center justify-center mx-auto text-2xl shadow-xs transition-all";
+        }
+        if (titleEl) titleEl.textContent = res.message || `Audit complete for ${fileName}`;
+        await confirmAndCalculate();
+      } catch {
+        if (titleEl) titleEl.textContent = `API offline — using local baseline sources for ${fileName}`;
+      } finally {
         if (progressBox) progressBox.classList.add("hidden");
-        if (titleEl) titleEl.innerText = `Analysis Complete: 3 Emission Points Detected in ${fileName}`;
-      }, 1200);
+      }
+    }
+
+    async function confirmAndCalculate() {
+      const confirmedSourceIds = Array.from(document.querySelectorAll<HTMLInputElement>(".source-checkbox"))
+        .filter((cb) => cb.checked)
+        .map((cb) => cb.value);
+
+      const selectedFixKeys = Array.from(document.querySelectorAll<HTMLInputElement>(".fix-apply-checkbox"))
+        .filter((cb) => cb.checked)
+        .map((cb) => cb.value);
+
+      const unmitEl = document.getElementById("val-unmitigated");
+      const mitEl = document.getElementById("val-mitigated");
+      const indoorConcEl = document.getElementById("val-indoor-conc");
+      const pctRedEl = document.getElementById("val-pct-reduction");
+
+      try {
+        const res = await apiFetchJson<any>("/v1/indoor-audits/confirm", {
+          method: "POST",
+          body: JSON.stringify({
+            confirmedSourceIds,
+            selectedFixKeys,
+            roomVolumeM3: 45,
+            ambientPm25: liveAmbientPm25
+          })
+        });
+        if (unmitEl) unmitEl.textContent = `${res.unmitigatedIndoorPm25} µg/m³`;
+        if (mitEl) mitEl.textContent = `${res.mitigatedIndoorPm25} µg/m³`;
+        if (indoorConcEl) indoorConcEl.textContent = String(res.mitigatedIndoorPm25);
+        if (pctRedEl) pctRedEl.textContent = `-${res.percentageReduction}%`;
+      } catch {
+        // keep current fallback values
+      }
     }
 
     if (browseBtn && fileInput) {
       browseBtn.addEventListener("click", () => fileInput.click());
-      fileInput.addEventListener("change", () => {
+      fileInput.addEventListener("change", async () => {
         if (fileInput.files && fileInput.files[0]) {
-          runScanSimulation(fileInput.files[0].name);
+          const file = fileInput.files[0];
+          const stripped = await stripExifViaCanvas(file).catch(() => undefined);
+          await runAuditApi(file.name, stripped);
         }
       });
     }
 
-    if (sampleBtn) {
-      sampleBtn.addEventListener("click", () => {
-        runScanSimulation("delhi-kitchen-sample.jpg");
-      });
-    }
+    sampleBtn?.addEventListener("click", () => {
+      runAuditApi("kitchen-sample.jpg");
+    });
 
-    // Dynamic mass balance recalculation on checkbox toggle
-    const checkboxes = document.querySelectorAll(".source-checkbox");
-    const unmitEl = document.getElementById("val-unmitigated");
-    const mitEl = document.getElementById("val-mitigated");
-    const indoorConcEl = document.getElementById("val-indoor-conc");
-    const pctRedEl = document.getElementById("val-pct-reduction");
-
-    function recalculateMassBalance() {
-      let activeSourcesCount = 0;
-      checkboxes.forEach((cb: any) => {
-        if (cb.checked) activeSourcesCount++;
-      });
-
-      const baseAmb = 382.5;
-      const unmit = Math.round(baseAmb * 0.7 + activeSourcesCount * 65);
-      const mit = Math.round(unmit * (1 - 0.79));
-      const pct = Math.round(((unmit - mit) / unmit) * 100);
-
-      if (unmitEl) unmitEl.innerText = `${unmit} µg/m³`;
-      if (mitEl) mitEl.innerText = `${mit} µg/m³`;
-      if (indoorConcEl) indoorConcEl.innerText = `${mit}`;
-      if (pctRedEl) pctRedEl.innerText = `-${pct}%`;
-    }
-
-    checkboxes.forEach((cb) => {
-      cb.addEventListener("change", recalculateMassBalance);
+    document.querySelectorAll(".source-checkbox, .fix-apply-checkbox").forEach((cb) => {
+      cb.addEventListener("change", confirmAndCalculate);
     });
 
     // Fixes filter tabs
@@ -323,7 +464,7 @@ const massBalance = calculateIndoorMassBalance({
         });
         btn.className = "fix-filter-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer transition-colors press-scale";
 
-        fixCards.forEach((card: any) => {
+        fixCards.forEach((card) => {
           const cardTier = card.getAttribute("data-budget-band");
           if (tier === "all" || cardTier === tier) {
             card.classList.remove("hidden");
@@ -333,5 +474,7 @@ const massBalance = calculateIndoorMassBalance({
         });
       });
     });
+
+    loadLiveAmbient();
   </script>
 </Layout>

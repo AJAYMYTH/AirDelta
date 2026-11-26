@@ -33,11 +33,19 @@ export class SupabaseService {
   private memoryActions: Array<{ id: string; plan_id: string; action_key: string; done_at: string }> = [];
   private memoryGroupMembers: Array<{ group_id: string; household_id: string; joined_at: string }> = [];
 
-  constructor(supabaseUrl?: string, supabaseKey?: string) {
-    const url = supabaseUrl || process.env.SUPABASE_URL;
-    const key = supabaseKey || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  constructor(
+    supabaseUrl?: string,
+    supabaseKey?: string,
+    options: { useMemory?: boolean } = {}
+  ) {
+    if (options.useMemory) {
+      return;
+    }
 
-    if (url && key) {
+    const url = supabaseUrl ?? process.env.SUPABASE_URL;
+    const key = supabaseKey ?? (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY);
+
+    if (url && key && !url.includes("your-project") && !key.includes("your_supabase")) {
       try {
         this.client = createClient(url, key);
         this.isLive = true;
@@ -45,6 +53,10 @@ export class SupabaseService {
         console.warn("[SupabaseService] Failed to initialize Supabase client, using in-memory store:", err);
       }
     }
+  }
+
+  private isUuid(val: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val);
   }
 
   public isConfigured(): boolean {
@@ -61,7 +73,7 @@ export class SupabaseService {
     const sanitized = PiiSanitizerService.sanitizeObject(household);
     const householdId = sanitized.id || crypto.randomUUID();
 
-    if (this.isLive && this.client) {
+    if (this.isLive && this.client && this.isUuid(householdId) && this.isUuid(ownerId)) {
       const { error } = await this.client.from("households").upsert({
         id: householdId,
         owner: ownerId,
@@ -71,14 +83,13 @@ export class SupabaseService {
         budget_band: sanitized.budgetBand || "low",
         cooks_indoors: sanitized.cooksIndoors ?? true,
         has_exhaust: sanitized.hasExhaust ?? false,
-        has_purifier: sanitized.hasPurifier ?? false,
-        updated_at: new Date().toISOString()
+        has_purifier: sanitized.hasPurifier ?? false
       });
 
-      if (error) {
-        throw new Error(`[Supabase] saveHousehold error: ${error.message}`);
+      if (!error) {
+        return { id: householdId, ok: true };
       }
-      return { id: householdId, ok: true };
+      console.warn("[SupabaseService] saveHousehold degraded to memory:", error.message);
     }
 
     // In-memory fallback
@@ -145,12 +156,12 @@ export class SupabaseService {
       created_at: new Date().toISOString()
     };
 
-    if (this.isLive && this.client) {
+    if (this.isLive && this.client && this.isUuid(planId) && this.isUuid(householdId)) {
       const { error } = await this.client.from("plans").insert(record);
-      if (error) {
-        throw new Error(`[Supabase] savePlan error: ${error.message}`);
+      if (!error) {
+        return { id: planId, ok: true };
       }
-      return { id: planId, ok: true };
+      console.warn("[SupabaseService] savePlan degraded to memory:", error.message);
     }
 
     this.memoryPlans.set(planId, record);
@@ -161,15 +172,14 @@ export class SupabaseService {
    * Retrieve a plan by ID.
    */
   public async getPlan(planId: string): Promise<StoredPlanRecord | null> {
-    if (this.isLive && this.client) {
+    if (this.isLive && this.client && this.isUuid(planId)) {
       const { data, error } = await this.client
         .from("plans")
         .select("*")
         .eq("id", planId)
         .maybeSingle();
 
-      if (error || !data) return null;
-      return data as StoredPlanRecord;
+      if (!error && data) return data as StoredPlanRecord;
     }
 
     const found = this.memoryPlans.get(planId);
@@ -186,7 +196,7 @@ export class SupabaseService {
     const actionId = crypto.randomUUID();
     const now = new Date().toISOString();
 
-    if (this.isLive && this.client) {
+    if (this.isLive && this.client && this.isUuid(planId)) {
       const { error } = await this.client.from("actions").insert({
         id: actionId,
         plan_id: planId,
@@ -194,10 +204,10 @@ export class SupabaseService {
         done_at: now
       });
 
-      if (error) {
-        throw new Error(`[Supabase] recordAction error: ${error.message}`);
+      if (!error) {
+        return { id: actionId, ok: true };
       }
-      return { id: actionId, ok: true };
+      console.warn("[SupabaseService] recordAction degraded to memory:", error.message);
     }
 
     this.memoryActions.push({
@@ -226,11 +236,10 @@ export class SupabaseService {
         .lt("created_at", cutoffIso)
         .select("id");
 
-      if (error) {
-        throw new Error(`[Supabase] purgeExpiredPlans error: ${error.message}`);
+      if (!error) {
+        return { deletedCount: data ? data.length : 0 };
       }
-
-      return { deletedCount: data ? data.length : 0 };
+      console.warn("[SupabaseService] purgeExpiredPlans degraded to memory:", error.message);
     }
 
     let count = 0;

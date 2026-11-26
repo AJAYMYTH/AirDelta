@@ -2,229 +2,948 @@
 import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
 import ForecastStrip from "../components/ForecastStrip.astro";
-import { AirDataService } from "@airdelta/air-adapters";
-import { 
-  Wind, 
-  ArrowRight, 
-  Bike, 
-  Share2, 
-  ShieldAlert, 
-  CheckCircle2,
-  Check
-} from "lucide-astro";
+import AirWaveLoader from "../components/AirWaveLoader.tsx";
+import delhiSmogData from "../../../../fixtures/delhi-smog-nov2026.json";
+import type { AirSnapshot, AirForecast } from "@airdelta/schemas";
+import Wind from "lucide-astro/Wind";
+import ArrowRight from "lucide-astro/ArrowRight";
+import Bike from "lucide-astro/Bike";
+import Share2 from "lucide-astro/Share2";
+import ShieldAlert from "lucide-astro/ShieldAlert";
+import CheckCircle2 from "lucide-astro/CheckCircle2";
+import Check from "lucide-astro/Check";
+import MapPin from "lucide-astro/MapPin";
+import RefreshCw from "lucide-astro/RefreshCw";
+import CloudFog from "lucide-astro/CloudFog";
+import Car from "lucide-astro/Car";
+import Clock from "lucide-astro/Clock";
+import Activity from "lucide-astro/Activity";
+import ChevronDown from "lucide-astro/ChevronDown";
+import Pause from "lucide-astro/Pause";
+import Play from "lucide-astro/Play";
+import Sparkles from "lucide-astro/Sparkles";
 
-const airService = new AirDataService({ replayMode: true });
-const snapshot = await airService.getAirSnapshot(28.6139, 77.2090);
-const forecast = await airService.getAirForecast(28.6139, 77.2090);
+const cities = [
+  { code: "DELHI", label: "Delhi-NCR", region: "National Capital Region" },
+  { code: "MUMBAI", label: "Mumbai", region: "Maharashtra" },
+  { code: "BENGALURU", label: "Bengaluru", region: "Karnataka" },
+  { code: "KANPUR", label: "Kanpur", region: "Uttar Pradesh" },
+  { code: "PATNA", label: "Patna", region: "Bihar" },
+  { code: "LUCKNOW", label: "Lucknow", region: "Uttar Pradesh" }
+];
 
+const snapshot = delhiSmogData.snapshot as AirSnapshot;
+const forecast = delhiSmogData.forecast as AirForecast;
 const aqi = snapshot.indexValue || 385;
-const isSevere = aqi > 400;
-const isVeryPoor = aqi > 300 && aqi <= 400;
-const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "text-[#d97706]";
 ---
 
-<Layout title="AirDelta — Today's Smog Action Dashboard">
-  <div class="space-y-8">
-    <!-- Immediate Health Directive Banner: Showroom Option Cards -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
+<Layout title="AirDelta — Today's Clean Air Guide">
+  <div class="space-y-7">
+    <!-- Top Location & Live Status Bar (Transitions.dev City Dropdown + Loading.dev Wave) -->
+    <div class="bg-white border border-[#e5e5e5] rounded-2xl p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 stagger-card">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="text-xs font-bold text-[#171717] flex items-center gap-1.5">
+          <MapPin class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+          <span data-i18n="yourCity">Your City</span>
+        </span>
+        <input type="hidden" id="city-select" value="DELHI" />
+
+        <div class="relative">
+          <button
+            id="btn-city-dropdown"
+            type="button"
+            class="px-3.5 py-1.5 rounded-full bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold text-[#171717] flex items-center gap-2 cursor-pointer shadow-2xs press-scale"
+            aria-haspopup="menu"
+            aria-expanded="false"
+            aria-controls="city-dropdown-menu"
+          >
+            <span id="city-display-name">Delhi-NCR</span>
+            <ChevronDown id="city-chevron" class="w-3.5 h-3.5 text-[#737373] transition-transform duration-200" aria-hidden="true" />
+          </button>
+
+          <div
+            id="city-dropdown-menu"
+            popover="manual"
+            class="t-dropdown dropdown-surface rounded-2xl p-1.5 w-60 space-y-0.5"
+            data-origin="top-left"
+            data-align="start"
+            role="menu"
+            aria-labelledby="btn-city-dropdown"
+            inert
+          >
+            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#737373] border-b border-[#e5e5e5]/70 mb-1" data-i18n="selectCityTitle">
+              Select OpenAQ City
+            </div>
+            {cities.map((c) => (
+              <button
+                type="button"
+                data-city-code={c.code}
+                class="city-menu-item w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer text-[#525252] hover:bg-[#f7f9fa]"
+                role="menuitemradio"
+                aria-checked={c.code === "DELHI" ? "true" : "false"}
+              >
+                <div class="flex flex-col">
+                  <span class="font-bold text-[#171717] leading-tight">{c.label}</span>
+                  <span class="text-[10px] text-[#737373] leading-none">{c.region}</span>
+                </div>
+                <Check class="city-check w-4 h-4 text-[#ea580c] opacity-0 transition-opacity" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          id="btn-refresh-air"
+          type="button"
+          class="px-3.5 py-1.5 rounded-full bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold text-[#171717] flex items-center gap-1.5 cursor-pointer press-scale"
+        >
+          <RefreshCw id="refresh-icon" class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
+          <span data-i18n="refreshBtn">Refresh</span>
+        </button>
+      </div>
+
+      <div id="live-provider-status" role="status" aria-live="polite" class="flex items-center gap-2.5 text-xs font-mono">
+        <AirWaveLoader client:load id="hero-status-wave" size={18} color="#ea580c" origin="bottom" duration={950} playState="running" />
+        <span id="provider-dot" class="w-2 h-2 rounded-full bg-[#d97706]"></span>
+        <span id="provider-status-text" class="text-[#525252] font-semibold" data-i18n="connectingOpenAq">Connecting to OpenAQ live sensor...</span>
+      </div>
+    </div>
+
+    <!-- Hero Air Quality Card (Interactive Airflow Stage + Wave Spectrum) -->
+    <div id="live-air-hero" class="relative overflow-hidden bg-white border border-[#e5e5e5] rounded-3xl p-6 sm:p-8 shadow-xs hero-grid-bg stagger-card">
+      <div id="hero-atmosphere-glow" class="absolute inset-0 pointer-events-none transition-opacity duration-500" style="background: radial-gradient(circle at 82% 24%, rgba(234, 88, 12, 0.14), transparent 58%);" aria-hidden="true"></div>
+      <canvas id="air-particle-canvas" class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
+
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#e5e5e5]/80">
+        <div class="space-y-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="live-air-beacon px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] inline-flex items-center gap-1.5">
+              <AirWaveLoader client:load id="hero-fetch-wave" size={14} color="#ea580c" origin="bottom" duration={900} playState="running" />
+              <span id="hero-sync-label" data-i18n="liveAirBadge">LIVE AIR QUALITY</span>
+            </span>
+            <span id="hero-badge-pill"><BadgePill badge={snapshot.badge} /></span>
+            <span id="hero-source-pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#f5f5f5] text-[#525252] border border-[#e5e5e5]">
+              OPENAQ
+            </span>
+          </div>
+          <h1 id="hero-city-title" class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717]">Delhi-NCR</h1>
+          <p id="hero-station-meta" class="text-xs sm:text-sm text-[#525252] font-medium" data-i18n="connectingOpenAq">
+            Loading nearest ground station...
+          </p>
+          <p id="hero-standard-note" class="text-xs text-[#737373] font-mono" data-i18n="standardCpcb">
+            Standard: Indian CPCB NAQI
+          </p>
+        </div>
+
+        <!-- Big Crisp AQI Readout + Wave Spectrum Pod -->
+        <div class="bg-white/95 backdrop-blur-xs px-6 py-5 rounded-2xl border border-[#e5e5e5] shadow-sm min-w-[265px] space-y-3">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <span id="hero-standard-label" class="text-[11px] text-[#737373] uppercase tracking-wider block font-mono font-bold" data-i18n="aqiScoreLabel">AQI Score</span>
+              <span id="hero-category" class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] mt-1.5">
+                {snapshot.category || "Severe"}
+              </span>
+            </div>
+            <div class="flex items-end gap-3">
+              <div class="flex flex-col items-center gap-1 pb-1">
+                <AirWaveLoader client:load id="hero-aqi-wave" size={32} color="#ea580c" origin="bottom" duration={1100} playState="running" />
+                <span class="text-[9px] font-mono font-bold uppercase tracking-wider text-[#737373]" data-i18n="airWaveLabel">Air Wave</span>
+              </div>
+              <div id="hero-aqi-value" class="text-6xl font-extrabold tracking-tight text-[#ea580c] font-mono leading-none">
+                {aqi}
+              </div>
+            </div>
+          </div>
+
+          <!-- AQI 0-500 Scale Bar -->
+          <div class="space-y-1">
+            <div class="relative h-2 rounded-full overflow-hidden flex bg-[#f5f5f5]">
+              <div class="w-[10%] bg-[#16a34a]"></div>
+              <div class="w-[10%] bg-[#65a30d]"></div>
+              <div class="w-[20%] bg-[#eab308]"></div>
+              <div class="w-[20%] bg-[#f97316]"></div>
+              <div class="w-[20%] bg-[#dc2626]"></div>
+              <div class="w-[20%] bg-[#991b1b]"></div>
+              <div id="aqi-scale-marker" class="absolute top-0 bottom-0 w-1.5 bg-[#171717] rounded-full ring-2 ring-white transition-all" style="left: 75%;"></div>
+            </div>
+            <div class="flex justify-between text-[10px] font-mono text-[#737373]">
+              <span data-i18n="aqiGood">0 Good</span>
+              <span data-i18n="aqiPoor">200 Poor</span>
+              <span data-i18n="aqiSevere">500 Severe</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Airflow Controls Bar -->
+      <div class="relative z-10 mt-5 px-4 py-3 rounded-2xl bg-[#f7f9fa]/95 backdrop-blur-xs border border-[#e5e5e5] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#737373] mr-1 flex items-center gap-1">
+            <Sparkles class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
+            <span data-i18n="previewAirLabel">Preview Breathing Air:</span>
+          </span>
+          <button type="button" data-air-mode="raw" data-i18n="modeRaw" class="air-mode-btn px-3 py-1 rounded-full text-xs font-bold bg-[#171717] text-white cursor-pointer transition-all press-scale">
+            Outdoor Raw
+          </button>
+          <button type="button" data-air-mode="mask" data-i18n="modeMask" class="air-mode-btn px-3 py-1 rounded-full text-xs font-semibold bg-white text-[#525252] border border-[#d4d4d4] hover:border-[#ea580c] cursor-pointer transition-all press-scale">
+            N95 Mask (-85%)
+          </button>
+          <button type="button" data-air-mode="hepa" data-i18n="modeHepa" class="air-mode-btn px-3 py-1 rounded-full text-xs font-semibold bg-white text-[#525252] border border-[#d4d4d4] hover:border-[#15803d] cursor-pointer transition-all press-scale">
+            HEPA Room (-90%)
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3">
+          <span id="air-mode-readout" class="text-xs font-mono font-bold text-[#171717] bg-white px-3 py-1 rounded-full border border-[#e5e5e5]">
+            PM2.5: {snapshot.pm25} µg/m³
+          </span>
+          <span class="text-[11px] text-[#737373] hidden sm:inline" data-i18n="rippleHint">Move cursor or tap card to ripple air</span>
+          <button
+            id="btn-toggle-air-flow"
+            type="button"
+            class="px-3 py-1 rounded-full bg-white hover:bg-[#f0f0f0] border border-[#d4d4d4] text-xs font-bold text-[#171717] inline-flex items-center gap-1.5 cursor-pointer press-scale"
+          >
+            <Pause id="air-flow-icon-pause" class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
+            <Play id="air-flow-icon-play" class="w-3.5 h-3.5 text-[#15803d] hidden" aria-hidden="true" />
+            <span id="air-flow-btn-label" data-i18n="pauseFlow">Pause flow</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Simple Pollutant Cards with Lucide Icons -->
+      <div class="relative z-10 mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs text-[#525252] font-bold" data-i18n="fineDustLabel">Fine Dust (PM2.5)</span>
+            <CloudFog class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+          </div>
+          <span id="metric-pm25" class="text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm25} µg/m³</span>
+          <span id="metric-pm25-who" class="text-[11px] text-[#ea580c] font-semibold mt-0.5 block" data-i18n="checkingWhoLimit">Checking WHO safe limit...</span>
+        </div>
+
+        <div class="p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs text-[#525252] font-bold" data-i18n="roadDustLabel">Road Dust (PM10)</span>
+            <Activity class="w-4 h-4 text-[#d97706]" aria-hidden="true" />
+          </div>
+          <span id="metric-pm10" class="text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm10} µg/m³</span>
+          <span id="metric-pm10-who" class="text-[11px] text-[#d97706] font-semibold mt-0.5 block" data-i18n="checkingWhoLimit">Checking WHO safe limit...</span>
+        </div>
+
+        <div class="p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs text-[#525252] font-bold" data-i18n="trafficSmokeLabel">Traffic Smoke (NO₂)</span>
+            <Car class="w-4 h-4 text-[#b45309]" aria-hidden="true" />
+          </div>
+          <span id="metric-no2" class="text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pollutants?.no2 ?? 84.5} µg/m³</span>
+          <span id="metric-no2-note" class="text-[11px] text-[#737373] font-medium mt-0.5 block" data-i18n="normalTrafficLevels">Normal traffic levels</span>
+        </div>
+
+        <div class="p-4 bg-[#f0fdf4] rounded-2xl border border-[#bbf7d0] shadow-2xs">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs text-[#15803d] font-bold" data-i18n="bestAiringLabel">Best Airing Window</span>
+            <Clock class="w-4 h-4 text-[#15803d]" aria-hidden="true" />
+          </div>
+          <span id="metric-cleanest-time" class="text-xl font-extrabold text-[#15803d] font-mono block">13:00 – 15:30</span>
+          <span id="metric-cleanest-pm25" class="text-[11px] text-[#15803d] font-semibold mt-0.5 block" data-i18n="bestTimeOpenWindows">Best time to open windows</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 Simple Steps For Today -->
+    <div class="bg-white border border-[#e5e5e5] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-[#f0f0f0]">
         <div>
-          <span class="text-[11px] font-mono uppercase tracking-wider text-[#ea580c] font-bold block mb-1">
-            Immediate Health Guidance
+          <span class="text-[11px] font-mono uppercase tracking-wider text-[#ea580c] font-bold block mb-1" data-i18n="whatToDoToday">
+            WHAT TO DO TODAY
           </span>
-          <h2 class="text-xl sm:text-2xl font-bold text-[#262626]">3 Essential Actions for Your Family Today</h2>
+          <h2 class="text-2xl font-extrabold text-[#171717]" data-i18n="threeSimpleSteps">3 Simple Steps for Your Family</h2>
         </div>
         <div class="flex items-center gap-3">
-          <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] font-mono">
-            CPCB GRAP Stage III Active
+          <span id="today-grap-badge" class="px-3.5 py-1 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] font-mono">
+            GRAP
           </span>
           <button 
             id="btn-quick-share" 
             type="button" 
-            class="px-3 py-1 rounded-full bg-[#f7f9fa] hover:bg-[#e8e8e8] text-[#595959] text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors press-scale"
-            title="Share Today's Brief on WhatsApp"
+            class="px-3.5 py-1.5 rounded-full bg-[#f7f9fa] hover:bg-[#e5e5e5] border border-[#d4d4d4] text-[#171717] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors press-scale"
           >
-            <Share2 class="w-3.5 h-3.5 text-[#ea580c]" />
-            <span>Share Brief</span>
+            <Share2 class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
+            <span data-i18n="shareBtn">Share</span>
           </button>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <!-- Action 1 -->
-        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-1">
+        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-1">
           <div>
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-[#fee2e2] text-[#dc2626] flex items-center justify-center">
-                  <ShieldAlert class="w-4 h-4" />
+                <div class="w-8 h-8 rounded-xl bg-[#fee2e2] text-[#dc2626] flex items-center justify-center">
+                  <ShieldAlert class="w-4 h-4" aria-hidden="true" />
                 </div>
-                <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wide">Outdoor Exercise</span>
+                <span class="text-[11px] font-bold text-[#dc2626] uppercase tracking-wide" data-i18n="catOutdoor">Outdoor Exercise</span>
               </div>
-              <button type="button" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors">
-                <Check class="w-3.5 h-3.5 check-icon opacity-0" />
+              <button type="button" aria-label="Mark workout tip done" aria-pressed="false" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d4d4d4] bg-white flex items-center justify-center text-[#d4d4d4] hover:border-[#ea580c] transition-colors">
+                <Check class="w-3.5 h-3.5 check-icon opacity-0" aria-hidden="true" />
               </button>
             </div>
-            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors" data-i18n="action1Title">
-              1. Postpone Morning Cardio
+            <h3 class="text-base font-extrabold text-[#171717] group-hover:text-[#ea580c] transition-colors" data-i18n="action1Title">
+              1. Skip Early Outdoor Workouts
             </h3>
-            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed" data-i18n="action1Desc">
-              Avoid morning running/cycling. Inversion layer traps heavy PM2.5 particulates until 10:00 IST.
+            <p id="action1-desc" class="text-xs text-[#525252] mt-1.5 leading-relaxed" data-i18n="action1Desc">
+              Polluted air sits close to the ground before 10 AM. Exercise indoors instead.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-[#e8e8e8] text-[11px] font-mono font-bold text-[#ea580c]">
-            Estimated saving: ~38 µg PM2.5
+          <div id="action1-metric" class="mt-4 pt-3 border-t border-[#e5e5e5] text-[11px] font-mono font-bold text-[#ea580c]" data-i18n="savesDust">
+            Saves ~35 µg of fine dust
           </div>
         </div>
 
-        <!-- Action 2 -->
-        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-2">
+        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-2">
           <div>
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-[#dcfce7] text-[#15803d] flex items-center justify-center">
-                  <Wind class="w-4 h-4" />
+                <div class="w-8 h-8 rounded-xl bg-[#dcfce7] text-[#15803d] flex items-center justify-center">
+                  <Wind class="w-4 h-4" aria-hidden="true" />
                 </div>
-                <span class="text-[11px] font-bold text-[#15803d] uppercase tracking-wide">Home Airing Window</span>
+                <span class="text-[11px] font-bold text-[#15803d] uppercase tracking-wide" data-i18n="catHomeAir">Home Fresh Air</span>
               </div>
-              <button type="button" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors">
-                <Check class="w-3.5 h-3.5 check-icon opacity-0" />
+              <button type="button" aria-label="Mark window tip done" aria-pressed="false" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d4d4d4] bg-white flex items-center justify-center text-[#d4d4d4] hover:border-[#ea580c] transition-colors">
+                <Check class="w-3.5 h-3.5 check-icon opacity-0" aria-hidden="true" />
               </button>
             </div>
-            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors" data-i18n="action2Title">
-              2. Airing Window: 13:00 - 15:00
+            <h3 class="text-base font-extrabold text-[#171717] group-hover:text-[#ea580c] transition-colors" data-i18n="action2Title">
+              2. Open Windows in Clean Hours
             </h3>
-            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed" data-i18n="action2Desc">
-              Cleanest solar mixing window. Open cross-ventilation briefly for 30 minutes to reduce indoor CO2.
+            <p class="text-xs text-[#525252] mt-1.5 leading-relaxed" data-i18n="action2Desc">
+              Sunlight helps clear the air midday. Air out your home for 30 minutes.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-[#e8e8e8] text-[11px] font-mono font-bold text-[#15803d]">
-            Cleanest slot: 13:00 – 15:30 IST
+          <div id="action2-window" class="mt-4 pt-3 border-t border-[#e5e5e5] text-[11px] font-mono font-bold text-[#15803d]">
+            13:00 – 15:30
           </div>
         </div>
 
-        <!-- Action 3 -->
-        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-3">
+        <div class="p-5 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5] hover:border-[#ea580c] transition-all flex flex-col justify-between group cursor-pointer press-scale action-card" data-card-id="card-3">
           <div>
-            <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
-                  <Bike class="w-4 h-4" />
+                <div class="w-8 h-8 rounded-xl bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
+                  <Bike class="w-4 h-4" aria-hidden="true" />
                 </div>
-                <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wide">Commute Guard</span>
+                <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wide" data-i18n="catDailyTravel">Daily Travel</span>
               </div>
-              <button type="button" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors">
-                <Check class="w-3.5 h-3.5 check-icon opacity-0" />
+              <button type="button" aria-label="Mark travel tip done" aria-pressed="false" class="action-toggle-btn w-6 h-6 rounded-full border border-[#d4d4d4] bg-white flex items-center justify-center text-[#d4d4d4] hover:border-[#ea580c] transition-colors">
+                <Check class="w-3.5 h-3.5 check-icon opacity-0" aria-hidden="true" />
               </button>
             </div>
-            <h3 class="text-sm font-bold text-[#262626] group-hover:text-[#ea580c] transition-colors" data-i18n="action3Title">
-              3. Road Commute Protection
+            <h3 class="text-base font-extrabold text-[#171717] group-hover:text-[#ea580c] transition-colors" data-i18n="action3Title">
+              3. Protect Your Commute
             </h3>
-            <p class="text-xs text-[#595959] mt-1.5 leading-relaxed" data-i18n="action3Desc">
-              Switch roadside two-wheeler to electric Metro or use sealed N95 respirator mask.
+            <p class="text-xs text-[#525252] mt-1.5 leading-relaxed" data-i18n="action3Desc">
+              Take the Metro instead of an open bike, or wear a snug N95 mask.
             </p>
           </div>
-          <div class="mt-4 pt-3 border-t border-[#e8e8e8] text-[11px] font-mono font-bold text-[#ea580c]">
-            Carbon reduction: -300g CO₂
+          <div class="mt-4 pt-3 border-t border-[#e5e5e5] text-[11px] font-mono font-bold text-[#ea580c]" data-i18n="cutsCo2">
+            Cuts travel exposure &amp; CO₂
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Main Air Quality Hero Card (DJI Spec Showroom Style) -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#f0f0f0]">
-        <div>
-          <div class="flex items-center gap-2.5 mb-2">
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#262626]">Delhi-NCR Central (ITO)</h1>
-            <BadgePill badge={snapshot.badge} />
-          </div>
-          <p class="text-xs text-[#595959] font-mono">
-            Grid Cell: {snapshot.cell} · Station: {snapshot.attribution} (2.4 km away)
-          </p>
-          <p class="text-xs text-[#8c8c8c] mt-1">
-            Official CPCB National Air Quality Index (NAQI) Standard
-          </p>
-        </div>
-
-        <div class="flex items-baseline gap-5 self-start md:self-auto bg-[#f7f9fa] px-6 py-4 rounded-2xl border border-[#e8e8e8]">
-          <div class="text-right">
-            <span class="text-[11px] text-[#8c8c8c] uppercase tracking-wider block font-bold">Indian CPCB NAQI</span>
-            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] mt-1 font-mono">
-              {snapshot.category || "Severe"}
-            </span>
-          </div>
-          <div class={`text-6xl sm:text-7xl font-extrabold tracking-tight ${aqiColor} font-mono leading-none`}>
-            {aqi}
-          </div>
-        </div>
-      </div>
-
-      <!-- Dense Spec Row Pollutants (DESIGN.md Spec-Column Standard) -->
-      <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <span class="text-xs text-[#8c8c8c] font-semibold block">PM2.5 (Fine Inhalable)</span>
-          <span class="text-2xl font-extrabold text-[#262626] font-mono mt-1 block">{snapshot.pm25} µg/m³</span>
-          <span class="text-[11px] text-[#ea580c] font-bold">25.5× WHO 24h standard</span>
-        </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <span class="text-xs text-[#8c8c8c] font-semibold block">PM10 (Road Dust)</span>
-          <span class="text-2xl font-extrabold text-[#262626] font-mono mt-1 block">{snapshot.pm10} µg/m³</span>
-          <span class="text-[11px] text-[#ea580c] font-bold">11.3× WHO 24h standard</span>
-        </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <span class="text-xs text-[#8c8c8c] font-semibold block">NO2 (Traffic Exhaust)</span>
-          <span class="text-2xl font-extrabold text-[#262626] font-mono mt-1 block">84.5 µg/m³</span>
-          <span class="text-[11px] text-[#b45309] font-semibold">Elevated roadside</span>
-        </div>
-        <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e8e8e8]">
-          <span class="text-xs text-[#8c8c8c] font-semibold block">Cleanest Window Today</span>
-          <span class="text-lg font-extrabold text-[#15803d] font-mono mt-1 block">13:00 – 15:30</span>
-          <span class="text-[11px] text-[#15803d] font-semibold">Dips to ~210 µg/m³</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Prominent Plan A vs Plan B Call to Action (DESIGN.md Primary Pill Button) -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e8e8e8] rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs stagger-card">
+    <!-- CTA Banner -->
+    <div class="p-6 sm:p-8 bg-white border border-[#e5e5e5] rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs stagger-card">
       <div class="space-y-1.5 max-w-xl">
-        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono tracking-wider">
-          Action Engine
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono tracking-wider" data-i18n="personalDailyPlan">
+          Personal Daily Plan
         </span>
-        <h2 class="text-xl sm:text-2xl font-bold text-[#262626]">Don't just watch the AQI. Reduce your inhaled dose.</h2>
-        <p class="text-xs sm:text-sm text-[#595959] leading-relaxed">
-          AirDelta computes your family's normal routine (Plan A) versus an optimized routine (Plan B) to prevent up to 40% of toxic particles from entering deep lung tissue.
+        <h2 class="text-2xl font-extrabold text-[#171717]" data-i18n="ctaHeadline">See how much smoke your family can avoid today.</h2>
+        <p class="text-xs sm:text-sm text-[#525252] leading-relaxed" data-i18n="ctaDesc">
+          Compare your normal daily routine against a few easy timing and travel swaps — and see the exact health benefit in seconds.
         </p>
       </div>
       <a 
         href="/plan" 
         class="btn-action w-full md:w-auto px-8 py-3.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-sm rounded-full shadow-md shadow-orange-500/20 transition-all text-center whitespace-nowrap flex items-center justify-center gap-2 press-scale cursor-pointer"
       >
-        <span data-i18n="optimizeRoutine">Optimize Today's Routine →</span>
-        <ArrowRight class="w-4 h-4" />
+        <span data-i18n="optimizeRoutine">Build My Safer Plan →</span>
+        <ArrowRight class="w-4 h-4" aria-hidden="true" />
       </a>
     </div>
 
-    <!-- 96-Hour Forecast Strip Component -->
+    <!-- Forecast Strip Component -->
     <div class="stagger-card">
       <ForecastStrip forecast={forecast} />
     </div>
 
-    <!-- Quick Toast Notification -->
-    <div id="brief-toast" class="hidden fixed bottom-6 right-6 z-50 p-4 bg-[#262626] text-white rounded-2xl shadow-xl flex items-center gap-2 text-xs font-semibold">
-      <CheckCircle2 class="w-4 h-4 text-[#ea580c]" />
-      <span>Today's Smog Brief copied to clipboard!</span>
+    <!-- Toast -->
+    <div id="brief-toast" role="status" aria-live="polite" class="hidden fixed bottom-6 right-6 z-50 p-4 bg-[#171717] text-white rounded-2xl shadow-xl flex items-center gap-2 text-xs font-semibold">
+      <CheckCircle2 class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+      <span data-i18n="todayBriefCopied">Today's air summary copied!</span>
     </div>
   </div>
 
   <script>
-    // Action Cards Interactive Completion Toggle
+    import { getTranslation } from "@airdelta/i18n";
+    import {
+      CITY_PRESETS,
+      apiFetchJson,
+      clearApiCache,
+      dispatchWaveUpdate,
+      getSelectedCity,
+      setSelectedCity,
+      getGrapLabelForAqi,
+      formatLocalTime,
+      formatHourShort
+    } from "../scripts/api-client.ts";
+    import { wireTransitionsDropdown } from "../scripts/dropdown.ts";
+
+    const getLang = () => {
+      try { return localStorage.getItem("airdelta_lang") || "en"; } catch { return "en"; }
+    };
+    const tr = (key: string) => getTranslation(key, getLang());
+    const trCategory = (cat: string) => {
+      const k = cat === "Good" ? "catLabelGood" : cat === "Satisfactory" ? "catLabelSatisfactory" : cat === "Moderate" ? "catLabelModerate" : cat === "Poor" ? "catLabelPoor" : cat === "Very Poor" ? "catLabelVeryPoor" : "catLabelSevere";
+      return tr(k);
+    };
+
+    const cityInput = document.getElementById("city-select") as HTMLInputElement | null;
+    const cityDisplayName = document.getElementById("city-display-name");
+    const refreshBtn = document.getElementById("btn-refresh-air");
+    const refreshIcon = document.getElementById("refresh-icon");
+    const providerDot = document.getElementById("provider-dot");
+    const providerText = document.getElementById("provider-status-text");
+    const syncLabel = document.getElementById("hero-sync-label");
+    const glowEl = document.getElementById("hero-atmosphere-glow");
+    const modeReadout = document.getElementById("air-mode-readout");
+    const toggleFlowBtn = document.getElementById("btn-toggle-air-flow");
+    const flowBtnLabel = document.getElementById("air-flow-btn-label");
+    const flowIconPause = document.getElementById("air-flow-icon-pause");
+    const flowIconPlay = document.getElementById("air-flow-icon-play");
+
+    let latestSnapshot: any = null;
+    let latestForecast: any = null;
+    let activeAirMode: "raw" | "mask" | "hepa" = "raw";
+    let basePm25 = 382.5;
+    let baseAqi = 385;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let isFlowRunning = !prefersReducedMotion;
+
+    function syncCityDropdownVisual(code: string) {
+      const preset = CITY_PRESETS[code] || CITY_PRESETS.DELHI;
+      if (cityInput) cityInput.value = preset.code;
+      if (cityDisplayName) cityDisplayName.textContent = preset.label;
+      document.querySelectorAll<HTMLElement>(".city-menu-item").forEach((item) => {
+        const isCurrent = item.getAttribute("data-city-code") === preset.code;
+        const check = item.querySelector(".city-check");
+        item.setAttribute("aria-checked", String(isCurrent));
+        if (isCurrent) {
+          item.classList.add("bg-[#fff7ed]", "text-[#ea580c]", "font-bold");
+          item.classList.remove("text-[#525252]");
+          check?.classList.remove("opacity-0");
+        } else {
+          item.classList.remove("bg-[#fff7ed]", "text-[#ea580c]", "font-bold");
+          item.classList.add("text-[#525252]");
+          check?.classList.add("opacity-0");
+        }
+      });
+    }
+
+    // Wire Transitions.dev Top-Layer City Picker dropdown
+    wireTransitionsDropdown({
+      trigger: document.getElementById("btn-city-dropdown"),
+      menu: document.getElementById("city-dropdown-menu"),
+      chevron: document.getElementById("city-chevron"),
+      itemSelector: ".city-menu-item",
+      align: "start",
+      onSelect: (item) => {
+        const code = item.getAttribute("data-city-code");
+        if (code) {
+          setSelectedCity(code);
+          syncCityDropdownVisual(code);
+          loadLiveAir();
+        }
+      }
+    });
+
+    function getVisualThemeForAir() {
+      const multiplier = activeAirMode === "hepa" ? 0.1 : activeAirMode === "mask" ? 0.15 : 1;
+      const effectivePm = Math.round(basePm25 * multiplier * 10) / 10;
+      const effectiveAqi = activeAirMode === "hepa" ? Math.min(baseAqi, 38) : activeAirMode === "mask" ? Math.round(baseAqi * 0.25) : baseAqi;
+
+      if (effectiveAqi <= 100) {
+        return { effectivePm, color: "#15803d", rgb: "21, 128, 61", glow: "rgba(21, 128, 61, 0.12)", waveMs: 1850, speed: 0.55 };
+      }
+      if (effectiveAqi <= 200) {
+        return { effectivePm, color: "#d97706", rgb: "217, 119, 6", glow: "rgba(217, 119, 6, 0.14)", waveMs: 1400, speed: 0.85 };
+      }
+      if (effectiveAqi <= 300) {
+        return { effectivePm, color: "#ea580c", rgb: "234, 88, 12", glow: "rgba(234, 88, 12, 0.15)", waveMs: 1100, speed: 1.2 };
+      }
+      return { effectivePm, color: "#dc2626", rgb: "220, 38, 38", glow: "rgba(220, 38, 38, 0.14)", waveMs: 900, speed: 1.5 };
+    }
+
+    function syncAirModeUi() {
+      const theme = getVisualThemeForAir();
+      if (modeReadout) {
+        if (activeAirMode === "raw") {
+          modeReadout.textContent = `PM2.5: ${theme.effectivePm} µg/m³`;
+          modeReadout.className = "text-xs font-mono font-bold text-[#171717] bg-white px-3 py-1 rounded-full border border-[#e5e5e5]";
+        } else if (activeAirMode === "mask") {
+          modeReadout.textContent = `${tr("modeMask")}: ~${theme.effectivePm} µg/m³`;
+          modeReadout.className = "text-xs font-mono font-bold text-[#ea580c] bg-[#fff7ed] px-3 py-1 rounded-full border border-[#fed7aa]";
+        } else {
+          modeReadout.textContent = `${tr("modeHepa")}: ~${theme.effectivePm} µg/m³`;
+          modeReadout.className = "text-xs font-mono font-bold text-[#15803d] bg-[#dcfce7] px-3 py-1 rounded-full border border-[#86efac]";
+        }
+      }
+      if (glowEl) {
+        glowEl.style.background = `radial-gradient(circle at 82% 24%, ${theme.glow}, transparent 58%)`;
+      }
+      dispatchWaveUpdate("hero-aqi-wave", {
+        color: theme.color,
+        duration: theme.waveMs,
+        playState: isFlowRunning ? "running" : "paused"
+      });
+    }
+
+    // Interactive Air Particle & Purifier Pulse Engine inside #live-air-hero
+    const heroCard = document.getElementById("live-air-hero");
+    const canvas = document.getElementById("air-particle-canvas") as HTMLCanvasElement | null;
+    const ctx = canvas?.getContext("2d") || null;
+
+    interface AirMote {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      r: number;
+      alpha: number;
+      phase: number;
+    }
+    interface CleanRipple {
+      x: number;
+      y: number;
+      r: number;
+      maxR: number;
+      alpha: number;
+    }
+
+    const motes: AirMote[] = [];
+    const ripples: CleanRipple[] = [];
+    let pointerX = -9999;
+    let pointerY = -9999;
+    let canvasW = 800;
+    let canvasH = 380;
+    let rafId = 0;
+
+    function seedParticles() {
+      motes.length = 0;
+      const count = 88;
+      for (let i = 0; i < count; i++) {
+        motes.push({
+          x: Math.random() * canvasW,
+          y: Math.random() * canvasH,
+          vx: 0.4 + Math.random() * 1.1,
+          vy: (Math.random() - 0.5) * 0.35,
+          r: 1.4 + Math.random() * 2.4,
+          alpha: 0.18 + Math.random() * 0.42,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function resizeCanvas() {
+      if (!canvas || !heroCard) return;
+      const rect = heroCard.getBoundingClientRect();
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvasW = Math.max(300, rect.width);
+      canvasH = Math.max(260, rect.height);
+      canvas.width = Math.round(canvasW * dpr);
+      canvas.height = Math.round(canvasH * dpr);
+      ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (motes.length === 0) seedParticles();
+    }
+
+    function drawAirFrame(advance = true) {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      const theme = getVisualThemeForAir();
+      const multiplier = activeAirMode === "hepa" ? 0.22 : activeAirMode === "mask" ? 0.35 : 1;
+      const activeCount = Math.max(16, Math.round(Math.min(88, Math.max(24, (basePm25 / 350) * 82)) * multiplier));
+
+      // Wind streamline arcs
+      ctx.lineWidth = 1.1;
+      for (let s = 0; s < 3; s++) {
+        ctx.strokeStyle = `rgba(${theme.rgb}, ${0.07 - s * 0.015})`;
+        ctx.beginPath();
+        const baseY = canvasH * (0.24 + s * 0.27);
+        for (let x = 0; x <= canvasW; x += 40) {
+          const wave = Math.sin(x * 0.012 + performance.now() * 0.0014 * (isFlowRunning ? theme.speed : 0) + s) * 10;
+          if (x === 0) ctx.moveTo(x, baseY + wave);
+          else ctx.lineTo(x, baseY + wave);
+        }
+        ctx.stroke();
+      }
+
+      // Draw & advance expanding Clean-Air Tap Ripples
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const rp = ripples[i];
+        ctx.strokeStyle = `rgba(21, 128, 61, ${rp.alpha.toFixed(3)})`;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+        ctx.stroke();
+        if (advance) {
+          rp.r += 5.2;
+          rp.alpha *= 0.93;
+          if (rp.r >= rp.maxR || rp.alpha < 0.02) ripples.splice(i, 1);
+        }
+      }
+
+      // Airborne particulate motes
+      for (let i = 0; i < activeCount; i++) {
+        const m = motes[i];
+        if (!m) break;
+        if (advance) {
+          m.phase += 0.025;
+          m.x += m.vx * theme.speed;
+          m.y += m.vy + Math.sin(m.phase) * 0.22;
+
+          // Deflect gently from pointer cursor
+          const dx = m.x - pointerX;
+          const dy = m.y - pointerY;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 12000 && distSq > 4) {
+            const dist = Math.sqrt(distSq);
+            const force = (110 - dist) / 110;
+            m.x += (dx / dist) * force * 3.2;
+            m.y += (dy / dist) * force * 3.2;
+          }
+
+          // Clean-air ripple radial sweep
+          for (const rp of ripples) {
+            const rx = m.x - rp.x;
+            const ry = m.y - rp.y;
+            const rDist = Math.sqrt(rx * rx + ry * ry);
+            if (Math.abs(rDist - rp.r) < 28 && rDist > 1) {
+              m.x += (rx / rDist) * 2.4;
+              m.y += (ry / rDist) * 2.4;
+            }
+          }
+
+          if (m.x > canvasW + 10) m.x = -10;
+          if (m.y < -10) m.y = canvasH + 10;
+          if (m.y > canvasH + 10) m.y = -10;
+        }
+
+        ctx.fillStyle = `rgba(${theme.rgb}, ${m.alpha})`;
+        ctx.beginPath();
+        ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function animateCanvasLoop() {
+      if (!isFlowRunning) return;
+      drawAirFrame(true);
+      rafId = requestAnimationFrame(animateCanvasLoop);
+    }
+
+    function setFlowRunning(nextRunning: boolean) {
+      isFlowRunning = nextRunning;
+      if (flowBtnLabel) flowBtnLabel.textContent = isFlowRunning ? tr("pauseFlow") : tr("playFlow");
+      if (flowIconPause) flowIconPause.classList.toggle("hidden", !isFlowRunning);
+      if (flowIconPlay) flowIconPlay.classList.toggle("hidden", isFlowRunning);
+      dispatchWaveUpdate("hero-aqi-wave", { playState: isFlowRunning ? "running" : "paused" });
+      if (rafId) cancelAnimationFrame(rafId);
+      if (isFlowRunning) animateCanvasLoop();
+      else drawAirFrame(false);
+    }
+
+    if (heroCard && canvas && ctx) {
+      resizeCanvas();
+      new ResizeObserver(() => {
+        resizeCanvas();
+        if (!isFlowRunning) drawAirFrame(false);
+      }).observe(heroCard);
+
+      heroCard.addEventListener("pointermove", (e) => {
+        const rect = heroCard.getBoundingClientRect();
+        pointerX = e.clientX - rect.left;
+        pointerY = e.clientY - rect.top;
+      });
+      heroCard.addEventListener("pointerleave", () => {
+        pointerX = -9999;
+        pointerY = -9999;
+      });
+      heroCard.addEventListener("pointerdown", (e) => {
+        if ((e.target as HTMLElement)?.closest("button, a")) return;
+        const rect = heroCard.getBoundingClientRect();
+        ripples.push({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+          r: 8,
+          maxR: 210,
+          alpha: 0.45
+        });
+        if (!isFlowRunning) drawAirFrame(false);
+      });
+
+      setFlowRunning(isFlowRunning);
+    }
+
+    toggleFlowBtn?.addEventListener("click", () => {
+      setFlowRunning(!isFlowRunning);
+    });
+
+    document.querySelectorAll<HTMLElement>(".air-mode-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const nextMode = btn.getAttribute("data-air-mode") as "raw" | "mask" | "hepa" | null;
+        if (!nextMode) return;
+        activeAirMode = nextMode;
+        document.querySelectorAll<HTMLElement>(".air-mode-btn").forEach((b) => {
+          const mode = b.getAttribute("data-air-mode");
+          if (mode === activeAirMode) {
+            b.className = "air-mode-btn px-3 py-1 rounded-full text-xs font-bold bg-[#171717] text-white cursor-pointer transition-all press-scale";
+          } else {
+            b.className = "air-mode-btn px-3 py-1 rounded-full text-xs font-semibold bg-white text-[#525252] border border-[#d4d4d4] hover:border-[#ea580c] cursor-pointer transition-all press-scale";
+          }
+        });
+        syncAirModeUi();
+        if (!isFlowRunning) drawAirFrame(false);
+      });
+    });
+
+    function createBadgeNode(badge: string) {
+      const cfgMap: Record<string, { i18nKey: string; cls: string; dot: string }> = {
+        measured: { i18nKey: "badgeMeasured", cls: "bg-emerald-50 text-emerald-800 border-emerald-200", dot: "bg-emerald-500" },
+        forecast: { i18nKey: "badgeForecast", cls: "bg-orange-50 text-orange-900 border-orange-200", dot: "bg-orange-500" },
+        modelled: { i18nKey: "badgeModelled", cls: "bg-slate-100 text-slate-800 border-slate-200", dot: "bg-slate-600" },
+        assumed: { i18nKey: "badgeAssumed", cls: "bg-amber-50 text-amber-800 border-amber-200", dot: "bg-amber-500" }
+      };
+      const cfg = cfgMap[badge] || cfgMap.modelled;
+      const span = document.createElement("span");
+      span.className = `inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${cfg.cls} font-mono tracking-tight shadow-xs`;
+      const dot = document.createElement("span");
+      dot.className = `w-1.5 h-1.5 rounded-full ${cfg.dot}`;
+      const txt = document.createElement("span");
+      txt.setAttribute("data-i18n", cfg.i18nKey);
+      txt.textContent = tr(cfg.i18nKey);
+      span.replaceChildren(dot, txt);
+      return span;
+    }
+
+    function updateDashboard(snapshot: any, forecast: any, cityLabel: string) {
+      latestSnapshot = snapshot;
+      latestForecast = forecast;
+
+      const aqi = snapshot.indexValue ?? "--";
+      const numAqi = typeof snapshot.indexValue === "number" ? snapshot.indexValue : 0;
+      baseAqi = numAqi || 150;
+      basePm25 = typeof snapshot.pm25 === "number" ? snapshot.pm25 : 85;
+      const cat = snapshot.category || "Moderate";
+      const grap = getGrapLabelForAqi(numAqi);
+
+      const titleEl = document.getElementById("hero-city-title");
+      const metaEl = document.getElementById("hero-station-meta");
+      const stdNoteEl = document.getElementById("hero-standard-note");
+      const stdLabelEl = document.getElementById("hero-standard-label");
+      const catEl = document.getElementById("hero-category");
+      const aqiEl = document.getElementById("hero-aqi-value");
+      const markerEl = document.getElementById("aqi-scale-marker");
+      const badgeWrap = document.getElementById("hero-badge-pill");
+      const sourcePill = document.getElementById("hero-source-pill");
+      const grapBadge = document.getElementById("today-grap-badge");
+
+      if (titleEl) titleEl.textContent = cityLabel;
+      if (badgeWrap) badgeWrap.replaceChildren(createBadgeNode(snapshot.badge));
+      if (sourcePill) sourcePill.textContent = String(snapshot.source || "openaq").toUpperCase();
+      if (metaEl) {
+        const dist = typeof snapshot.stationDistanceKm === "number" ? `${snapshot.stationDistanceKm} km away` : "nearby";
+        const stationName = String(snapshot.attribution || "").replace("OpenAQ Station: ", "");
+        metaEl.textContent = `Station: ${stationName} (${dist})`;
+      }
+      if (stdNoteEl) {
+        const observed = new Date(snapshot.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        stdNoteEl.textContent = `${snapshot.indexStandard === "eu_aqi" ? "EU AQI" : "Indian CPCB AQI"} · Updated ${observed}`;
+      }
+      if (stdLabelEl) stdLabelEl.textContent = `${snapshot.indexStandard === "eu_aqi" ? "EU" : "CPCB"} ${tr("aqiScoreLabel")}`;
+      if (catEl) catEl.textContent = trCategory(cat);
+      if (aqiEl) {
+        aqiEl.textContent = String(aqi);
+        aqiEl.className = `text-6xl font-extrabold tracking-tight font-mono leading-none ${
+          numAqi > 300 ? "text-[#dc2626]" : numAqi > 200 ? "text-[#ea580c]" : numAqi > 100 ? "text-[#d97706]" : "text-[#15803d]"
+        }`;
+      }
+      if (markerEl) {
+        const pct = Math.min(97, Math.max(3, Math.round((numAqi / 500) * 100)));
+        markerEl.style.left = `${pct}%`;
+      }
+      if (grapBadge) grapBadge.textContent = grap.label;
+
+      // Pollutants
+      const pm25El = document.getElementById("metric-pm25");
+      const pm25WhoEl = document.getElementById("metric-pm25-who");
+      const pm10El = document.getElementById("metric-pm10");
+      const pm10WhoEl = document.getElementById("metric-pm10-who");
+      const no2El = document.getElementById("metric-no2");
+      const no2NoteEl = document.getElementById("metric-no2-note");
+
+      if (pm25El) pm25El.textContent = snapshot.pm25 !== null && snapshot.pm25 !== undefined ? `${snapshot.pm25} µg/m³` : "--";
+      if (pm25WhoEl) {
+        pm25WhoEl.textContent = snapshot.pm25 !== null && snapshot.pm25 !== undefined
+          ? `${(snapshot.pm25 / 15).toFixed(1)}${tr("whoSafeLimitSuffix")}`
+          : "--";
+      }
+      if (pm10El) pm10El.textContent = snapshot.pm10 !== null && snapshot.pm10 !== undefined ? `${snapshot.pm10} µg/m³` : "--";
+      if (pm10WhoEl) {
+        pm10WhoEl.textContent = snapshot.pm10 !== null && snapshot.pm10 !== undefined
+          ? `${(snapshot.pm10 / 45).toFixed(1)}${tr("whoSafeLimitSuffix")}`
+          : "--";
+      }
+      const no2Val = snapshot.pollutants?.no2;
+      if (no2El) no2El.textContent = no2Val !== null && no2Val !== undefined ? `${no2Val} µg/m³` : "--";
+      if (no2NoteEl) {
+        no2NoteEl.textContent = no2Val !== null && no2Val !== undefined
+          ? (no2Val > 80 ? tr("highRoadsideExhaust") : tr("normalTrafficLevels"))
+          : "--";
+      }
+
+      // Cleanest window & forecast bars
+      if (forecast?.cleanestWindow) {
+        const startT = formatLocalTime(forecast.cleanestWindow.startTs);
+        const endT = formatLocalTime(forecast.cleanestWindow.endTs);
+        const rangeStr = `${startT} – ${endT}`;
+        const lowStr = `~${forecast.cleanestWindow.expectedPm25} µg/m³`;
+
+        const cwTime = document.getElementById("metric-cleanest-time");
+        const cwPm = document.getElementById("metric-cleanest-pm25");
+        const act2 = document.getElementById("action2-window");
+        const fcRange = document.getElementById("forecast-cleanest-range");
+        const fcPm = document.getElementById("forecast-cleanest-pm25");
+
+        if (cwTime) cwTime.textContent = rangeStr;
+        if (cwPm) cwPm.textContent = `${tr("bestTimeOpenWindows")} (${lowStr})`;
+        if (act2) act2.textContent = `${tr("bestSlotPrefix")} ${rangeStr}`;
+        if (fcRange) fcRange.textContent = rangeStr;
+        if (fcPm) fcPm.textContent = `${forecast.cleanestWindow.expectedPm25} µg/m³`;
+      }
+
+      if (Array.isArray(forecast?.hourly) && forecast.hourly.length > 0) {
+        const container = document.getElementById("forecast-bars-container");
+        const fcBadgeWrap = document.getElementById("forecast-badge-wrap");
+        const fcSourceLabel = document.getElementById("forecast-source-label");
+        if (fcBadgeWrap) fcBadgeWrap.replaceChildren(createBadgeNode(forecast.badge || "forecast"));
+        if (fcSourceLabel) fcSourceLabel.textContent = forecast.source === "open_meteo" ? "Open-Meteo 72h" : "Baseline";
+
+        if (container) {
+          const cutoff = Date.now() - 3600000;
+          const upcoming = forecast.hourly.filter((h: any) => Date.parse(h.ts) >= cutoff);
+          const slice = (upcoming.length >= 6 ? upcoming : forecast.hourly).slice(0, 12);
+          const maxPm = Math.max(80, ...slice.map((h: any) => Number(h.pm25 || 0)));
+
+          const cols = slice.map((item: any) => {
+            const pm = Number(item.pm25 || 0);
+            const hPct = Math.min(100, Math.max(15, Math.round((pm / maxPm) * 100)));
+            const barColor = pm > 250 ? "bg-[#ea580c]" : pm > 120 ? "bg-[#d97706]" : "bg-[#15803d]";
+
+            const col = document.createElement("div");
+            col.className = "flex flex-col items-center gap-2 w-14";
+
+            const valSpan = document.createElement("span");
+            valSpan.className = "text-[11px] font-mono font-bold text-[#525252]";
+            valSpan.textContent = item.pm25 !== null && item.pm25 !== undefined ? String(Math.round(pm)) : "--";
+
+            const barWrap = document.createElement("div");
+            barWrap.className = "w-8 bg-[#f5f5f5] rounded-t-lg flex items-end h-28 p-1 border-x border-t border-[#e5e5e5]";
+
+            const bar = document.createElement("div");
+            bar.className = `w-full rounded-t ${barColor} transition-all`;
+            bar.style.height = `${hPct}%`;
+            barWrap.appendChild(bar);
+
+            const tSpan = document.createElement("span");
+            tSpan.className = "text-[10px] text-[#737373] font-mono font-medium";
+            tSpan.textContent = formatHourShort(item.ts);
+
+            col.replaceChildren(valSpan, barWrap, tSpan);
+            return col;
+          });
+          container.replaceChildren(...cols);
+        }
+      }
+
+      const globalAlertTitle = document.getElementById("global-alert-title");
+      const globalAlertText = document.getElementById("global-alert-text");
+      if (globalAlertTitle) globalAlertTitle.textContent = `${cityLabel}:`;
+      if (globalAlertText) globalAlertText.textContent = `AQI ${aqi} (${trCategory(cat)}) · PM2.5 ${snapshot.pm25 ?? "--"} µg/m³`;
+
+      try {
+        sessionStorage.setItem("airdelta_last_snapshot", JSON.stringify({ snapshot, cityLabel }));
+      } catch {}
+
+      syncAirModeUi();
+      if (!isFlowRunning) drawAirFrame(false);
+    }
+
+    async function loadLiveAir(forceFresh = false) {
+      if (forceFresh) clearApiCache();
+      const city = getSelectedCity();
+      syncCityDropdownVisual(city.code);
+      if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#ea580c] animate-pulse";
+      if (providerText) providerText.textContent = `${tr("connectingOpenAq")} (${city.label})`;
+      if (syncLabel) syncLabel.textContent = tr("liveAirBadge");
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+      dispatchWaveUpdate("hero-status-wave", { color: "#ea580c", duration: 800, playState: "running" });
+      dispatchWaveUpdate("hero-fetch-wave", { color: "#ea580c", duration: 800, playState: "running" });
+
+      try {
+        const [snapshot, forecast] = await Promise.all([
+          apiFetchJson<any>(`/v1/air?lat=${city.lat}&lng=${city.lng}`),
+          apiFetchJson<any>(`/v1/air/forecast?lat=${city.lat}&lng=${city.lng}`)
+        ]);
+        updateDashboard(snapshot, forecast, city.label);
+        if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#15803d]";
+        if (providerText) {
+          const stationName = String(snapshot.attribution || "").replace("OpenAQ Station: ", "");
+          providerText.textContent = `Live ${String(snapshot.source).toUpperCase()} · ${stationName}`;
+        }
+        if (syncLabel) syncLabel.textContent = tr("liveAirBadge");
+        dispatchWaveUpdate("hero-status-wave", { color: "#15803d", duration: 1800, playState: "paused" });
+        dispatchWaveUpdate("hero-fetch-wave", { color: "#15803d", duration: 1600, playState: isFlowRunning ? "running" : "paused" });
+      } catch {
+        if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#d97706]";
+        if (providerText) providerText.textContent = tr("offlineSampleMsg");
+        if (syncLabel) syncLabel.textContent = tr("savedSampleBadge");
+        dispatchWaveUpdate("hero-status-wave", { color: "#d97706", playState: "paused" });
+        dispatchWaveUpdate("hero-fetch-wave", { color: "#d97706", playState: "paused" });
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+      }
+    }
+
+    window.addEventListener("airdelta:langchange", () => {
+      setFlowRunning(isFlowRunning);
+      if (latestSnapshot && latestForecast) {
+        updateDashboard(latestSnapshot, latestForecast, getSelectedCity().label);
+      } else {
+        syncAirModeUi();
+      }
+    });
+
+    refreshBtn?.addEventListener("click", () => {
+      loadLiveAir(true);
+    });
+
     document.querySelectorAll(".action-card").forEach((card) => {
       const toggleBtn = card.querySelector(".action-toggle-btn");
       const checkIcon = card.querySelector(".check-icon");
 
       card.addEventListener("click", () => {
         const isDone = card.classList.toggle("bg-[#f0fdf4]");
+        if (toggleBtn) toggleBtn.setAttribute("aria-pressed", String(isDone));
         if (isDone) {
           card.classList.remove("bg-[#f7f9fa]");
           card.classList.add("border-[#86efac]");
@@ -233,19 +952,26 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
         } else {
           card.classList.add("bg-[#f7f9fa]");
           card.classList.remove("border-[#86efac]");
-          if (toggleBtn) toggleBtn.className = "action-toggle-btn w-6 h-6 rounded-full border border-[#d9d9d9] bg-white flex items-center justify-center text-[#d9d9d9] hover:border-[#ea580c] transition-colors";
+          if (toggleBtn) toggleBtn.className = "action-toggle-btn w-6 h-6 rounded-full border border-[#d4d4d4] bg-white flex items-center justify-center text-[#d4d4d4] hover:border-[#ea580c] transition-colors";
           if (checkIcon) checkIcon.classList.add("opacity-0");
         }
       });
     });
 
-    // Quick Share WhatsApp Brief
     const shareBtn = document.getElementById("btn-quick-share");
     const toast = document.getElementById("brief-toast");
 
     if (shareBtn) {
       shareBtn.addEventListener("click", () => {
-        const briefText = `⚠️ *AirDelta Delhi-NCR Smog Brief*\nAQI: 385 (Severe - CPCB GRAP III Active)\n\n1. Postpone morning outdoor cardio until 10:00 IST.\n2. Open windows only 13:00 - 15:30 (Solar clearing).\n3. Wear certified N95 or switch two-wheeler to Metro.\n\nSimulate your household exposure: ${window.location.origin}`;
+        const city = getSelectedCity();
+        const aqi = latestSnapshot?.indexValue ?? 385;
+        const cat = latestSnapshot?.category ?? "Severe";
+        const pm25 = latestSnapshot?.pm25 ?? 382.5;
+        const windowStr = latestForecast?.cleanestWindow
+          ? `${formatLocalTime(latestForecast.cleanestWindow.startTs)} – ${formatLocalTime(latestForecast.cleanestWindow.endTs)}`
+          : "13:00 – 15:30";
+
+        const briefText = `AirDelta ${city.label} Update\nAQI: ${aqi} (${cat}) · Fine Dust: ${pm25} µg/m³\n\n1. Skip heavy outdoor workouts in peak hours.\n2. Open windows briefly around ${windowStr}.\n3. Wear an N95 mask or take the Metro.\n\nSee your plan: ${window.location.origin}`;
         
         navigator.clipboard.writeText(briefText).then(() => {
           if (toast) {
@@ -255,5 +981,7 @@ const aqiColor = isSevere ? "text-[#ea580c]" : isVeryPoor ? "text-[#c2410c]" : "
         });
       });
     }
+
+    loadLiveAir();
   </script>
 </Layout>

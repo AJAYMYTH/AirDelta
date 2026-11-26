@@ -1,4 +1,4 @@
-/* Astryx Design System + DJI Showroom White & Orange Architecture */
+/* Astryx Design System + AirDelta Clean Typography (Plus Jakarta Sans + JetBrains Mono) */
 @layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
 
 @import "tailwindcss/theme.css" layer(theme);
@@ -10,61 +10,148 @@
 @import "@astryxdesign/core/tailwind-theme.css";
 @import "tailwindcss/utilities.css" layer(utilities);
 
+@theme {
+  --font-sans: "Plus Jakarta Sans", "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 :root {
-  /* Brand Colors: White Primary, Orange Secondary */
   --color-canvas: #ffffff;
   --color-canvas-soft: #f7f9fa;
   --color-fog: #f5f5f5;
   --color-panel: #f6f8f9;
-  
+
   --color-orange-primary: #ea580c;
   --color-orange-hover: #c2410c;
   --color-orange-tint: #fff7ed;
   --color-orange-border: #fdba74;
   --color-tier-orange: #be4e04;
-  
-  --color-ink: #262626;
-  --color-ink-secondary: #595959;
-  --color-ink-tertiary: #8c8c8c;
+
+  --color-ink: #171717;
+  --color-ink-secondary: #525252;
+  --color-ink-tertiary: #737373;
   --color-slate-steel: #9fa3a6;
-  
-  --color-divider: #e8e8e8;
+
+  --color-divider: #e5e5e5;
   --color-hairline: #f0f0f0;
-  --color-card-border: #d9d9d9;
-  
-  --color-footer-bg: #272727;
-  --color-footer-link: #b3b3b3;
-  --color-footer-pill: #383838;
+  --color-card-border: #d4d4d4;
+
+  --color-footer-bg: #18181b;
+  --color-footer-link: #a1a1aa;
+  --color-footer-pill: #27272a;
+
+  /* transitions.dev Menu Dropdown Tokens */
+  --dropdown-open-dur: 250ms;
+  --dropdown-close-dur: 150ms;
+  --dropdown-pre-scale: 0.97;
+  --dropdown-closing-scale: 0.99;
+  --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body {
-  font-family: var(--font-family-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Open Sans", sans-serif);
-  background-color: var(--color-canvas, #ffffff);
-  color: var(--color-ink, #262626);
+  font-family: "Plus Jakarta Sans", "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--color-canvas-soft, #f7f9fa);
+  color: var(--color-ink, #171717);
   margin: 0;
   padding: 0;
-  letter-spacing: -0.02em;
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+  text-align: start;
 }
 
 h1, h2, h3, h4, h5, h6 {
+  font-family: "Plus Jakarta Sans", "Figtree", sans-serif;
+  font-weight: 800;
+  line-height: 1.18;
   letter-spacing: -0.03em;
-  color: var(--color-ink, #262626);
+  color: var(--color-ink, #171717);
+  text-wrap: balance;
 }
 
-/* Custom scrollbar for showroom sleekness */
+p {
+  text-wrap: pretty;
+}
+
+.font-mono, code, pre {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-grid-bg {
+  background-image: radial-gradient(rgba(234, 88, 12, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Clean Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f5f5f5;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d9d9d9;
+  background: #d4d4d4;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #ea580c;
+}
+
+/* Accessible Focus Ring (natural-interactions) */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-ink, #171717);
+  outline-offset: 2px;
+}
+
+/* Transitions.dev Origin-Aware Top-Layer Menu Dropdown */
+.t-dropdown {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  z-index: 9999;
+  max-height: min(21rem, calc(100vh - 16px));
+  overflow-y: auto;
+  transform-origin: top left;
+  transform: scale(var(--dropdown-pre-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--dropdown-open-dur) var(--dropdown-ease),
+    opacity   var(--dropdown-open-dur) var(--dropdown-ease);
+  will-change: transform, opacity;
+}
+.t-dropdown[popover]:not(:popover-open):not(.is-closing) {
+  display: none;
+}
+.t-dropdown[popover]:popover-open {
+  display: block;
+}
+.t-dropdown[data-origin="top-left"]      { transform-origin: top left; }
+.t-dropdown[data-origin="top-right"]     { transform-origin: top right; }
+.t-dropdown[data-origin="top-center"]    { transform-origin: top center; }
+.t-dropdown[data-origin="bottom-left"]   { transform-origin: bottom left; }
+.t-dropdown[data-origin="bottom-center"] { transform-origin: bottom center; }
+.t-dropdown[data-origin="bottom-right"]  { transform-origin: bottom right; }
+
+.t-dropdown.is-open {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.t-dropdown.is-closing {
+  transform: scale(var(--dropdown-closing-scale));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--dropdown-close-dur) var(--dropdown-ease),
+    opacity   var(--dropdown-close-dur) var(--dropdown-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-dropdown {
+    transition: none !important;
+  }
 }
 
 /* Transitions.dev Dropdown Glass & Elevation */
@@ -72,11 +159,27 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(232, 232, 232, 0.9);
-  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(229, 229, 229, 0.95);
+  box-shadow: 0 14px 36px -6px rgba(0, 0, 0, 0.12), 0 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-/* Loading.dev Inspired Micro-Loaders */
+/* Live Air Sensor Halo */
+@media (prefers-reduced-motion: no-preference) {
+  .live-air-beacon {
+    animation: beacon-glow 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes beacon-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(234, 88, 12, 0);
+  }
+}
+
+/* Loading Micro-Loaders */
 .loader-spin {
   display: inline-block;
   width: 1rem;
@@ -87,21 +190,10 @@ h1, h2, h3, h4, h5, h6 {
   animation: spin-cw 0.75s linear infinite;
 }
 
-.loader-spin-white {
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin-cw 0.75s linear infinite;
-}
-
 @keyframes spin-cw {
   to { transform: rotate(360deg); }
 }
 
-/* Loading.dev Radar Pulse for Sensor/Camera Scans */
 .radar-pulse-ring {
   position: relative;
 }
@@ -122,10 +214,21 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Tactile press scale for smooth micro-interactions */
 .press-scale {
   transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .press-scale:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
+}
+
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
 }

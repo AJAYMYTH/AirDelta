@@ -12,8 +12,8 @@ The product targets dual delivery channels over a unified API:
 - **Frontend:** Astro 5 + Tailwind CSS v4 (`@tailwindcss/vite`) + TypeScript
 - **Backend API:** Node.js + TypeScript + Hono + Zod (`@hono/node-server`)
 - **Database & Auth:** Supabase Postgres (`@supabase/supabase-js`) with Row Level Security (RLS) + $k \ge 5$ Anonymity View
-- **AI / LLM:** Google Gemini API (`@google/genai`) with structured JSON outputs & numeric-grounding verification
-- **Air Quality Providers:** Google Air Quality API (CPCB index primary) -> OpenAQ v3 (measured station readings) -> Open-Meteo (CAMS modelled fallback) -> Replay fixtures
+- **AI / LLM:** Google Gemini API (`@google/genai`, `gemini-3.1-flash-lite` fast narration + `gemini-3.6-flash` vision, with `gemini-3.6-flash` / `gemini-3.8-flash` fallback chain) with structured JSON outputs & numeric-grounding verification
+- **Air Quality Providers:** OpenAQ v3 (default primary, measured ground station readings) -> Open-Meteo (ECMWF CAMS modelled & forecast fallback) -> Replay fixtures (`GOOGLE_AQ_ENABLED=false` by default)
 - **Chat Bot:** Telegram Bot API (`grammY`) with 07:00 IST morning brief webhook
 - **Design System & Styling:** Astryx Design System (`@astryxdesign/core`, `@stylexjs/stylex`, `@astryxdesign/theme-neutral`, `@astryxdesign/cli`) + Astryx Tailwind CSS v4 Bridge
 - **Localization:** All 12 major Indian regional languages (Hindi, Bengali, Telugu, Marathi, Tamil, Urdu, Gujarati, Kannada, Odia, Malayalam, Punjabi, Assamese) + English
@@ -125,11 +125,33 @@ airdelta/
   - Preserved existing local MCP servers (`codebase-memory-mcp` and `devfolio`).
   - Installed official project-level Supabase Agent Skills (`.agents/skills/supabase` and `.agents/skills/supabase-postgres-best-practices`) for schema operations, migration auditing, and RLS optimization.
 
+- [x] **OpenAQ Default Primary, Live Web-to-API Integration & Hardening (Nov 26, 2026):**
+  - Switched `AirDataService`, `apps/api`, `polling-runner.ts`, `.env`, `.env.example`, and `verify-env.mjs` so **OpenAQ v3 is the default primary provider** (`GOOGLE_AQ_ENABLED=false` by default; Google Air Quality API is never called unless explicitly opted in).
+  - Fixed OpenAQ v3 adapter bugs in `packages/air-adapters/src/adapters/openaq.adapter.ts`: ranked stations within 25 km by freshness & dual-particulate coverage instead of `limit=1` (avoiding retired 2018 stations), handled `{ utc, local }` timestamp objects, deduplicated legacy sensors on the same station by newest reading, normalized `ppb`/`ppm` gas units to `µg/m³` and CO to `mg/m³`, fixed `0` value handling (`!== null`), and computed official CPCB NAQI max sub-index across PM2.5 + PM10.
+  - Updated `OpenMeteoAdapter.fetchForecast` to pick the cleanest upcoming 3-hour window rather than past hours.
+  - Wired all interactive web pages (`/`, `/plan`, `/indoor`, `/community`) via `apps/web/src/scripts/api-client.ts` to live API endpoints (`/v1/air`, `/v1/air/forecast`, `/v1/plans`, `/v1/indoor-audits`, `/v1/indoor-audits/confirm`, `/v1/advisories`, `/v1/advisories/groups/:id/impact`) with city selector (6 Indian cities), EXIF-stripping `<canvas>` photo upload, 13-language advisory generator, $k \ge 5$ simulator, accessibility landmarks (`skip link`, nav `aria-label`s, RTL `dir` for Urdu), and `public/favicon.svg`.
+  - Updated `GeminiService` & `VisionService` fallback chains and timeouts.
+  - Added resilient in-memory degradation in `SupabaseService` for non-UUID demo payloads / ungranted DB permissions, fixed `supabase-and-security.test.ts` schema mismatches, and added `supabase/migrations/20261126000000_grant_permissions.sql` (pending remote apply).
+  - Updated `README.md` with explicit hackathon sections (Chosen Vertical, Approach & Logic, How It Works, Assumptions Made).
+- [x] **Speed Optimization, Plain-Language UX & Typography Polish (Nov 27, 2026):**
+  - Replaced `lucide-astro` barrel imports across all 7 Astro pages, `Layout.astro`, and `ForecastStrip.astro` with direct subpath imports (`lucide-astro/<Icon>`), and replaced SSR `AirDataService` disk/Zod loading in `index.astro`, `plan.astro`, and `community.astro` with static fixture imports (`astro dev` cold route compilation dropped from `7,146ms–11,044ms` to `5ms–236ms`, warm routes `3ms–10ms`; full static build compiles 7 pages in `3.49s`).
+  - Added two-phase progressive plan loading on `/plan` (`includeLlm: false` deterministic render in `772ms` live, upgrading via Gemini `gemini-3.1-flash-lite` in `1,625ms` cold / `15ms` cached), parallelized `getAirSnapshot` + `getAirForecast` with `Promise.all` in `PlannerService`, added 15-min LLM + 60s fallback caching, and added a 2-minute `sessionStorage` cache in `apps/web/src/scripts/api-client.ts`.
+  - Switched UI typography to **Plus Jakarta Sans** (bold `800` headings in `#171717`, `text-wrap: balance/pretty`, unitless `1.5` line-height) + **JetBrains Mono** (`tabular-nums`) in `apps/web/src/styles/global.css`, added a 0–500 AQI visual range indicator (`index.astro`), fixed `@airdeltabot` link (`settings.astro`), removed emoji bullets (`community.astro`), and simplified copy across all pages and English `packages/i18n` labels.
+- [x] **Interactive Air Visualizer, `transitions.dev` Dropdown UI & `loading-dev` Wave Loaders (Nov 27, 2026):**
+  - Added `@astrojs/react@^4.4.2` and `loading-dev@0.3.8` (`apps/web/astro.config.mjs`, `apps/web/tsconfig.json`, `apps/web/package.json`) and created `apps/web/src/components/AirWaveLoader.tsx` wrapping `Wave` (`size`, `color`, `duration`, `playState`, `origin`) synced with `dispatchWaveUpdate` across `/`, `/plan`, and `/indoor`.
+  - Built reusable top-layer `transitions.dev` dropdown component ([TransitionDropdown.astro](file:///c:/Users/javal/Music/promptWars/apps/web/src/components/TransitionDropdown.astro)) backed by native `popover="manual"` top-layer promotion, dynamic viewport collision flipping, and keyboard navigation (`dropdown.ts`), replacing all 7 remaining `<select>` boxes across `/`, `/plan`, `/indoor`, and `/community` and eliminating parent stacking-context clipping (`stagger-card` transform clear + top-layer positioning).
+  - Expanded `@airdelta/i18n` (`packages/i18n/src/page-translations.ts`) with full `206/206` key parity across all 13 languages (`en`, `hi`, `bn`, `te`, `mr`, `ta`, `ur`, `gu`, `kn`, `or`, `ml`, `pa`, `as`) and wired `data-i18n` + live `airdelta:langchange` handlers across all 7 pages, `BadgePill.astro`, `ForecastStrip.astro`, and dynamic client scripts (`219` DOM `data-i18n` attributes, `0` unmapped keys in any of the 13 languages, `0` native `<select>` elements, `15` Top-Layer `.t-dropdown` popovers across the 7 static HTML builds).
+  - Built an interactive canvas particle airflow & purifier-ripple visualizer (`#air-particle-canvas`) inside the Hero Air Quality card on `apps/web/src/pages/index.astro`, paired with interactive breathing preview filters (`Outdoor Raw`, `N95 Mask`, `HEPA Room`), pointer vortex/tap ripples, and WCAG 2.2.2 Pause/Play airflow toggle (`#btn-toggle-air-flow`) + `prefers-reduced-motion` support.
+
 ## Development Progress
-- **Current Status:** 100% Complete & Verified across all 8 phases + Astryx, DESIGN.md Showroom, Lucide Icons, anime.js Interactivity, and Supabase MCP & Skills.
-- **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (`main` branch).
-- **Test Suite Status:** 50/50 tests passing across 12 test suites (`pnpm test`).
-- **Compilation Status:** 0 errors, 0 warnings, 0 hints (`pnpm typecheck` & `pnpm -r run build`).
+- **Current Status:** OpenAQ default primary and fast Gemini 3.1 Flash-Lite narration verified end-to-end across API & web; Astro route compile and API progressive hydration verified; ready for git commit/push and manual browser + demo video walkthrough before 29/11/2026 11:59 PM IST.
+- **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public, single `main` branch, < 10 MB). Working tree has local edits ready to commit & push.
+- **Test Suite Status:** 52/52 tests passing across 12 test suites (`pnpm test`).
+- **Compilation & Doctor Status:** 0 errors, 0 warnings, 0 hints (`pnpm typecheck` & `pnpm -r run build`); `astryx doctor --built apps/web/dist` reports `pass: 24, warn: 3, fail: 0`.
+- **Pending / Blocked Items:**
+  - Built-in `/browser` webview runtime timed out (`SCRIPT_ERROR: script timed out after 30000ms` on `about:blank`) — manual or Playwright browser walkthrough recommended before recording demo video.
+  - Apply `supabase/migrations/20261126000000_grant_permissions.sql` on remote Supabase project (`cwvsngmwzhytrjzdqvpn`) to resolve HTTP 401/403 `permission denied`.
+  - Set `TELEGRAM_WEBHOOK_SECRET` in `.env`, commit & push local changes to `origin/main`, and record/upload unlisted demo video.
 
 ## Technical Decisions
 1. **Strict Math Boundary:** LLM is strictly forbidden from performing mathematical calculations. `@airdelta/engine` computes all doses and percentages; Gemini only narrates and translates.
@@ -139,4 +161,5 @@ airdelta/
 5. **30-Day Storage Pruning:** Household plan histories older than 30 days are pruned by retention jobs to ensure compliance with free-tier Postgres storage limits (500 MB).
 
 ## Next Steps
-- Deliver final hackathon presentation walkthrough and repository summary to user.
+- Apply `supabase/migrations/20261126000000_grant_permissions.sql` in Supabase SQL Editor.
+- Verify interactive UI flows manually in browser (`http://localhost:4321/` + API on `:3000`), record demo video, commit & push to `origin/main`, and submit on PromptWars before 29/11/2026 11:59 PM IST.

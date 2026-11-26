@@ -19,6 +19,7 @@ export function createPlanRoutes(
     }
 
     const targetLang = typeof body.targetLang === "string" ? body.targetLang : "en";
+    const includeLlm = body.includeLlm !== false;
     const profileParse = HouseholdProfileSchema.safeParse(body.profile || body);
 
     if (!profileParse.success) {
@@ -32,7 +33,7 @@ export function createPlanRoutes(
     }
 
     try {
-      const plan = await plannerService.generatePlan(profileParse.data, targetLang);
+      const plan = await plannerService.generatePlan(profileParse.data, targetLang, undefined, undefined, includeLlm);
       const householdId = profileParse.data.id || "demo-household";
       
       // Persist plan in Supabase (or in-memory store)

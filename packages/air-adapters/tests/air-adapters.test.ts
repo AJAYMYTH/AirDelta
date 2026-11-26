@@ -1,12 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   toCellId,
   parseCellId,
   ReplayAdapter,
-  AirDataService
+  AirDataService,
+  OpenAQAdapter
 } from "../src/index.js";
 
 describe("@airdelta/air-adapters test suite", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("normalizes coordinates into a spatial grid cell", () => {
     const cell = toCellId(28.613939, 77.209021);
     expect(cell).toBe("28.61:77.21");
@@ -35,7 +40,6 @@ describe("@airdelta/air-adapters test suite", () => {
   it("executes request coalescing for concurrent spatial requests", async () => {
     const service = new AirDataService({ replayMode: true });
 
-    // Launch 5 concurrent calls to the same cell
     const promises = [
       service.getAirSnapshot(28.61, 77.21),
       service.getAirSnapshot(28.614, 77.209),
@@ -46,17 +50,133 @@ describe("@airdelta/air-adapters test suite", () => {
 
     const results = await Promise.all(promises);
     expect(results).toHaveLength(5);
-    // All should resolve with the same grid cell
     for (const r of results) {
       expect(r.cell).toBe("28.61:77.21");
       expect(r.indexValue).toBe(385);
     }
   });
 
-  it("gracefully falls back when primary credentials are not provided", async () => {
-    // Neither Google nor OpenAQ keys provided -> falls back gracefully without unhandled exception
+  it("uses OpenAQ as default primary provider and ignores Google AQ unless explicitly enabled", async () => {
+    const nowIso = new Date(Date.now() - 20 * 60 * 1000).toISOString();
+    const stale2018Iso = "2018-02-21T21:15:00Z";
+
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("airquality.googleapis.com")) {
+        throw new Error("Google AQ API must not be called by default");
+      }
+      if (url.includes("/v3/locations?coordinates=")) {
+        return new Response(
+          JSON.stringify({
+            results: [
+              {
+                id: 13,
+                name: "Stale 2018 Station",
+                distance: 1000,
+                datetimeLast: { utc: stale2018Iso },
+                sensors: [{ parameter: { name: "pm25" } }]
+              },
+              {
+                id: 17,
+                name: "R K Puram, Delhi - DPCC",
+                distance: 6013,
+                datetimeLast: { utc: nowIso },
+                sensors: [{ parameter: { name: "pm25" } }, { parameter: { name: "pm10" } }]
+              }
+            ]
+          }),
+          { status: 200 }
+        );
+      }
+      if (url.includes("/v3/locations/17/sensors")) {
+        return new Response(
+          JSON.stringify({
+            results: [
+              {
+                parameter: { name: "pm25", units: "µg/m³" },
+                latest: { value: 149, datetime: { utc: nowIso, local: nowIso } }
+              },
+              {
+                // Older duplicate sensor appearing later in the array must not overwrite fresh reading
+                parameter: { name: "pm25", units: "µg/m³" },
+                latest: { value: 201, datetime: { utc: stale2018Iso } }
+              },
+              {
+                parameter: { name: "pm10", units: "µg/m³" },
+                latest: { value: 226, datetime: { utc: nowIso } }
+              },
+              {
+                parameter: { name: "no2", units: "ppb" },
+                latest: { value: 50, datetime: { utc: nowIso } }
+              }
+            ]
+          }),
+          { status: 200 }
+        );
+      }
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    });
+
     const service = new AirDataService({
-      enableGoogle: true,
+      googleApiKey: "fake-google-key",
+      openaqApiKey: "fake-openaq-key"
+    });
+
+    const snapshot = await service.getAirSnapshot(28.61, 77.21);
+    expect(snapshot.source).toBe("openaq");
+    expect(snapshot.badge).toBe("measured");
+    expect(snapshot.pm25).toBe(149);
+    expect(snapshot.pm10).toBe(226);
+    expect(snapshot.pollutants?.no2).toBeCloseTo(94.1, 0);
+    expect(snapshot.indexStandard).toBe("ind_cpcb");
+    expect(snapshot.indexValue).toBe(322);
+    expect(snapshot.attribution).toContain("R K Puram");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("handles zero PM2.5 readings cleanly in OpenAQAdapter", async () => {
+    const nowIso = new Date().toISOString();
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("/v3/locations?")) {
+        return new Response(
+          JSON.stringify({
+            results: [
+              {
+                id: 99,
+                name: "Clean Monitor",
+                distance: 1500,
+                datetimeLast: { utc: nowIso },
+                sensors: [{ parameter: { name: "pm25" } }]
+              }
+            ]
+          }),
+          { status: 200 }
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          results: [
+            {
+              parameter: { name: "pm25", units: "µg/m³" },
+              latest: { value: 0, datetime: { utc: nowIso } }
+            }
+          ]
+        }),
+        { status: 200 }
+      );
+    });
+
+    const adapter = new OpenAQAdapter("test-key");
+    const snap = await adapter.fetchCurrent(12.97, 77.59);
+    expect(snap.pm25).toBe(0);
+    expect(snap.indexValue).toBe(0);
+    expect(snap.category).toBe("Good");
+  });
+
+  it("gracefully falls back when primary credentials are not provided", async () => {
+    const service = new AirDataService({
+      enableGoogle: false,
       enableOpenAQ: true
     });
 

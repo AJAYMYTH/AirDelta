@@ -14,10 +14,12 @@ export class PlannerService {
   private geminiService: GeminiService;
   private validatorService: GroundingValidatorService;
   private fallbackService: TemplateFallbackService;
+  private narrationCache = new Map<string, { value: any; expiresAt: number }>();
 
   constructor(
     private airService: AirDataService,
-    geminiOverride?: GeminiService
+    geminiOverride?: GeminiService,
+    private disableLlm = false
   ) {
     this.geminiService = geminiOverride || new GeminiService();
     this.validatorService = new GroundingValidatorService();
@@ -28,18 +30,25 @@ export class PlannerService {
     profile: HouseholdProfile,
     targetLang = "en",
     airOverride?: AirSnapshot,
-    forecastOverride?: AirForecast
+    forecastOverride?: AirForecast,
+    includeLlm = true
   ): Promise<PlanResponse> {
     const coords = parseCellId(profile.gridCell);
-    const air = airOverride || (await this.airService.getAirSnapshot(coords.lat, coords.lng));
-    const forecast = forecastOverride || (await this.airService.getAirForecast(coords.lat, coords.lng));
+    const [air, forecast] = await Promise.all([
+      airOverride ? Promise.resolve(airOverride) : this.airService.getAirSnapshot(coords.lat, coords.lng),
+      forecastOverride ? Promise.resolve(forecastOverride) : this.airService.getAirForecast(coords.lat, coords.lng)
+    ]);
 
     // 1. Deterministic pure-TS engine optimization
     const engineResult = optimizeHouseholdPlan(profile, air, forecast);
 
-    // 2. Narration path: Gemini LLM -> Numeric Validator -> Deterministic Template Fallback
+    // 2. Narration path: Cache -> Gemini LLM -> Numeric Validator -> Deterministic Template Fallback
     let narrative = null;
-    if (this.geminiService.isAvailable()) {
+    const cacheKey = `${profile.gridCell}:${air.indexValue ?? 0}:${targetLang}:${engineResult.planA.totalDoseUg.mid}:${engineResult.planB.totalDoseUg.mid}`;
+    const cached = this.narrationCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      narrative = cached.value;
+    } else if (includeLlm && !this.disableLlm && this.geminiService.isAvailable()) {
       const generated = await this.geminiService.generatePlanNarration(
         targetLang,
         air,
@@ -58,6 +67,10 @@ export class PlannerService {
 
         if (validation.isValid) {
           narrative = generated;
+          this.narrationCache.set(cacheKey, {
+            value: generated,
+            expiresAt: Date.now() + 15 * 60 * 1000
+          });
         }
       }
     }
@@ -70,6 +83,13 @@ export class PlannerService {
         engineResult.planA,
         engineResult.planB
       );
+      if (includeLlm && !this.disableLlm) {
+        // Cache fallback briefly (60s) during transient upstream spikes so repeat loads stay instant
+        this.narrationCache.set(cacheKey, {
+          value: narrative,
+          expiresAt: Date.now() + 60 * 1000
+        });
+      }
     }
 
     return {

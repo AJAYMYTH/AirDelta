@@ -1,16 +1,44 @@
 # AirDelta (Δ) — AI-Assisted Winter Smog Action Engine
 
-[![Tests](https://img.shields.io/badge/tests-50%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
+[![Tests](https://img.shields.io/badge/tests-52%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Engine](https://img.shields.io/badge/engine-pure%20TypeScript-blue?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Standards](https://img.shields.io/badge/standard-CPCB%20NAQI%20%7C%20CAQM%20GRAP-orange?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Languages](https://img.shields.io/badge/languages-12%20Indian%20Regional-purple?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Database](https://img.shields.io/badge/database-Supabase%20Postgres%20%2B%20RLS-3ECF8E?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Channel](https://img.shields.io/badge/channel-Astro%20PWA%20%2B%20Telegram%20Bot-0284c7?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 
-> **Event:** PromptWars Hackathon · **Focus:** Severe Winter Smog & Urban Air Pollution in India  
+> **Event:** PromptWars Hackathon · **Chosen Vertical:** Public Health & Climate Resilience (Severe Winter Smog & Urban Air Pollution in India)  
 > **Thesis:** Everyone displays the raw AQI. Almost nobody answers: *"What should my family actually change today, what does it save our lungs in toxic particles, and how sure are you?"*
 
-AirDelta computes a household's personalized **Plan A (normal day) vs. Plan B (optimized day)** inhaled $\text{PM}_{2.5}$ dose difference and carbon emissions ledger using deterministic physical and biological exposure models (`@airdelta/engine`). Gemini is used exclusively for narrative explanation, contextual advice, indoor vision audits, and multilingual translation across **all 12 major Indian regional languages**, strictly verified by an automated numeric-grounding validator.
+AirDelta computes a household's personalized **Plan A (normal day) vs. Plan B (optimized day)** inhaled $\text{PM}_{2.5}$ dose difference and carbon emissions ledger using deterministic physical and biological exposure models (`@airdelta/engine`). Live monitoring defaults to **OpenAQ v3 physical ground stations** (with Open-Meteo CAMS forecast fallback and deterministic offline replay; Google Air Quality API is disabled by default). Gemini (`gemini-3.6-flash` with fallback chain) is used exclusively for narrative explanation, contextual advice, indoor vision audits, and multilingual translation across **all 12 major Indian regional languages**, strictly verified by an automated numeric-grounding validator.
+
+---
+
+## 🎯 Chosen Vertical, Approach & Logic
+
+### 1. Chosen Vertical & Personas
+- **Vertical:** Public Health & Climate Action — Urban Air Pollution Decision Engine for Indian Households & Communities.
+- **Primary Personas:**
+  - **Parents / Caregivers** (Delhi-NCR, Mumbai, Bengaluru, Kanpur, Patna, Lucknow): Need 60-second routine adjustments (morning walk timing, school run, cooking exhaust) quantified in inhaled µg $\text{PM}_{2.5}$.
+  - **RWAs / Schools / Workplaces:** Need non-alarmist, GRAP-stage-aligned multilingual WhatsApp/Telegram notices (`hi`, `bn`, `te`, `mr`, `ta`, `ur`, `gu`, `kn`, `or`, `ml`, `pa`, `as`, `en`).
+  - **Urban Commuters:** Need exposure-vs-emissions trade-offs (e.g., why cycling in severe smog increases inhaled dose vs. Metro + N95).
+
+### 2. Approach & Logic
+1. **Strict Math Boundary (`LLM Explains, Code Computes`):** The LLM never computes or invents pollution numbers, inhaled doses, or savings percentages. Pure TypeScript modules (`@airdelta/engine`) execute all exposure, mass-balance, and emissions equations.
+2. **Numeric Grounding Validator:** Every sentence returned by Gemini is scanned for numeric tokens (`GroundingValidatorService`). Any ungrounded number triggers automatic fallback to verified multilingual deterministic templates (`TemplateFallbackService`).
+3. **OpenAQ v3 Default Primary + Resilient Degradation:** `AirDataService` queries OpenAQ v3 stations within 25 km (prioritizing fresh `< 3h` multi-pollutant CPCB/SPCB stations, picking the newest sensor timestamp per pollutant, converting units to µg/m³, and computing official CPCB NAQI breakpoints), uses Open-Meteo ECMWF CAMS for 72h hourly dispersion forecasts, and degrades safely to stale cache or offline replay fixtures (`fixtures/delhi-smog-nov2026.json`) without ever fabricating readings.
+4. **Human-in-the-Loop Indoor Vision Audit:** Uploaded room photos are downscaled and re-encoded via HTML `<canvas>` on the client to strip EXIF geolocation before Gemini Vision proposes candidate sources, which the user confirms/edits before recalculating single-compartment indoor mass balance.
+
+### 3. How the Solution Works
+1. **Air Data Layer (`@airdelta/air-adapters`):** Coalesces concurrent requests per `0.01°` (~1.1 km) grid cell, fetches live OpenAQ v3 station telemetry + Open-Meteo CAMS forecast, and attaches one of four provenance badges (`[Measured]`, `[Forecast]`, `[Modelled]`, `[Assumed]`).
+2. **Optimization Engine (`@airdelta/engine`):** Simulates Plan A segment-by-segment inhaled $\text{PM}_{2.5}$ dose ($D = \sum C_{seg} \times VE_{seg} \times \Delta t_{seg}$) and compares Plan B shifts (moving walks to the cleanest afternoon window, shifting two-wheeler/car commutes to Metro + N95, running kitchen exhaust).
+3. **Dual Delivery Channels (`apps/web` + `apps/api` + `grammY`):** Both the 7-page Astro PWA and the `@AirDeltaBot` Telegram bot consume the unified Hono REST API (`/v1/air`, `/v1/plans`, `/v1/indoor-audits`, `/v1/advisories`).
+
+### 4. Assumptions Made
+- **Versioned Constants Registry (`2026-11-a`):** Minute ventilation rates ($VE$) follow US EPA Exposure Factors Handbook Chapter 6; building envelope penetration ($F_{micro}$) follows EPIC India / Nazaroff indoor aerosol studies; transport emission factors follow CPCB & DMRC data; uncertainty bounds propagate deterministically at $[0.80, 1.25] \times D$ (or $\pm 15\%$ / $\pm 20\%$ as documented in `packages/engine/src/dose.ts`).
+- **Spatial & Privacy Minimization:** Coordinates snap to `0.01°` (~1.1 km) grid cells (no street addresses stored); `PiiSanitizerService` strips Indian phone numbers, Aadhaar numbers, emails, addresses, and prompt-injection payloads; community impact views enforce $k \ge 5$ household anonymity; stored plans prune after 30 days.
+- **Indoor Steady-State Model:** Single-compartment room volume defaults to $45\text{ m}^3$ (typical urban bedroom/living space) with default air-exchange $\lambda = 1.2\text{ h}^{-1}$ and deposition $k = 0.25\text{ h}^{-1}$ when user room dimensions are omitted.
+- **OpenAQ Sensor Freshness:** Ground monitor readings $\le 3\text{ hours}$ old carry the `[Measured]` badge; older readings degrade to `[Modelled]`. Forecast windows use Open-Meteo CAMS dispersion modelling because OpenAQ v3 serves observed historical/current monitor data rather than future forecasts.
 
 ---
 
@@ -19,12 +47,12 @@ AirDelta computes a household's personalized **Plan A (normal day) vs. Plan B (o
 ```mermaid
 flowchart TD
     User["Household Routine + Budget + Grid Cell"] --> Engine["@airdelta/engine (Pure TypeScript)"]
-    AirProviders["Google AQ + OpenAQ + CAMS"] --> Adapters["@airdelta/air-adapters (Spatial Grid Cache 0.01°)"]
+    AirProviders["OpenAQ v3 (Default Primary) + Open-Meteo CAMS"] --> Adapters["@airdelta/air-adapters (Spatial Grid Cache 0.01°)"]
     Adapters --> Engine
     
     subgraph "Strict Math & Grounding Boundary"
         Engine -->|"Plan A vs Plan B Dose (µg)\n% Savings + gCO2e"| Validator["Numeric Grounding Validator"]
-        Engine -->|"Ground-Truth Data"| Gemini["Gemini 2.5 Flash\n(Structured Narration & Vision)"]
+        Engine -->|"Ground-Truth Data"| Gemini["Gemini 3.6 Flash\n(Structured Narration & Vision)"]
         Gemini -->|"Candidate Text"| Validator
         Validator -->|"Passed Grounding"| FinalOutput["Plan Response"]
         Validator -->|"Failed / Hallucinated"| TemplateFallback["Multilingual Deterministic Fallback"]
@@ -41,7 +69,7 @@ flowchart TD
 2. **Four Evidence Badges on Every Number:**  
    Every figure displayed to the user carries one of four explicit provenance badges:
    - `[Measured]`: Ground monitor reading (CPCB / OpenAQ CAAQMS) $\le$ 25 km away and $<$ 3 hours old.
-   - `[Forecast]`: Hourly forecast from Google Air Quality API or ECMWF CAMS atmospheric models.
+   - `[Forecast]`: Hourly forecast from Open-Meteo / ECMWF CAMS atmospheric dispersion models (Google Air Quality API disabled by default).
    - `[Modelled]`: Calculated via microenvironment penetration, indoor mass-balance, or transport factor equations.
    - `[Assumed]`: Documented literature constant from the versioned Constants Registry `2026-11-a`.
 3. **Degrade, Never Lie:**  
@@ -62,7 +90,7 @@ Where:
 - $F_{micro, i}$ is the microenvironment penetration factor (e.g., unsealed home: $0.75$, 2-wheeler: $1.15$, Metro: $0.25$, sealed AC car: $0.30$).
 - $VE_{seg, i}$ is the age- and exertion-specific minute ventilation rate from US EPA Exposure Factors Handbook ($m^3/h$).
 - $\Delta t_{seg, i}$ is duration in hours.
-- Uncertainty intervals are propagated at $[0.85, 1.15] \times D$.
+- Uncertainty intervals are propagated at $[0.80, 1.25] \times D$.
 
 ### 2. Indoor Single-Compartment Mass Balance
 $$\frac{dC_{in}}{dt} = P \lambda C_{out} - \left( \lambda + k + \frac{\text{CADR}}{V} \right) C_{in} + \frac{S}{V}$$
@@ -203,7 +231,7 @@ curl -X POST "http://localhost:3000/v1/jobs/retention-purge?days=30"
 AirDelta includes an exhaustive suite of unit, property, and end-to-end evaluation tests:
 
 ```bash
-# Run all 50 tests across 12 test suites
+# Run all 52 tests across 12 test suites
 pnpm test
 
 # Typecheck all 8 packages and apps (0 errors, 0 warnings)
