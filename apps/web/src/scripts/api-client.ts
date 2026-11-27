@@ -26,6 +26,7 @@ export function snapToGrid(lat: number, lng: number): { lat: number; lng: number
 }
 
 export const DEFAULT_API_BASE = "http://localhost:3000";
+export const PRODUCTION_API_BASE = "https://airdelta-api.onrender.com";
 
 export function getApiBase(): string {
   try {
@@ -33,6 +34,12 @@ export function getApiBase(): string {
     if (envBase && typeof envBase === "string") return envBase.replace(/\/$/, "");
     const stored = localStorage.getItem("airdelta_api_url");
     if (stored) return stored.replace(/\/$/, "");
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host !== "localhost" && host !== "127.0.0.1") {
+        return PRODUCTION_API_BASE;
+      }
+    }
   } catch {
     // ignore storage access issues
   }

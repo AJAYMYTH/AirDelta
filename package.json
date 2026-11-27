@@ -12,7 +12,8 @@
     "check:env": "node ./scripts/verify-env.mjs",
     "setup:env": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-env.ps1",
     "bot": "pnpm --filter @airdelta/api bot",
-    "bot:webhook": "node ./scripts/set-telegram-webhook.mjs"
+    "bot:webhook": "node ./scripts/set-telegram-webhook.mjs",
+    "deploy:cf": "npx --yes wrangler deploy"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

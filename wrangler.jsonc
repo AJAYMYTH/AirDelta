@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "airdelta-web",
+  "compatibility_date": "2025-11-01",
+  "assets": {
+    "directory": "./apps/web/dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "build": {
+    "command": "pnpm --filter @airdelta/web... run build"
+  }
+}
