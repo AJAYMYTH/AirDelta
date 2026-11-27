@@ -13,6 +13,8 @@
     "setup:env": "powershell -ExecutionPolicy Bypass -File ./scripts/setup-env.ps1",
     "bot": "pnpm --filter @airdelta/api bot",
     "bot:webhook": "node ./scripts/set-telegram-webhook.mjs",
+    "api:keepwarm": "node ./scripts/keep-warm.mjs",
+    "api:keepwarm:once": "node ./scripts/keep-warm.mjs --once --warm-air",
     "deploy:cf": "npx --yes wrangler deploy"
   },
   "devDependencies": {

@@ -1,0 +1,23 @@
+name: AirDelta API Keep-Warm
+
+on:
+  schedule:
+    # Ping production backend every 10 minutes to reduce Render free-tier cold starts
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: airdelta-keep-warm
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ping production backend (/healthz + cache warm)
+        run: node ./scripts/keep-warm.mjs https://airdelta-api.onrender.com --once --warm-air

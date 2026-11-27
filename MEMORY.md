@@ -180,6 +180,9 @@ airdelta/
   - Added `VE.sleep.teen`, `VE.rest.teen`, `VE.light_exercise.teen`, `VE.moderate_exercise.teen`, `VE.sleep.senior`, and `VE.moderate_exercise.senior` to `CONSTANTS_REGISTRY`, added an adult fallback guard + explicit `cycle` mode mapping in `packages/engine/src/dose.ts`, wrapped `dbService.savePlan` in `try/catch` inside `plans.route.ts`, bounded `PlannerService.narrationCache` and `SupabaseService` memory stores via LRU/cap limits (`500` records / `2000` events), and added transient `502`/`503`/`504`/`429` retry + error logging in `apps/web/src/scripts/api-client.ts`.
   - Added full age-band (`child`, `teen`, `adult`, `senior`) and commute-mode matrix tests in `packages/engine/tests/dose.test.ts` and `apps/api/tests/plans.test.ts` (`65/65` tests passing).
   - Prepared Cloudflare Workers Static Assets deployment (`wrangler.jsonc`, `apps/web/public/_headers`, `PRODUCTION_API_BASE` auto-detection in `api-client.ts`, `deploy:cf` script).
+- [x] **Production Backend Keep-Warm Automation (Nov 27, 2026):**
+  - Created zero-dependency [scripts/keep-warm.mjs](file:///c:/Users/javal/Music/promptWars/scripts/keep-warm.mjs) (`pnpm api:keepwarm` 10-minute loop / `pnpm api:keepwarm:once` single warm-up ping with retry logic for cold starts).
+  - Added `.github/workflows/keep-warm.yml` running every 10 minutes (`*/10 * * * *` + `workflow_dispatch`) against `https://airdelta-api.onrender.com/healthz` and `/v1/air` to keep the production Render backend warm.
 
 ## Development Progress
 - **Current Status:** Production-hardened across all 8 Astro pages (`/`, `/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), global AI Chat Assistant, Hono API (Render), and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 65/65 tests passing.
