@@ -7,6 +7,11 @@ export function createAirRoutes(airService: AirDataService) {
   router.get("/", async (c) => {
     const latStr = c.req.query("lat");
     const lngStr = c.req.query("lng");
+    const providerParam = c.req.query("provider");
+    const preferredProvider =
+      providerParam === "open_meteo" || providerParam === "openaq" || providerParam === "auto"
+        ? providerParam
+        : undefined;
 
     const lat = latStr ? parseFloat(latStr) : 28.6139; // Default Delhi (Connaught Place)
     const lng = lngStr ? parseFloat(lngStr) : 77.2090;
@@ -15,12 +20,8 @@ export function createAirRoutes(airService: AirDataService) {
       return c.json({ error: "Invalid latitude or longitude parameters" }, 400);
     }
 
-    try {
-      const snapshot = await airService.getAirSnapshot(lat, lng);
-      return c.json(snapshot);
-    } catch (err: any) {
-      return c.json({ error: "Failed to fetch air snapshot", message: err.message }, 502);
-    }
+    const snapshot = await airService.getAirSnapshot(lat, lng, preferredProvider);
+    return c.json(snapshot);
   });
 
   router.get("/forecast", async (c) => {
@@ -34,12 +35,15 @@ export function createAirRoutes(airService: AirDataService) {
       return c.json({ error: "Invalid latitude or longitude parameters" }, 400);
     }
 
-    try {
-      const forecast = await airService.getAirForecast(lat, lng);
-      return c.json(forecast);
-    } catch (err: any) {
-      return c.json({ error: "Failed to fetch air forecast", message: err.message }, 502);
-    }
+    const forecast = await airService.getAirForecast(lat, lng);
+    return c.json(forecast);
+  });
+
+  router.get("/health", (c) => {
+    return c.json({
+      status: "ok",
+      adapters: airService.getAdapterStats()
+    });
   });
 
   return router;

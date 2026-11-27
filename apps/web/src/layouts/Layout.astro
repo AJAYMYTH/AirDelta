@@ -14,6 +14,8 @@ import Check from "lucide-astro/Check";
 import ExternalLink from "lucide-astro/ExternalLink";
 import Wind from "lucide-astro/Wind";
 import Radio from "lucide-astro/Radio";
+import Menu from "lucide-astro/Menu";
+import MapPin from "lucide-astro/MapPin";
 
 interface Props {
   title?: string;
@@ -26,6 +28,7 @@ const currentPath = Astro.url.pathname;
 
 const navItems = [
   { href: "/", label: "Today", i18nKey: "navToday", icon: Sun },
+  { href: "/map", label: "AQI Map", i18nKey: "navMap", icon: MapPin },
   { href: "/plan", label: "Daily Plan", i18nKey: "navPlan", icon: Scale },
   { href: "/indoor", label: "Room Check", i18nKey: "navIndoor", icon: Home },
   { href: "/community", label: "Share Alert", i18nKey: "navCommunity", icon: Users },
@@ -39,7 +42,7 @@ const navItems = [
 <html lang={lang} class="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#ffffff" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -50,125 +53,172 @@ const navItems = [
     />
     <title>{title}</title>
   </head>
-  <body class="min-h-screen flex flex-col bg-[#f7f9fa] text-[#171717] font-sans antialiased pb-20 md:pb-0">
+  <body class="min-h-dvh flex flex-col bg-[#f7f9fa] text-[#171717] font-sans antialiased pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-0">
     <a href="#main-content" class="visually-hidden fixed top-2 left-2 z-[60] px-4 py-2 rounded-full bg-[#ea580c] text-white text-xs font-bold shadow-md" data-i18n="skipToMain">
       Skip to main content
     </a>
 
     <!-- Live Air Bar -->
-    <div id="global-alert-bar" class="bg-[#fff7ed] border-b border-[#fed7aa] px-4 py-2 text-center text-xs text-[#9a3412] flex items-center justify-center gap-2">
+    <div id="global-alert-bar" class="bg-[#fff7ed] border-b border-[#fed7aa] px-3 sm:px-4 py-2 text-center text-[11px] sm:text-xs text-[#9a3412] flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
       <Radio class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
-      <span>
+      <span class="min-w-0">
         <strong id="global-alert-title" data-i18n="severeAirWarning">Live Air Update:</strong>
-        <span id="global-alert-text" class="ml-1 font-medium" data-i18n="connectingOpenAq">Checking nearest OpenAQ station...</span>
+        <span id="global-alert-text" class="ml-1 font-medium" data-i18n="connectingOpenAq">Checking nearest air station...</span>
       </span>
       <a href="/community" class="font-bold underline text-[#c2410c] hover:text-[#9a3412] hidden sm:inline ml-1" data-i18n="shareNoticeLink">Share Notice →</a>
     </div>
 
     <!-- Main Navigation Bar -->
     <header class="border-b border-[#e5e5e5] bg-white/95 backdrop-blur sticky top-0 z-50 shadow-2xs">
-      <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-        <a href="/" class="flex items-center gap-3 group press-scale shrink-0">
-          <div class="w-9 h-9 rounded-xl bg-[#ea580c] flex items-center justify-center text-white shadow-sm group-hover:bg-[#c2410c] transition-all">
+      <div class="max-w-6xl mx-auto px-3 sm:px-4 min-h-16 py-2 flex items-center justify-between gap-2 sm:gap-3">
+        <a href="/" class="flex items-center gap-2.5 sm:gap-3 group press-scale shrink-0 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-[#ea580c] flex items-center justify-center text-white shadow-sm group-hover:bg-[#c2410c] transition-all shrink-0">
             <Wind class="w-5 h-5" aria-hidden="true" />
           </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-extrabold text-lg tracking-tight text-[#171717]">AirDelta</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono font-bold tracking-tight">OpenAQ</span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <span class="font-extrabold text-base sm:text-lg tracking-tight text-[#171717]">AirDelta</span>
             </div>
-            <span class="text-[11px] text-[#737373] block -mt-0.5 font-medium" data-i18n="tagline">Daily Clean Air Guide</span>
+            <span class="text-[11px] text-[#737373] block -mt-0.5 font-medium truncate max-w-[130px] sm:max-w-none" data-i18n="tagline">Daily Clean Air Guide</span>
           </div>
         </a>
 
-        <!-- Desktop Navigation -->
-        <nav aria-label="Primary" class="hidden md:flex items-center gap-1 text-xs font-semibold text-[#525252]">
+        <!-- Desktop Navigation (lg+ where all 7 items fit cleanly) -->
+        <nav aria-label="Primary" class="hidden lg:flex items-center gap-1 text-xs font-semibold text-[#525252] min-w-0 flex-wrap justify-center">
           {navItems.map((item) => {
             const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
             const IconComp = item.icon;
             return (
               <a 
                 href={item.href} 
-                class={`px-3 py-2 rounded-full transition-all flex items-center gap-1.5 press-scale whitespace-nowrap ${
+                aria-current={isActive ? "page" : undefined}
+                class={`px-2.5 xl:px-3 py-2 rounded-full transition-all flex items-center gap-1.5 press-scale whitespace-nowrap ${
                   isActive 
                     ? "bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] font-bold shadow-2xs" 
                     : "hover:text-[#171717] hover:bg-[#f5f5f5]"
                 }`}
               >
-                <IconComp class="w-3.5 h-3.5" aria-hidden="true" />
+                <IconComp class="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 <span data-i18n={item.i18nKey}>{item.label}</span>
               </a>
             );
           })}
         </nav>
 
-        <!-- Transitions.dev Language Switcher Dropdown -->
-        <div class="relative shrink-0">
-          <button 
-            id="btn-lang-dropdown" 
-            type="button" 
-            class="px-3.5 py-1.5 bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold rounded-full text-[#171717] flex items-center gap-2 transition-all cursor-pointer shadow-2xs press-scale"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            aria-controls="lang-dropdown-menu"
-          >
-            <Globe class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
-            <span id="lang-display-name">English</span>
-            <ChevronDown id="lang-chevron" class="w-3.5 h-3.5 text-[#737373] transition-transform duration-200" aria-hidden="true" />
-          </button>
+        <!-- Right Controls: Language Switcher + Responsive Menu (Phones & Tablets < lg) -->
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <!-- Transitions.dev Language Switcher Dropdown -->
+          <div class="relative shrink-0">
+            <button 
+              id="btn-lang-dropdown" 
+              type="button" 
+              class="px-2.5 sm:px-3.5 py-1.5 bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold rounded-full text-[#171717] flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer shadow-2xs press-scale"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="lang-dropdown-menu"
+            >
+              <Globe class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+              <span id="lang-display-name" class="max-w-[4.75rem] sm:max-w-none truncate">English</span>
+              <ChevronDown id="lang-chevron" class="w-3.5 h-3.5 text-[#737373] transition-transform duration-200 shrink-0" aria-hidden="true" />
+            </button>
 
-          <div 
-            id="lang-dropdown-menu" 
-            popover="manual"
-            class="t-dropdown dropdown-surface rounded-2xl p-1.5 w-64 space-y-0.5"
-            data-origin="top-right"
-            data-align="end"
-            role="menu"
-            aria-labelledby="btn-lang-dropdown"
-            inert
-          >
-            <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#737373] border-b border-[#e5e5e5]/70 mb-1" data-i18n="chooseLangTitle">
-              Choose Your Language
+            <div 
+              id="lang-dropdown-menu" 
+              popover="manual"
+              class="t-dropdown dropdown-surface rounded-2xl p-1.5 w-64 space-y-0.5"
+              data-origin="top-right"
+              data-align="end"
+              role="menu"
+              aria-labelledby="btn-lang-dropdown"
+              inert
+            >
+              <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#737373] border-b border-[#e5e5e5]/70 mb-1" data-i18n="chooseLangTitle">
+                Choose Your Language
+              </div>
+              {languages.map((l) => (
+                <button 
+                  type="button" 
+                  data-lang-code={l.code}
+                  class="lang-menu-item w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer text-[#525252] hover:bg-[#f7f9fa]"
+                  role="menuitem"
+                >
+                  <div class="flex flex-col">
+                    <span class="font-bold text-[#171717] leading-tight">{l.nativeName}</span>
+                    <span class="text-[10px] text-[#737373] leading-none">{l.name} ({l.code})</span>
+                  </div>
+                  <Check class="lang-check w-4 h-4 text-[#ea580c] opacity-0 transition-opacity" aria-hidden="true" />
+                </button>
+              ))}
             </div>
-            {languages.map((l) => (
-              <button 
-                type="button" 
-                data-lang-code={l.code}
-                class="lang-menu-item w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-left transition-colors cursor-pointer text-[#525252] hover:bg-[#f7f9fa]"
-                role="menuitem"
-              >
-                <div class="flex flex-col">
-                  <span class="font-bold text-[#171717] leading-tight">{l.nativeName}</span>
-                  <span class="text-[10px] text-[#737373] leading-none">{l.name} ({l.code})</span>
-                </div>
-                <Check class="lang-check w-4 h-4 text-[#ea580c] opacity-0 transition-opacity" aria-hidden="true" />
-              </button>
-            ))}
+          </div>
+
+          <!-- Responsive Menu Trigger (< lg devices: phones, foldables, tablets) -->
+          <div class="lg:hidden relative">
+            <button
+              id="btn-mobile-menu"
+              type="button"
+              popovertarget="mobile-nav-menu"
+              popovertargetaction="toggle"
+              aria-controls="mobile-nav-menu"
+              aria-label="Open site navigation menu"
+              class="px-2.5 sm:px-3 py-1.5 bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold rounded-full text-[#171717] flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs press-scale"
+            >
+              <Menu class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+              <span class="hidden sm:inline" data-i18n="navMenuBtn">Menu</span>
+            </button>
+
+            <nav
+              id="mobile-nav-menu"
+              popover="auto"
+              aria-label="All pages"
+              class="mobile-nav-popover dropdown-surface rounded-2xl p-2 w-[min(86dvw,19rem)]"
+            >
+              <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#737373] border-b border-[#e5e5e5]/70 mb-1">
+                AirDelta
+              </div>
+              {navItems.map((item) => {
+                const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
+                const IconComp = item.icon;
+                return (
+                  <a
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                    class={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-colors ${
+                      isActive
+                        ? "bg-[#fff7ed] text-[#ea580c] font-bold border border-[#fed7aa]"
+                        : "text-[#171717] font-semibold hover:bg-[#f7f9fa]"
+                    }`}
+                  >
+                    <IconComp class="w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span data-i18n={item.i18nKey}>{item.label}</span>
+                  </a>
+                );
+              })}
+            </nav>
           </div>
         </div>
       </div>
     </header>
 
     <!-- Main Content -->
-    <main id="main-content" tabindex="-1" class="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+    <main id="main-content" tabindex="-1" class="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-4 py-5 sm:py-8">
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer class="bg-[#18181b] text-[#a1a1aa] border-t border-[#27272a] py-10 text-xs mt-16">
-      <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <footer class="bg-[#18181b] text-[#a1a1aa] border-t border-[#27272a] py-8 sm:py-10 text-xs mt-12 sm:mt-16">
+      <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
         <div>
-          <div class="flex items-center gap-2 mb-1">
+          <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
             <span class="w-6 h-6 rounded-lg bg-[#ea580c] text-white flex items-center justify-center font-extrabold text-xs font-mono">Δ</span>
             <span class="font-extrabold text-white text-sm tracking-tight">AirDelta</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#27272a] text-[#fb923c] font-mono font-bold">OpenAQ + CPCB</span>
           </div>
           <p class="text-[#a1a1aa] text-[11px]" data-i18n="footerTagline">Clear, science-backed daily actions to help your family breathe cleaner air.</p>
         </div>
-        <div class="flex flex-wrap items-center gap-5 text-[11px] font-semibold text-[#d4d4d8]">
+        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-4 sm:gap-5 text-[11px] font-semibold text-[#d4d4d8]">
           <a href="/method" class="hover:text-white transition-colors" data-i18n="navMethod">How It Works</a>
           <a href="/settings" class="hover:text-white transition-colors" data-i18n="privacyDataLink">Privacy &amp; Data</a>
-          <a href="https://t.me/airdeltabot" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 rounded-full bg-[#27272a] hover:bg-[#ea580c] hover:text-white text-white transition-all flex items-center gap-1.5 font-bold press-scale">
+          <a href="https://t.me/airdeltabot" target="_blank" rel="noopener noreferrer" class="btn-action px-3.5 py-1.5 rounded-full bg-[#27272a] hover:bg-[#ea580c] hover:text-white text-white transition-all flex items-center gap-1.5 font-bold press-scale">
             <span data-i18n="telegramAlertsLink">Telegram Alerts</span>
             <ExternalLink class="w-3 h-3" aria-hidden="true" />
           </a>
@@ -176,20 +226,21 @@ const navItems = [
       </div>
     </footer>
 
-    <!-- Mobile Fixed Bottom Navigation -->
-    <nav aria-label="Mobile quick navigation" class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur border-t border-[#e5e5e5] flex items-center justify-around z-50 px-2 shadow-lg">
+    <!-- Mobile Fixed Bottom Navigation (Safe-area aware) -->
+    <nav aria-label="Mobile quick navigation" class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-[#e5e5e5] flex items-center justify-around z-50 shadow-lg">
       {navItems.slice(0, 5).map((item) => {
         const isActive = currentPath === item.href || (item.href !== "/" && currentPath.startsWith(item.href));
         const IconComp = item.icon;
         return (
           <a 
             href={item.href}
-            class={`flex flex-col items-center justify-center w-14 h-full text-[10px] gap-1 transition-colors press-scale ${
+            aria-current={isActive ? "page" : undefined}
+            class={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] flex-1 py-1 px-1 text-[10px] gap-0.5 transition-colors press-scale text-center ${
               isActive ? "text-[#ea580c] font-extrabold" : "text-[#525252] hover:text-[#171717]"
             }`}
           >
-            <IconComp class="w-4 h-4" aria-hidden="true" />
-            <span data-i18n={item.i18nKey}>{item.label}</span>
+            <IconComp class="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span class="truncate max-w-full" data-i18n={item.i18nKey}>{item.label}</span>
           </a>
         );
       })}

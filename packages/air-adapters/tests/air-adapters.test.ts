@@ -184,5 +184,53 @@ describe("@airdelta/air-adapters test suite", () => {
     expect(snapshot).toBeDefined();
     expect(snapshot.cell).toBe("28.61:77.21");
     expect(snapshot.badge).toMatch(/^(measured|forecast|modelled)$/);
+  }, 12000);
+
+  it("races OpenAQ and Open-Meteo for accuracy vs latency and never throws if both fail", async () => {
+    const nowIso = new Date().toISOString();
+
+    // Case 1: OpenAQ fails -> automatically falls back to low-latency Open-Meteo
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes("api.openaq.org")) {
+        return new Response("Upstream down", { status: 503 });
+      }
+      if (url.includes("air-quality-api.open-meteo.com")) {
+        return new Response(
+          JSON.stringify({
+            current: {
+              time: nowIso,
+              pm2_5: 42.3,
+              pm10: 78.1,
+              nitrogen_dioxide: 31.2,
+              us_aqi: 118,
+              european_aqi: 52
+            }
+          }),
+          { status: 200 }
+        );
+      }
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    const raceService = new AirDataService({
+      openaqApiKey: "fake-openaq-key",
+      strategy: "race",
+      raceTimeoutMs: 1200
+    });
+
+    const meteoFallback = await raceService.getAirSnapshot(26.45, 80.33);
+    expect(meteoFallback.source).toBe("open_meteo");
+    expect(meteoFallback.indexValue).toBe(118);
+
+    // Case 2: BOTH OpenAQ and Open-Meteo fail -> never throws, returns replay baseline
+    vi.restoreAllMocks();
+    vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Network offline"));
+
+    const failSafe = await raceService.getAirSnapshot(19.08, 72.88);
+    expect(failSafe).toBeDefined();
+    expect(failSafe.cell).toBe("19.08:72.88");
+    expect(failSafe.indexValue).toBeGreaterThan(0);
+    expect(failSafe.source).toBe("replay");
   });
 });

@@ -1,0 +1,563 @@
+---
+import Layout from "../layouts/Layout.astro";
+import MapPin from "lucide-astro/MapPin";
+import LocateFixed from "lucide-astro/LocateFixed";
+import Maximize2 from "lucide-astro/Maximize2";
+import Minimize2 from "lucide-astro/Minimize2";
+import RefreshCw from "lucide-astro/RefreshCw";
+import ArrowRight from "lucide-astro/ArrowRight";
+import ShieldCheck from "lucide-astro/ShieldCheck";
+import MessageCircle from "lucide-astro/MessageCircle";
+import Clock from "lucide-astro/Clock";
+import CloudFog from "lucide-astro/CloudFog";
+import Activity from "lucide-astro/Activity";
+---
+
+<Layout title="AirDelta — Full-Size Live AQI Map">
+  <div class="space-y-5">
+    <!-- Header & Location Permission Bar -->
+    <div class="bg-white border border-[#e5e5e5] rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 stagger-card">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <a href="/" class="text-xs font-semibold text-[#737373] hover:text-[#ea580c] transition-colors" data-i18n="backHome">← Home</a>
+            <span class="text-xs text-[#d4d4d4]">/</span>
+            <span class="text-xs text-[#ea580c] font-bold" data-i18n="navMap">AQI Map</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171717]" data-i18n="mapHeading">
+            Live Air Quality Map
+          </h1>
+          <p class="text-xs sm:text-sm text-[#525252] mt-1" data-i18n="mapSubtitle">
+            Explore real-time Open-Meteo AQI across India or share your location to check nearby air and generate a personalized plan.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            id="btn-map-locate"
+            type="button"
+            class="btn-action px-4 py-2.5 rounded-full bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold flex items-center gap-2 shadow-sm cursor-pointer transition-all press-scale"
+          >
+            <LocateFixed id="locate-icon" class="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span id="btn-map-locate-label" data-i18n="useMyLocation">Use My Live Location</span>
+          </button>
+          <button
+            id="btn-map-refresh"
+            type="button"
+            class="px-3.5 py-2.5 rounded-full bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-[#171717] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors press-scale"
+          >
+            <RefreshCw id="map-refresh-icon" class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+            <span data-i18n="refreshBtn">Refresh</span>
+          </button>
+          <button
+            id="btn-map-fullscreen"
+            type="button"
+            class="px-3.5 py-2.5 rounded-full bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-[#171717] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors press-scale"
+          >
+            <Maximize2 id="fs-enter-icon" class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+            <Minimize2 id="fs-exit-icon" class="w-3.5 h-3.5 text-[#ea580c] hidden shrink-0" aria-hidden="true" />
+            <span id="fs-btn-label" data-i18n="fullScreenBtn">Full Screen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Inline Privacy Transparency Notice before requesting permission -->
+      <div class="px-3.5 py-2.5 rounded-2xl bg-[#f7f9fa] border border-[#e5e5e5] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div class="flex items-start sm:items-center gap-2 text-[#525252]">
+          <ShieldCheck class="w-4 h-4 text-[#15803d] shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
+          <span data-i18n="locationPrivacyNote">
+            Privacy first: your GPS coordinates are rounded to a coarse ~1.1 km area on your device solely to load live Open-Meteo AQI and build your plan.
+          </span>
+        </div>
+        <span id="map-location-status" role="status" aria-live="polite" class="font-mono font-semibold text-[#ea580c] shrink-0" data-i18n="tapMapHint">
+          Tap any spot on the map to inspect AQI
+        </span>
+      </div>
+    </div>
+
+    <!-- Full-Size Interactive Map + Docked AQI & Plan Panel -->
+    <div id="aqi-map-shell" class="aqi-map-shell bg-white border border-[#e5e5e5] rounded-3xl p-3 sm:p-4 shadow-xs space-y-3 stagger-card">
+      <div class="aqi-map-grid grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        <!-- Map Viewport -->
+        <div class="aqi-map-pane lg:col-span-8 xl:col-span-9 relative rounded-2xl overflow-hidden border border-[#e5e5e5] bg-[#f7f9fa]">
+          <div
+            id="aqi-leaflet-map"
+            role="application"
+            aria-label="Interactive Open-Meteo Air Quality Map"
+            class="w-full h-[58dvh] min-h-[360px] lg:h-[calc(100dvh-16rem)] lg:min-h-[520px] z-10"
+          ></div>
+
+          <!-- Compact Top-Left Map Overlay Hint (offset past Leaflet zoom buttons) -->
+          <div class="pointer-events-none absolute top-3 left-14 z-[400] hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-xs border border-[#e5e5e5] shadow-sm text-[11px] font-semibold text-[#171717]">
+            <MapPin class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
+            <span data-i18n="tapMapHint">Tap any spot on the map to inspect AQI</span>
+          </div>
+
+          <!-- Inside-Map Full Screen Toggle (always reachable even inside fullscreen mode) -->
+          <button
+            id="btn-map-fullscreen-inner"
+            type="button"
+            class="absolute top-3 right-3 z-[400] px-3 py-1.5 rounded-full bg-white/95 hover:bg-white backdrop-blur-xs border border-[#d4d4d4] shadow-sm text-[11px] font-bold text-[#171717] flex items-center gap-1.5 cursor-pointer transition-colors press-scale"
+            aria-label="Toggle full screen map"
+          >
+            <Maximize2 id="fs-inner-enter-icon" class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+            <Minimize2 id="fs-inner-exit-icon" class="w-3.5 h-3.5 text-[#ea580c] hidden shrink-0" aria-hidden="true" />
+            <span id="fs-inner-label" data-i18n="fullScreenBtn">Full Screen</span>
+          </button>
+        </div>
+
+        <!-- Selected Location Inspector + Direct Plan Generator -->
+        <aside class="aqi-map-aside lg:col-span-4 xl:col-span-3 flex flex-col justify-between gap-4 p-4 sm:p-5 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5]">
+          <div class="space-y-4">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#ea580c] block" id="inspector-tag">
+                  Open-Meteo Live AQI
+                </span>
+                <h2 id="inspector-title" class="text-lg font-extrabold text-[#171717] mt-0.5 truncate">Delhi-NCR</h2>
+                <p id="inspector-coords" class="text-[11px] font-mono text-[#737373]">Grid 28.61, 77.21</p>
+              </div>
+              <span id="inspector-cat-pill" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] shrink-0">
+                Moderate
+              </span>
+            </div>
+
+            <!-- Big AQI Score Box -->
+            <div class="p-4 bg-white rounded-2xl border border-[#e5e5e5] flex items-center justify-between gap-3">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase text-[#737373] block" data-i18n="aqiScoreLabel">AQI Score</span>
+                <span id="inspector-eu-aqi" class="text-[11px] font-mono text-[#525252] mt-1 block">EU AQI: --</span>
+              </div>
+              <div id="inspector-aqi-value" class="text-5xl font-extrabold font-mono text-[#ea580c] leading-none">--</div>
+            </div>
+
+            <!-- Pollutant Details -->
+            <div class="grid grid-cols-2 gap-2.5 text-xs">
+              <div class="p-3 bg-white rounded-xl border border-[#e5e5e5]">
+                <span class="text-[10px] text-[#737373] font-bold flex items-center gap-1">
+                  <CloudFog class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
+                  <span>PM2.5</span>
+                </span>
+                <span id="inspector-pm25" class="text-base font-extrabold font-mono text-[#171717] mt-0.5 block">-- µg/m³</span>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#e5e5e5]">
+                <span class="text-[10px] text-[#737373] font-bold flex items-center gap-1">
+                  <Activity class="w-3.5 h-3.5 text-[#d97706]" aria-hidden="true" />
+                  <span>PM10</span>
+                </span>
+                <span id="inspector-pm10" class="text-base font-extrabold font-mono text-[#171717] mt-0.5 block">-- µg/m³</span>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-[#e5e5e5]">
+                <span class="text-[10px] text-[#737373] font-bold block">NO₂</span>
+                <span id="inspector-no2" class="text-sm font-extrabold font-mono text-[#171717] mt-0.5 block">-- µg/m³</span>
+              </div>
+              <div class="p-3 bg-[#f0fdf4] rounded-xl border border-[#bbf7d0]">
+                <span class="text-[10px] text-[#15803d] font-bold flex items-center gap-1">
+                  <Clock class="w-3.5 h-3.5" aria-hidden="true" />
+                  <span data-i18n="bestAiringLabel">Best Window</span>
+                </span>
+                <span id="inspector-window" class="text-sm font-extrabold font-mono text-[#15803d] mt-0.5 block">--:--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions: Generate Plan + Send on WhatsApp -->
+          <div class="space-y-2 pt-2 border-t border-[#e5e5e5]">
+            <a
+              id="btn-inspector-plan"
+              href="/plan"
+              class="btn-action w-full px-4 py-3 rounded-full bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all press-scale"
+            >
+              <span data-i18n="generatePlanHere">Generate Plan for This Location</span>
+              <ArrowRight class="w-4 h-4 shrink-0" aria-hidden="true" />
+            </a>
+            <a
+              id="btn-inspector-whatsapp"
+              href="https://wa.me/?text=AirDelta%20AQI%20Map"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-action w-full px-4 py-2.5 rounded-full bg-[#15803d] hover:bg-[#166534] text-white text-xs font-bold flex items-center justify-center gap-2 transition-all press-scale"
+            >
+              <MessageCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span data-i18n="sendWhatsApp">Send on WhatsApp</span>
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <!-- CPCB / US 0-500 AQI Color Legend -->
+      <div class="flex flex-wrap items-center justify-between gap-3 px-2 pt-1 text-[11px]">
+        <span class="font-bold text-[#171717]" data-i18n="aqiLegendTitle">AQI Scale (0–500):</span>
+        <div class="flex flex-wrap items-center gap-2 font-mono font-semibold">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f0fdf4] text-[#15803d] border border-[#bbf7d0]">
+            <span class="w-2 h-2 rounded-full bg-[#16a34a]"></span> 0–50 Good
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f7fee7] text-[#4d7c0f] border border-[#d9f99d]">
+            <span class="w-2 h-2 rounded-full bg-[#65a30d]"></span> 51–100 Satisfactory
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
+            <span class="w-2 h-2 rounded-full bg-[#d97706]"></span> 101–150 Moderate
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#fff7ed] text-[#c2410c] border border-[#fed7aa]">
+            <span class="w-2 h-2 rounded-full bg-[#ea580c]"></span> 151–200 Poor
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#fef2f2] text-[#b91c1c] border border-[#fecaca]">
+            <span class="w-2 h-2 rounded-full bg-[#dc2626]"></span> 201–300 Very Poor
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#fef2f2] text-[#7f1d1d] border border-[#fca5a5]">
+            <span class="w-2 h-2 rounded-full bg-[#991b1b]"></span> 301–500 Severe
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import L from "leaflet";
+    import "leaflet/dist/leaflet.css";
+    import {
+      CITY_PRESETS,
+      buildWhatsAppShareUrl,
+      fetchOpenMeteoSnapshot,
+      fetchResilientAir,
+      formatLocalTime,
+      getAqiVisualSpec,
+      getSelectedCity,
+      requestLiveLocationPermission,
+      setCustomLocation,
+      snapToGrid
+    } from "../scripts/api-client.ts";
+
+    const MAP_HUBS = [
+      ...Object.values(CITY_PRESETS),
+      { code: "KOLKATA", label: "Kolkata", lat: 22.5726, lng: 88.3639, cell: "22.57:88.36" },
+      { code: "CHENNAI", label: "Chennai", lat: 13.0827, lng: 80.2707, cell: "13.08:80.27" },
+      { code: "HYDERABAD", label: "Hyderabad", lat: 17.3850, lng: 78.4867, cell: "17.39:78.49" },
+      { code: "PUNE", label: "Pune", lat: 18.5204, lng: 73.8567, cell: "18.52:73.86" },
+      { code: "JAIPUR", label: "Jaipur", lat: 26.9124, lng: 75.7873, cell: "26.91:75.79" },
+      { code: "AHMEDABAD", label: "Ahmedabad", lat: 23.0225, lng: 72.5714, cell: "23.02:72.57" }
+    ];
+
+    const locateBtn = document.getElementById("btn-map-locate");
+    const locateLabel = document.getElementById("btn-map-locate-label");
+    const locateIcon = document.getElementById("locate-icon");
+    const refreshBtn = document.getElementById("btn-map-refresh");
+    const refreshIcon = document.getElementById("map-refresh-icon");
+    const fsBtn = document.getElementById("btn-map-fullscreen");
+    const fsEnterIcon = document.getElementById("fs-enter-icon");
+    const fsExitIcon = document.getElementById("fs-exit-icon");
+    const fsLabel = document.getElementById("fs-btn-label");
+    const fsInnerBtn = document.getElementById("btn-map-fullscreen-inner");
+    const fsInnerEnterIcon = document.getElementById("fs-inner-enter-icon");
+    const fsInnerExitIcon = document.getElementById("fs-inner-exit-icon");
+    const fsInnerLabel = document.getElementById("fs-inner-label");
+    const mapShell = document.getElementById("aqi-map-shell");
+    const mapContainer = document.getElementById("aqi-leaflet-map");
+    const statusText = document.getElementById("map-location-status");
+
+    const inspTitle = document.getElementById("inspector-title");
+    const inspCoords = document.getElementById("inspector-coords");
+    const inspTag = document.getElementById("inspector-tag");
+    const inspCatPill = document.getElementById("inspector-cat-pill");
+    const inspAqi = document.getElementById("inspector-aqi-value");
+    const inspEuAqi = document.getElementById("inspector-eu-aqi");
+    const inspPm25 = document.getElementById("inspector-pm25");
+    const inspPm10 = document.getElementById("inspector-pm10");
+    const inspNo2 = document.getElementById("inspector-no2");
+    const inspWindow = document.getElementById("inspector-window");
+    const inspPlanLink = document.getElementById("btn-inspector-plan") as HTMLAnchorElement | null;
+    const inspWaLink = document.getElementById("btn-inspector-whatsapp") as HTMLAnchorElement | null;
+
+    const initialCity = getSelectedCity();
+    const map = L.map("aqi-leaflet-map", {
+      zoomControl: true,
+      scrollWheelZoom: true
+    }).setView([initialCity.lat, initialCity.lng], initialCity.code === "LIVE" ? 11 : 5);
+
+    // Free zero-API-key OpenStreetMap standard tiles with Humanitarian OSM fallback
+    let usingFallbackTiles = false;
+    const primaryTiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors · AQI by Open-Meteo",
+      maxZoom: 19
+    }).addTo(map);
+
+    primaryTiles.on("tileerror", () => {
+      if (usingFallbackTiles) return;
+      usingFallbackTiles = true;
+      map.removeLayer(primaryTiles);
+      L.tileLayer("https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap HOT · AQI by Open-Meteo",
+        maxZoom: 19
+      }).addTo(map);
+    });
+
+    if (mapContainer && "ResizeObserver" in window) {
+      new ResizeObserver(() => {
+        map.invalidateSize({ animate: false });
+      }).observe(mapContainer);
+    }
+
+    const hubLayer = L.layerGroup().addTo(map);
+    const localRingLayer = L.layerGroup().addTo(map);
+    let userMarker: L.Marker | null = null;
+    let userCircle: L.Circle | null = null;
+    let selectedMarker: L.CircleMarker | null = null;
+
+    async function fetchLiveOpenMeteoAir(lat: number, lng: number) {
+      const { snapshot, forecast } = await fetchResilientAir(lat, lng);
+      return { snap: snapshot, fc: forecast };
+    }
+
+    function updateInspector(label: string, lat: number, lng: number, snap: any, fc: any, isUserLive = false) {
+      const snapped = snapToGrid(lat, lng);
+      const aqi = typeof snap?.indexValue === "number" ? snap.indexValue : null;
+      const spec = getAqiVisualSpec(aqi);
+
+      if (inspTag) inspTag.textContent = isUserLive ? "Your Live Location · Open-Meteo" : "Open-Meteo Live AQI";
+      if (inspTitle) inspTitle.textContent = label;
+      if (inspCoords) inspCoords.textContent = `Grid ${snapped.lat.toFixed(2)}, ${snapped.lng.toFixed(2)}`;
+      if (inspCatPill) {
+        inspCatPill.textContent = spec.category;
+        inspCatPill.style.backgroundColor = spec.bg;
+        inspCatPill.style.color = spec.text;
+        inspCatPill.style.borderColor = spec.border;
+      }
+      if (inspAqi) {
+        inspAqi.textContent = aqi !== null ? String(aqi) : "--";
+        inspAqi.style.color = spec.color;
+      }
+      if (inspEuAqi) {
+        inspEuAqi.textContent = typeof snap?.europeanAqi === "number" ? `EU AQI: ${snap.europeanAqi}` : "Open-Meteo CAMS";
+      }
+      if (inspPm25) inspPm25.textContent = snap?.pm25 !== null && snap?.pm25 !== undefined ? `${snap.pm25} µg/m³` : "--";
+      if (inspPm10) inspPm10.textContent = snap?.pm10 !== null && snap?.pm10 !== undefined ? `${snap.pm10} µg/m³` : "--";
+      if (inspNo2) inspNo2.textContent = snap?.pollutants?.no2 !== null && snap?.pollutants?.no2 !== undefined ? `${snap.pollutants.no2} µg/m³` : "--";
+
+      const winStr = fc?.cleanestWindow
+        ? `${formatLocalTime(fc.cleanestWindow.startTs)} – ${formatLocalTime(fc.cleanestWindow.endTs)}`
+        : "--:--";
+      if (inspWindow) inspWindow.textContent = winStr;
+
+      if (inspPlanLink) {
+        const params = new URLSearchParams({
+          lat: String(snapped.lat),
+          lng: String(snapped.lng),
+          label
+        });
+        inspPlanLink.href = `/plan?${params.toString()}`;
+      }
+
+      if (inspWaLink) {
+        const msg = [
+          `*AirDelta Live AQI Map Report — ${label}*`,
+          `AQI: ${aqi ?? "--"} (${spec.category}) · Open-Meteo`,
+          `PM2.5: ${snap?.pm25 ?? "--"} µg/m³ · PM10: ${snap?.pm10 ?? "--"} µg/m³ · NO₂: ${snap?.pollutants?.no2 ?? "--"} µg/m³`,
+          `Best Airing Window: ${winStr}`,
+          ``,
+          `Generate safer plan for this spot: ${window.location.origin}/plan?lat=${snapped.lat}&lng=${snapped.lng}&label=${encodeURIComponent(label)}`
+        ].join("\n");
+        inspWaLink.href = buildWhatsAppShareUrl(msg);
+      }
+    }
+
+    function createPinIcon(aqi: number | null, label: string) {
+      const spec = getAqiVisualSpec(aqi);
+      const val = aqi !== null ? String(aqi) : "--";
+      return L.divIcon({
+        className: "aqi-pin-marker",
+        html: `<div class="aqi-pin-badge" style="background:${spec.color}" title="${label}: AQI ${val}">${val}</div>`,
+        iconSize: [44, 28],
+        iconAnchor: [22, 14]
+      });
+    }
+
+    async function inspectCoordinates(lat: number, lng: number, label: string, isUserLive = false, persistCustom = true) {
+      if (statusText) statusText.textContent = `Loading Open-Meteo AQI for ${label}...`;
+      if (persistCustom) {
+        setCustomLocation(lat, lng, label);
+      }
+
+      if (selectedMarker) selectedMarker.remove();
+      selectedMarker = L.circleMarker([lat, lng], {
+        radius: 10,
+        color: "#ea580c",
+        weight: 3,
+        fillColor: "#ffffff",
+        fillOpacity: 0.9
+      }).addTo(map);
+
+      try {
+        const { snap, fc } = await fetchLiveOpenMeteoAir(lat, lng);
+        updateInspector(label, lat, lng, snap, fc, isUserLive);
+        if (statusText) statusText.textContent = `${label}: AQI ${snap.indexValue ?? "--"} (${getAqiVisualSpec(snap.indexValue).category})`;
+
+        // Plot 4 surrounding Open-Meteo grid points (~11 km N/S/E/W) so local air gradient is visible on zoom
+        localRingLayer.clearLayers();
+        const offsets = [
+          { dLat: 0.1, dLng: 0, dir: "North" },
+          { dLat: -0.1, dLng: 0, dir: "South" },
+          { dLat: 0, dLng: 0.1, dir: "East" },
+          { dLat: 0, dLng: -0.1, dir: "West" }
+        ];
+        Promise.allSettled(
+          offsets.map(async (o) => {
+            const pLat = lat + o.dLat;
+            const pLng = lng + o.dLng;
+            const pSnap = await fetchOpenMeteoSnapshot(pLat, pLng);
+            const marker = L.marker([pLat, pLng], {
+              icon: createPinIcon(pSnap.indexValue, `${label} (${o.dir})`)
+            }).addTo(localRingLayer);
+            marker.bindPopup(
+              `<strong>${label} (${o.dir})</strong><br/>AQI: <b>${pSnap.indexValue ?? "--"}</b> (${getAqiVisualSpec(pSnap.indexValue).category})<br/>PM2.5: ${pSnap.pm25 ?? "--"} µg/m³`
+            );
+          })
+        );
+      } catch {
+        if (statusText) statusText.textContent = "Could not load Open-Meteo AQI for this point.";
+      }
+    }
+
+    async function loadIndiaHubs() {
+      if (refreshIcon) refreshIcon.classList.add("animate-spin");
+      hubLayer.clearLayers();
+
+      await Promise.allSettled(
+        MAP_HUBS.map(async (hub) => {
+          try {
+            const snap = await fetchOpenMeteoSnapshot(hub.lat, hub.lng);
+            const spec = getAqiVisualSpec(snap.indexValue);
+            const marker = L.marker([hub.lat, hub.lng], {
+              icon: createPinIcon(snap.indexValue, hub.label)
+            }).addTo(hubLayer);
+
+            L.circle([hub.lat, hub.lng], {
+              radius: 22000,
+              color: spec.color,
+              weight: 1,
+              fillColor: spec.color,
+              fillOpacity: 0.12
+            }).addTo(hubLayer);
+
+            marker.bindTooltip(`${hub.label}: AQI ${snap.indexValue ?? "--"}`, { direction: "top", offset: [0, -10] });
+            marker.on("click", () => {
+              inspectCoordinates(hub.lat, hub.lng, hub.label, false, true);
+              map.flyTo([hub.lat, hub.lng], Math.max(map.getZoom(), 9), { duration: 0.6 });
+            });
+          } catch {
+            // ignore individual hub fetch errors
+          }
+        })
+      );
+
+      if (refreshIcon) refreshIcon.classList.remove("animate-spin");
+    }
+
+    async function locateUserLive() {
+      if (locateIcon) locateIcon.classList.add("animate-spin");
+      if (statusText) statusText.textContent = "Requesting browser location permission...";
+
+      const res = await requestLiveLocationPermission();
+      if (locateIcon) locateIcon.classList.remove("animate-spin");
+
+      if (!res.ok) {
+        if (statusText) statusText.textContent = res.message;
+        return;
+      }
+
+      if (locateLabel) locateLabel.textContent = "Live Location Active";
+      if (userMarker) userMarker.remove();
+      if (userCircle) userCircle.remove();
+
+      userMarker = L.marker([res.lat, res.lng], {
+        icon: L.divIcon({
+          className: "aqi-pin-marker",
+          html: `<div class="aqi-user-pulse" title="Your live area (~1.1 km grid)"></div>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9]
+        })
+      }).addTo(map);
+
+      userCircle = L.circle([res.lat, res.lng], {
+        radius: 1100,
+        color: "#2563eb",
+        weight: 1.5,
+        fillColor: "#2563eb",
+        fillOpacity: 0.1
+      }).addTo(map);
+
+      map.flyTo([res.lat, res.lng], 11, { duration: 0.9 });
+      await inspectCoordinates(res.lat, res.lng, "My Live Location", true, true);
+    }
+
+    map.on("click", (e: L.LeafletMouseEvent) => {
+      const snapped = snapToGrid(e.latlng.lat, e.latlng.lng);
+      inspectCoordinates(snapped.lat, snapped.lng, `Pinned Spot (${snapped.lat.toFixed(2)}, ${snapped.lng.toFixed(2)})`, false, true);
+    });
+
+    locateBtn?.addEventListener("click", locateUserLive);
+    refreshBtn?.addEventListener("click", () => {
+      loadIndiaHubs();
+      const cur = getSelectedCity();
+      inspectCoordinates(cur.lat, cur.lng, cur.label, cur.code === "LIVE", false);
+    });
+
+    function syncFullscreenUi(isFs: boolean) {
+      if (fsEnterIcon) fsEnterIcon.classList.toggle("hidden", isFs);
+      if (fsExitIcon) fsExitIcon.classList.toggle("hidden", !isFs);
+      if (fsLabel) fsLabel.textContent = isFs ? "Exit Full Screen" : "Full Screen";
+      if (fsInnerEnterIcon) fsInnerEnterIcon.classList.toggle("hidden", isFs);
+      if (fsInnerExitIcon) fsInnerExitIcon.classList.toggle("hidden", !isFs);
+      if (fsInnerLabel) fsInnerLabel.textContent = isFs ? "Exit Full Screen" : "Full Screen";
+      requestAnimationFrame(() => map.invalidateSize({ animate: false }));
+      setTimeout(() => map.invalidateSize({ animate: false }), 180);
+    }
+
+    async function toggleFullscreenMap() {
+      if (!mapShell) return;
+      const isNativeFs = document.fullscreenElement === mapShell;
+      const isCssFs = mapShell.classList.contains("is-css-fullscreen");
+
+      if (isNativeFs) {
+        await document.exitFullscreen().catch(() => {});
+        return;
+      }
+      if (isCssFs) {
+        mapShell.classList.remove("is-css-fullscreen");
+        syncFullscreenUi(false);
+        return;
+      }
+
+      try {
+        if (typeof mapShell.requestFullscreen === "function") {
+          await mapShell.requestFullscreen();
+          return;
+        }
+      } catch {
+        // Fall back to viewport-filling CSS fullscreen if native Fullscreen API is blocked
+      }
+      mapShell.classList.add("is-css-fullscreen");
+      syncFullscreenUi(true);
+    }
+
+    fsBtn?.addEventListener("click", toggleFullscreenMap);
+    fsInnerBtn?.addEventListener("click", toggleFullscreenMap);
+
+    document.addEventListener("fullscreenchange", () => {
+      const isFs = Boolean(document.fullscreenElement);
+      if (!isFs) mapShell?.classList.remove("is-css-fullscreen");
+      syncFullscreenUi(isFs);
+    });
+
+    // Check existing permission state without prompting unrequested
+    if ("permissions" in navigator && navigator.permissions?.query) {
+      navigator.permissions.query({ name: "geolocation" }).then((perm) => {
+        if (perm.state === "granted" && locateLabel) {
+          locateLabel.textContent = "Refresh Live Location";
+        }
+      }).catch(() => {});
+    }
+
+    loadIndiaHubs();
+    inspectCoordinates(initialCity.lat, initialCity.lng, initialCity.label, initialCity.code === "LIVE", false);
+  </script>
+</Layout>

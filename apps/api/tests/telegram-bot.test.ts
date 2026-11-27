@@ -60,4 +60,37 @@ describe("Telegram Bot Channel (Option B) test suite", () => {
     expect(json.channel).toContain("Telegram Bot API");
     expect(json.proactivePushEnabled).toBe(true);
   });
+
+  it("formats live location AQI and plan for custom GPS coordinates", async () => {
+    const today = await bot.getTodayText(19.08, 72.88, "en", "Live Location (19.08, 72.88)");
+    const plan = await bot.getPlanText(19.08, 72.88, "en", "Live Location (19.08, 72.88)");
+
+    expect(today).toContain("Live Location (19.08, 72.88)");
+    expect(plan).toContain("Live Location (19.08, 72.88)");
+    expect(plan).toContain("lat=19.08&lng=72.88");
+  });
+
+  it("handles POST /webhooks/telegram updates and enforces webhook secret when configured", async () => {
+    const prevSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    process.env.TELEGRAM_WEBHOOK_SECRET = "test-secret-123";
+    try {
+      const denied = await app.request("/webhooks/telegram", {
+        method: "POST",
+        body: JSON.stringify({ update_id: 1 })
+      });
+      expect(denied.status).toBe(401);
+
+      const accepted = await app.request("/webhooks/telegram", {
+        method: "POST",
+        headers: { "X-Telegram-Bot-Api-Secret-Token": "test-secret-123" },
+        body: JSON.stringify({ update_id: 1 })
+      });
+      expect(accepted.status).toBe(200);
+      const json = await accepted.json();
+      expect(json.ok).toBe(true);
+    } finally {
+      if (prevSecret === undefined) delete process.env.TELEGRAM_WEBHOOK_SECRET;
+      else process.env.TELEGRAM_WEBHOOK_SECRET = prevSecret;
+    }
+  });
 });

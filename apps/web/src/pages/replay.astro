@@ -39,10 +39,10 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
 <Layout title="AirDelta — Smog Replay Studio">
   <div class="space-y-8 max-w-5xl mx-auto">
     <!-- Header -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2 mb-2">
+          <div class="flex flex-wrap items-center gap-2 mb-2">
             <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]" data-i18n="savedCaseStudy">
               Saved Smog Case Study
             </span>
@@ -58,133 +58,134 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
           </p>
         </div>
 
-        <div class="flex items-center gap-3 self-start sm:self-auto">
-          <button id="btn-play" class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer press-scale">
-            <Play id="icon-play" class="w-4 h-4" />
-            <Pause id="icon-pause" class="w-4 h-4 hidden" />
+        <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
+          <button id="btn-play" type="button" class="btn-action flex-1 sm:flex-initial justify-center px-5 sm:px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-xs rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer press-scale whitespace-nowrap">
+            <Play id="icon-play" class="w-4 h-4 shrink-0" aria-hidden="true" />
+            <Pause id="icon-pause" class="w-4 h-4 hidden shrink-0" aria-hidden="true" />
             <span id="play-text" data-i18n="playReplay">Play Replay</span>
           </button>
-          <button id="btn-reset" class="px-4 py-2.5 bg-[#f7f9fa] hover:bg-[#f0f0f0] text-[#262626] font-semibold text-xs rounded-full border border-[#e8e8e8] transition-all flex items-center gap-1.5 cursor-pointer press-scale">
-            <RotateCcw class="w-3.5 h-3.5 text-[#595959]" />
+          <button id="btn-reset" type="button" class="px-4 py-2.5 bg-[#f7f9fa] hover:bg-[#f0f0f0] text-[#262626] font-semibold text-xs rounded-full border border-[#e8e8e8] transition-all flex items-center justify-center gap-1.5 cursor-pointer press-scale whitespace-nowrap">
+            <RotateCcw class="w-3.5 h-3.5 text-[#595959] shrink-0" aria-hidden="true" />
             <span data-i18n="resetReplay">Reset</span>
           </button>
         </div>
       </div>
 
       <!-- Scrubber Slider -->
-      <div class="mt-8 space-y-3">
-        <div class="flex justify-between items-center text-xs font-mono text-[#595959]">
+      <div class="mt-6 sm:mt-8 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 text-xs font-mono text-[#595959]">
           <span id="label-time" class="font-bold text-[#262626]">Hour: 06:00 IST (Peak Morning Commute)</span>
           <span id="label-date">Nov 6, 2026 · Grid 28.61:77.21 (Delhi)</span>
         </div>
         <input 
           id="replay-slider" 
           type="range" 
+          aria-label="Scrub 24-hour smog timeline"
           min="0" 
           max={hours.length > 0 ? hours.length - 1 : 0} 
           value="2" 
-          class="w-full h-2.5 bg-[#f0f0f0] rounded-lg appearance-none cursor-pointer accent-[#ea580c] border border-[#e8e8e8]"
+          class="w-full h-3 bg-[#f0f0f0] rounded-lg appearance-none cursor-pointer accent-[#ea580c] border border-[#e8e8e8]"
         />
-        <div class="flex justify-between text-[11px] font-mono text-[#8c8c8c]">
-          <span>00:00 (Inversion)</span>
-          <span>06:00 (Peak Smog)</span>
-          <span>12:00 (Clearing)</span>
-          <span>14:00 (Clean Window)</span>
-          <span>20:00 (Night Stagnation)</span>
+        <div class="flex justify-between gap-1 text-[10px] sm:text-[11px] font-mono text-[#8c8c8c]">
+          <span>00:00<span class="hidden md:inline"> (Inversion)</span></span>
+          <span>06:00<span class="hidden md:inline"> (Peak Smog)</span></span>
+          <span>12:00<span class="hidden md:inline"> (Clearing)</span></span>
+          <span>14:00<span class="hidden md:inline"> (Clean Window)</span></span>
+          <span>20:00<span class="hidden md:inline"> (Night)</span></span>
         </div>
       </div>
     </div>
 
     <!-- Live Telemetry Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-card">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 stagger-card">
       <!-- Card 1: Ambient Conditions -->
-      <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 shadow-xs">
-        <div class="flex items-center justify-between mb-4">
+      <div class="bg-white border border-[#e8e8e8] rounded-3xl p-4 sm:p-6 shadow-xs">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
           <span class="text-xs uppercase font-mono font-bold text-[#8c8c8c]" data-i18n="ambientAirQuality">Ambient Air Quality</span>
           <span id="badge-provenance" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#f7f9fa] text-[#595959] border border-[#e8e8e8]">
             [Measured: CPCB]
           </span>
         </div>
         <div class="flex items-baseline gap-2">
-          <span id="val-aqi" class="text-4xl font-extrabold text-[#dc2626] font-mono tracking-tight">425</span>
+          <span id="val-aqi" class="text-3xl sm:text-4xl font-extrabold text-[#dc2626] font-mono tracking-tight">425</span>
           <span class="text-xs font-semibold text-[#8c8c8c]">CPCB NAQI</span>
         </div>
         <div class="mt-4 pt-4 border-t border-[#e8e8e8] space-y-2.5 text-xs">
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="pm25ConcLabel">PM2.5 Concentration:</span>
-            <span id="val-pm25" class="font-mono font-bold text-[#262626]">420 µg/m³</span>
+            <span id="val-pm25" class="font-mono font-bold text-[#262626] text-right">420 µg/m³</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="cpcbCategoryLabel">CPCB Category:</span>
-            <span id="val-category" class="font-bold uppercase text-[#dc2626]">Severe</span>
+            <span id="val-category" class="font-bold uppercase text-[#dc2626] text-right">Severe</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="grapRegulatoryLabel">CAQM GRAP Regulatory:</span>
-            <span id="val-grap" class="font-mono font-semibold text-[#dc2626]">Stage IV Active</span>
+            <span id="val-grap" class="font-mono font-semibold text-[#dc2626] text-right">Stage IV Active</span>
           </div>
         </div>
       </div>
 
       <!-- Card 2: Plan A Exposure (Default Routine) -->
-      <div class="bg-[#f7f9fa] border border-[#e8e8e8] rounded-3xl p-6 shadow-xs">
-        <div class="flex items-center justify-between mb-4">
+      <div class="bg-[#f7f9fa] border border-[#e8e8e8] rounded-3xl p-4 sm:p-6 shadow-xs">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
           <span class="text-xs uppercase font-mono font-bold text-[#8c8c8c]" data-i18n="planANormalDay">Plan A: Normal Day</span>
           <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#fee2e2] text-[#dc2626] border border-[#fca5a5]" data-i18n="unprotectedLabel">
             Unprotected
           </span>
         </div>
         <div class="flex items-baseline gap-2">
-          <span id="val-dose-a" class="text-4xl font-extrabold text-[#262626] font-mono tracking-tight">164.2</span>
+          <span id="val-dose-a" class="text-3xl sm:text-4xl font-extrabold text-[#262626] font-mono tracking-tight">164.2</span>
           <span class="text-xs font-semibold text-[#8c8c8c]" data-i18n="ugInhaled">µg inhaled</span>
         </div>
         <div class="mt-4 pt-4 border-t border-[#e8e8e8] space-y-2.5 text-xs">
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="activityStateLabel">Activity State:</span>
-            <span id="val-state-a" class="text-[#262626] font-semibold">Roadside Two-Wheeler Commute</span>
+            <span id="val-state-a" class="text-[#262626] font-semibold text-right">Roadside Two-Wheeler Commute</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="breathingRateLabel">Breathing Rate (VE):</span>
-            <span class="font-mono text-[#262626] font-medium">1.25 m³/h</span>
+            <span class="font-mono text-[#262626] font-medium text-right">1.25 m³/h</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="filtrationLabel">Filtration / Envelope:</span>
-            <span class="text-[#dc2626] font-semibold">None (F_micro = 1.15)</span>
+            <span class="text-[#dc2626] font-semibold text-right">None (F_micro = 1.15)</span>
           </div>
         </div>
       </div>
 
       <!-- Card 3: Plan B Exposure (AirDelta Guided) -->
-      <div class="bg-white border-2 border-[#ea580c] rounded-3xl p-6 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between mb-4">
+      <div class="bg-white border-2 border-[#ea580c] rounded-3xl p-4 sm:p-6 shadow-sm relative overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
           <span class="text-xs uppercase font-mono font-bold text-[#ea580c]" data-i18n="planBGuided">Plan B: Guided</span>
           <span id="val-saved-percent" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]">
             -45.2% DOSE
           </span>
         </div>
         <div class="flex items-baseline gap-2">
-          <span id="val-dose-b" class="text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight">89.9</span>
+          <span id="val-dose-b" class="text-3xl sm:text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight">89.9</span>
           <span class="text-xs font-semibold text-[#ea580c]" data-i18n="ugInhaled">µg inhaled</span>
         </div>
         <div class="mt-4 pt-4 border-t border-[#fed7aa]/60 space-y-2.5 text-xs">
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="interventionModeLabel">Intervention Mode:</span>
-            <span id="val-state-b" class="text-[#15803d] font-semibold">Metro AC + N95 (F_micro = 0.038)</span>
+            <span id="val-state-b" class="text-[#15803d] font-semibold text-right">Metro AC + N95 (F_micro = 0.038)</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="doseDifferenceLabel">Dose Difference:</span>
-            <span id="val-saved-ug" class="font-mono text-[#ea580c] font-bold">-74.3 µg saved</span>
+            <span id="val-saved-ug" class="font-mono text-[#ea580c] font-bold text-right">-74.3 µg saved</span>
           </div>
-          <div class="flex justify-between">
+          <div class="flex justify-between gap-3">
             <span class="text-[#595959]" data-i18n="carbonImpactLabel">Carbon Impact:</span>
-            <span class="font-mono text-[#15803d] font-semibold">-300 gCO₂e (Metro switch)</span>
+            <span class="font-mono text-[#15803d] font-semibold text-right">-300 gCO₂e (Metro switch)</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Comparative Hourly Timeline Visualization -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
-      <div class="flex items-center justify-between mb-1">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs stagger-card">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
         <h3 class="text-base font-bold text-[#171717]" data-i18n="timelineHeading">24-Hour Smog Timeline (Fine Dust Levels)</h3>
         <span class="text-[10px] text-[#8c8c8c] font-mono" data-i18n="clickBarToScrub">Click any bar to scrub</span>
       </div>
@@ -192,23 +193,25 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
         Discrete timeline points from CPCB Anand Vihar ITO and CAMS Forecast during the peak winter episode.
       </p>
 
-      <div class="grid grid-cols-8 gap-3 h-40 items-end pt-4 pb-2 border-b border-[#e8e8e8]">
-        {hours.map((h: HourlyPoint, i: number) => {
-          const heightPct = Math.min(100, Math.max(15, Math.round((h.pm25 / 450) * 100)));
-          return (
-            <div class="timeline-bar-col flex flex-col items-center gap-1.5 group cursor-pointer press-scale" data-index={i}>
-              <div 
-                id={`bar-${i}`}
-                class="w-full bg-[#e8e8e8] rounded-t transition-all group-hover:bg-[#fed7aa]"
-                style={`height: ${heightPct}%`}
-                title={`${h.timeLabel} · PM2.5: ${h.pm25} µg/m³`}
-              ></div>
-              <span class="text-[10px] font-mono text-[#8c8c8c] group-hover:text-[#ea580c] transition-colors">{h.timeLabel}</span>
-            </div>
-          );
-        })}
+      <div tabindex="0" role="region" aria-label="24-hour smog timeline bars" class="overflow-x-auto pb-1">
+        <div class="grid grid-cols-8 gap-2 sm:gap-3 h-40 items-end pt-4 pb-2 border-b border-[#e8e8e8] min-w-[420px] sm:min-w-0">
+          {hours.map((h: HourlyPoint, i: number) => {
+            const heightPct = Math.min(100, Math.max(15, Math.round((h.pm25 / 450) * 100)));
+            return (
+              <button type="button" class="timeline-bar-col flex flex-col items-center justify-end gap-1.5 h-full group cursor-pointer press-scale bg-transparent border-0 p-0" data-index={i} aria-label={`${h.timeLabel} PM2.5 ${h.pm25} µg/m³`}>
+                <div 
+                  id={`bar-${i}`}
+                  class="w-full bg-[#e8e8e8] rounded-t transition-all group-hover:bg-[#fed7aa]"
+                  style={`height: ${heightPct}%`}
+                  title={`${h.timeLabel} · PM2.5: ${h.pm25} µg/m³`}
+                ></div>
+                <span class="text-[10px] font-mono text-[#8c8c8c] group-hover:text-[#ea580c] transition-colors">{h.timeLabel}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <div class="flex justify-between text-xs text-[#595959] mt-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs text-[#595959] mt-3">
         <span data-i18n="timelineFooterLeft">Bar height proportional to ambient PM2.5 concentration</span>
         <span class="font-mono font-bold text-[#dc2626]">Peak: 438 AQI @ 03:00 IST</span>
       </div>

@@ -142,6 +142,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // 1. Auto-wire all <TransitionDropdown> instances site-wide
   initAutoDropdowns(animateButton);
 
+  // Fallback toggle for native popover="auto" mobile nav menu on browsers without Popover API
+  const mobileMenuBtn = document.getElementById("btn-mobile-menu");
+  const mobileMenuEl = document.getElementById("mobile-nav-menu");
+  if (mobileMenuBtn && mobileMenuEl && typeof (mobileMenuEl as any).showPopover !== "function") {
+    mobileMenuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      mobileMenuEl.classList.toggle(":popover-open");
+    });
+    document.addEventListener("click", (e) => {
+      if (!mobileMenuEl.contains(e.target as Node) && !mobileMenuBtn.contains(e.target as Node)) {
+        mobileMenuEl.classList.remove(":popover-open");
+      }
+    });
+  }
+
   // 2. Setup Transitions.dev Menu Dropdown (Language Switcher)
   wireTransitionsDropdown({
     trigger: document.getElementById("btn-lang-dropdown"),
@@ -186,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch {}
   }
 
-  // 5. Sync global top alert banner from session cache or live OpenAQ API on secondary pages
+  // 5. Sync global top alert banner from session cache or live API on secondary pages
   const globalAlertText = document.getElementById("global-alert-text");
   const globalAlertTitle = document.getElementById("global-alert-title");
   if (globalAlertText && !document.getElementById("city-select")) {
@@ -194,7 +209,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const cached = sessionStorage.getItem("airdelta_last_snapshot");
       if (cached) {
         const { snapshot, cityLabel } = JSON.parse(cached);
-        if (globalAlertTitle) globalAlertTitle.textContent = `${cityLabel} (${String(snapshot.source).toUpperCase()}):`;
+        if (globalAlertTitle) globalAlertTitle.textContent = `${cityLabel}:`;
         globalAlertText.textContent = `AQI ${snapshot.indexValue ?? "--"} (${snapshot.category ?? "Moderate"}) · Fine Dust ${snapshot.pm25 ?? "--"} µg/m³`;
       } else {
         const apiBase = ((import.meta as any).env?.PUBLIC_API_URL || "http://localhost:3000").replace(/\/$/, "");
@@ -202,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .then((r) => (r.ok ? r.json() : null))
           .then((snapshot) => {
             if (snapshot && globalAlertText) {
-              if (globalAlertTitle) globalAlertTitle.textContent = `Delhi-NCR (${String(snapshot.source).toUpperCase()}):`;
+              if (globalAlertTitle) globalAlertTitle.textContent = `Delhi-NCR:`;
               globalAlertText.textContent = `AQI ${snapshot.indexValue ?? "--"} (${snapshot.category ?? "Moderate"}) · Fine Dust ${snapshot.pm25 ?? "--"} µg/m³`;
             }
           })

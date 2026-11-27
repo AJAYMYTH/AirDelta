@@ -32,6 +32,7 @@ const airService = new AirDataService({
   openaqApiKey: process.env.OPENAQ_API_KEY,
   enableGoogle: process.env.GOOGLE_AQ_ENABLED === "true",
   enableOpenAQ: process.env.OPENAQ_ENABLED !== "false",
+  strategy: (process.env.AIR_STRATEGY as any) || "race",
   replayMode: process.env.REPLAY_MODE === "true"
 });
 
@@ -53,6 +54,17 @@ console.log("  AirDelta Telegram Bot - Polling Mode    ");
 console.log("==========================================");
 console.log("🤖 Starting long-polling for local testing...");
 console.log("👉 Open Telegram and send /start to your bot!\n");
+
+botService.bot.api
+  .setMyCommands([
+    { command: "start", description: "Start & pick city or live location" },
+    { command: "location", description: "Share live GPS location for local AQI & plan" },
+    { command: "today", description: "Live AQI snapshot & cleanest airing window" },
+    { command: "plan", description: "Plan A vs Plan B exposure savings" },
+    { command: "advisory", description: "Regional RWA / community air notice" },
+    { command: "lang", description: "Switch bot language" }
+  ])
+  .catch(() => {});
 
 botService.bot.start({
   onStart: (botInfo) => {

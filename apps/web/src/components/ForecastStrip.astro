@@ -32,15 +32,15 @@ const formattedHourly = forecast.hourly.slice(0, 12).map((item) => {
 });
 ---
 
-<div id="forecast-strip-card" class="bg-white border border-[#e5e5e5] rounded-3xl p-6 sm:p-8 shadow-xs">
-  <div class="flex items-center justify-between mb-5">
-    <div class="flex items-center gap-2.5">
-      <div class="w-8 h-8 rounded-xl bg-[#fff7ed] text-[#ea580c] flex items-center justify-center">
+<div id="forecast-strip-card" class="bg-white border border-[#e5e5e5] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs">
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="w-8 h-8 rounded-xl bg-[#fff7ed] text-[#ea580c] flex items-center justify-center shrink-0">
         <Clock class="w-4 h-4" aria-hidden="true" />
       </div>
-      <div>
+      <div class="min-w-0">
         <h3 class="text-base font-extrabold text-[#171717]" data-i18n="forecastTitle">Next Hours Air Trend</h3>
-        <span class="text-[11px] text-[#737373]" data-i18n="forecastSubtitle">Expected fine dust (µg/m³) hour by hour</span>
+        <span class="text-[11px] text-[#737373] block" data-i18n="forecastSubtitle">Expected fine dust (µg/m³) hour by hour</span>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -51,9 +51,9 @@ const formattedHourly = forecast.hourly.slice(0, 12).map((item) => {
 
   {cleanest && (
     <div id="forecast-cleanest-box" class="mb-6 p-4 bg-[#fff7ed] border border-[#fed7aa] rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div>
+      <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-2">
-          <Sparkles class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+          <Sparkles class="w-4 h-4 text-[#ea580c] shrink-0" aria-hidden="true" />
           <span class="text-xs font-extrabold uppercase tracking-wider text-[#ea580c]" data-i18n="cleanestWindowLabel">{cleanestLabel}</span>
           <span id="forecast-cleanest-range" class="text-xs text-[#9a3412] font-mono font-bold bg-white px-2.5 py-0.5 rounded-full border border-[#fed7aa]">
             {new Date(cleanest.startTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })} – {new Date(cleanest.endTs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}
@@ -68,12 +68,12 @@ const formattedHourly = forecast.hourly.slice(0, 12).map((item) => {
     </div>
   )}
 
-  <div class="overflow-x-auto pb-2 -mx-1 px-1">
-    <div id="forecast-bars-container" class="flex items-end gap-3 min-w-max pt-2">
+  <div tabindex="0" role="region" aria-label="Hourly air quality forecast" class="overflow-x-auto pb-2 -mx-1 px-1">
+    <div id="forecast-bars-container" class="flex items-end gap-2.5 sm:gap-3 min-w-max pt-2">
       {formattedHourly.map((item) => (
-        <div class="flex flex-col items-center gap-2 w-14">
+        <div class="flex flex-col items-center gap-2 w-12 sm:w-14">
           <span class="text-[11px] font-mono font-bold text-[#525252]">{item.pm25Formatted}</span>
-          <div class="w-8 bg-[#f5f5f5] rounded-t-lg flex items-end h-28 p-1 border-x border-t border-[#e5e5e5]">
+          <div class="w-7 sm:w-8 bg-[#f5f5f5] rounded-t-lg flex items-end h-28 p-1 border-x border-t border-[#e5e5e5]">
             <div class={`w-full rounded-t ${item.barColor} transition-all`} style={`height: ${item.height}%;`}></div>
           </div>
           <span class="text-[10px] text-[#737373] font-mono font-medium">
@@ -83,7 +83,7 @@ const formattedHourly = forecast.hourly.slice(0, 12).map((item) => {
       ))}
     </div>
   </div>
-  <div class="flex justify-between text-[11px] text-[#737373] mt-4 pt-3 border-t border-[#f0f0f0]">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[11px] text-[#737373] mt-4 pt-3 border-t border-[#f0f0f0]">
     <span data-i18n="forecastFooterLeft">Taller bar = higher dust levels</span>
     <span class="font-semibold text-[#ea580c] font-mono" data-i18n="forecastFooterRight">Orange = Heavy Smoke · Green = Cleaner</span>
   </div>

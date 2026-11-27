@@ -5,7 +5,7 @@ import {
   AirSnapshot,
   AirForecast
 } from "@airdelta/schemas";
-import { AirDataService, parseCellId } from "@airdelta/air-adapters";
+import { AirDataService, parseCellId, type AirProviderPreference } from "@airdelta/air-adapters";
 import { optimizeHouseholdPlan, TemplateFallbackService, CONSTANTS_VERSION, ENGINE_VERSION } from "@airdelta/engine";
 import { GeminiService } from "./gemini.service.js";
 import { GroundingValidatorService } from "./grounding-validator.service.js";
@@ -31,11 +31,12 @@ export class PlannerService {
     targetLang = "en",
     airOverride?: AirSnapshot,
     forecastOverride?: AirForecast,
-    includeLlm = true
+    includeLlm = true,
+    preferredProvider?: AirProviderPreference
   ): Promise<PlanResponse> {
     const coords = parseCellId(profile.gridCell);
     const [air, forecast] = await Promise.all([
-      airOverride ? Promise.resolve(airOverride) : this.airService.getAirSnapshot(coords.lat, coords.lng),
+      airOverride ? Promise.resolve(airOverride) : this.airService.getAirSnapshot(coords.lat, coords.lng, preferredProvider),
       forecastOverride ? Promise.resolve(forecastOverride) : this.airService.getAirForecast(coords.lat, coords.lng)
     ]);
 

@@ -43,12 +43,13 @@ export function createApp(
   app.get("/healthz", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
   app.get("/readyz", (c) => c.json({ status: "ready" }));
 
-  // Initialize Air Data Service (OpenAQ primary by default; Google AQ opt-in only)
+  // Initialize Air Data Service with smart OpenAQ + Open-Meteo race & never-fail fallback
   const airService = serviceOverride || new AirDataService({
     googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
     openaqApiKey: process.env.OPENAQ_API_KEY,
     enableGoogle: process.env.GOOGLE_AQ_ENABLED === "true",
     enableOpenAQ: process.env.OPENAQ_ENABLED !== "false",
+    strategy: (process.env.AIR_STRATEGY as any) || "race",
     replayMode: process.env.REPLAY_MODE === "true"
   });
 
@@ -71,6 +72,20 @@ export function createApp(
   app.route("/v1/advisories", createAdvisoryRoutes(advisoryService, airService));
   app.route("/v1/jobs", createJobRoutes());
   app.route("/webhooks/telegram", createTelegramRoutes(botService));
+
+  // Auto-register Telegram webhook in production when a public HTTPS URL is provided (e.g. Render, Railway, Fly)
+  if (process.env.NODE_ENV !== "test") {
+    const publicBase =
+      process.env.TELEGRAM_WEBHOOK_URL ||
+      process.env.RENDER_EXTERNAL_URL ||
+      (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : "");
+    if (publicBase && botService.isConfigured()) {
+      botService
+        .registerWebhook(publicBase, process.env.TELEGRAM_WEBHOOK_SECRET)
+        .then(() => console.log(`Telegram webhook registered at ${publicBase.replace(/\/$/, "")}/webhooks/telegram`))
+        .catch((err) => console.warn("Telegram webhook auto-registration failed:", err?.message || err));
+    }
+  }
 
   return app;
 }

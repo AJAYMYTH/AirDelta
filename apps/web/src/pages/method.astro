@@ -11,8 +11,8 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
 <Layout title="AirDelta — Exposure Science & Methodology">
   <div class="space-y-10 max-w-5xl mx-auto">
     <!-- Header -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
-      <div class="flex items-center gap-2 mb-2">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs stagger-card">
+      <div class="flex flex-wrap items-center gap-2 mb-2">
         <span class="px-3 py-0.5 rounded-full text-[11px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] flex items-center gap-1.5">
           <Atom class="w-3.5 h-3.5" />
           <span data-i18n="corePrinciple">Core Design Principle</span>
@@ -36,7 +36,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 1</span>
           <h3 class="text-lg font-bold text-[#262626] mt-1 mb-3" data-i18n="eq1Title">Inhaled PM2.5 Dose</h3>
-          <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
+          <div tabindex="0" class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             D = Σ (C_micro × VE × Δt)<br/>
             C_micro = C_amb × F_micro × (1 - η_mask)
           </div>
@@ -55,7 +55,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 2</span>
           <h3 class="text-lg font-bold text-[#171717] mt-1 mb-3" data-i18n="eq2Title">Room Clean-Air Balance</h3>
-          <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
+          <div tabindex="0" class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             C_ss = (P·a·C_out + S/V) /<br/>
                    (a + k_dep + CADR/V)
           </div>
@@ -74,7 +74,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
         <div>
           <span class="text-xs font-mono font-bold text-[#ea580c] uppercase">Equation 3</span>
           <h3 class="text-lg font-bold text-[#171717] mt-1 mb-3" data-i18n="eq3Title">CO₂ &amp; Clean Air Bonus</h3>
-          <div class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
+          <div tabindex="0" class="bg-[#f7f9fa] p-4 rounded-2xl border border-[#e8e8e8] font-mono text-xs text-[#ea580c] font-semibold leading-relaxed mb-4 overflow-x-auto">
             E_co2e = Σ (distance_km × EF_mode)
           </div>
           <p class="text-xs text-[#595959] leading-relaxed">
@@ -89,39 +89,39 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
     </div>
 
     <!-- Constants Registry Table -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 class="text-lg font-bold text-[#171717]" data-i18n="constantsHeading">Verified Science Constants ({CONSTANTS_VERSION})</h2>
+          <h2 id="constants-heading" class="text-lg font-bold text-[#171717]" data-i18n="constantsHeading">Verified Science Constants ({CONSTANTS_VERSION})</h2>
           <p class="text-xs text-[#595959] mt-1" data-i18n="constantsDesc">
             Every coefficient in AirDelta is versioned, peer-reviewed, and cited with open research links.
           </p>
         </div>
-        <span class="text-xs font-mono text-[#ea580c] font-bold bg-[#fff7ed] px-3.5 py-1.5 rounded-full border border-[#fed7aa] self-start sm:self-auto flex items-center gap-1.5">
-          <Database class="w-3.5 h-3.5" />
+        <span class="text-xs font-mono text-[#ea580c] font-bold bg-[#fff7ed] px-3.5 py-1.5 rounded-full border border-[#fed7aa] self-start sm:self-auto flex items-center gap-1.5 shrink-0">
+          <Database class="w-3.5 h-3.5" aria-hidden="true" />
           <span>{constantsList.length} Active Constants</span>
         </span>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs border-collapse">
+      <div tabindex="0" role="region" aria-labelledby="constants-heading" class="table-wrapper">
+        <table class="responsive-constants-table w-full text-left text-xs">
           <thead>
-            <tr class="border-b border-[#e8e8e8] bg-[#f7f9fa] text-[#8c8c8c] font-mono">
-              <th class="py-3 px-3">Key</th>
-              <th class="py-3 px-3">Value</th>
-              <th class="py-3 px-3">Unit</th>
-              <th class="py-3 px-3">Confidence</th>
-              <th class="py-3 px-3">Description</th>
-              <th class="py-3 px-3">Citation Source</th>
+            <tr class="border-b border-[#e8e8e8] bg-[#f7f9fa] text-[#737373] font-mono">
+              <th scope="col" class="py-3 px-3">Key</th>
+              <th scope="col" class="py-3 px-3">Value</th>
+              <th scope="col" class="py-3 px-3">Unit</th>
+              <th scope="col" class="py-3 px-3">Confidence</th>
+              <th scope="col" class="py-3 px-3">Description</th>
+              <th scope="col" class="py-3 px-3">Citation Source</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#e8e8e8] text-[#262626]">
             {constantsList.map((c) => (
               <tr class="hover:bg-[#f7f9fa] transition-colors">
-                <td class="py-3 px-3 font-mono text-[#ea580c] font-semibold">{c.key}</td>
-                <td class="py-3 px-3 font-mono font-bold text-[#262626]">{c.value}</td>
-                <td class="py-3 px-3 font-mono text-[#595959]">{c.unit}</td>
-                <td class="py-3 px-3">
+                <td data-label="Key" class="py-3 px-3 font-mono text-[#ea580c] font-semibold">{c.key}</td>
+                <td data-label="Value" class="py-3 px-3 font-mono font-bold text-[#262626]">{c.value}</td>
+                <td data-label="Unit" class="py-3 px-3 font-mono text-[#595959]">{c.unit}</td>
+                <td data-label="Confidence" class="py-3 px-3">
                   <span class={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
                     c.confidence === "High" 
                       ? "bg-[#dcfce7] text-[#15803d] border border-[#86efac]" 
@@ -130,11 +130,11 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
                     {c.confidence}
                   </span>
                 </td>
-                <td class="py-3 px-3 text-[#595959]">{c.description}</td>
-                <td class="py-3 px-3">
-                  <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer" class="text-[#ea580c] hover:underline flex items-center gap-1 font-mono text-[11px] font-semibold">
+                <td data-label="Description" class="py-3 px-3 text-[#595959]">{c.description}</td>
+                <td data-label="Source" class="py-3 px-3">
+                  <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer" class="text-[#ea580c] hover:underline inline-flex items-center gap-1 font-mono text-[11px] font-semibold">
                     <span>Link</span>
-                    <ExternalLink class="w-3 h-3" />
+                    <ExternalLink class="w-3 h-3" aria-hidden="true" />
                   </a>
                 </td>
               </tr>
@@ -145,7 +145,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
     </div>
 
     <!-- Data Provenance & Licenses -->
-    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
+    <div class="bg-white border border-[#e8e8e8] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs stagger-card">
       <h2 class="text-lg font-bold text-[#171717] mb-4" data-i18n="dataSourcesHeading">Data Sources &amp; Official Standards</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
         <div class="p-4 bg-[#fff7ed] rounded-2xl border border-[#fed7aa]">

@@ -1,6 +1,5 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import BadgePill from "../components/BadgePill.astro";
 import ForecastStrip from "../components/ForecastStrip.astro";
 import AirWaveLoader from "../components/AirWaveLoader.tsx";
 import delhiSmogData from "../../../../fixtures/delhi-smog-nov2026.json";
@@ -8,7 +7,6 @@ import type { AirSnapshot, AirForecast } from "@airdelta/schemas";
 import Wind from "lucide-astro/Wind";
 import ArrowRight from "lucide-astro/ArrowRight";
 import Bike from "lucide-astro/Bike";
-import Share2 from "lucide-astro/Share2";
 import ShieldAlert from "lucide-astro/ShieldAlert";
 import CheckCircle2 from "lucide-astro/CheckCircle2";
 import Check from "lucide-astro/Check";
@@ -22,6 +20,9 @@ import ChevronDown from "lucide-astro/ChevronDown";
 import Pause from "lucide-astro/Pause";
 import Play from "lucide-astro/Play";
 import Sparkles from "lucide-astro/Sparkles";
+import Copy from "lucide-astro/Copy";
+import MessageCircle from "lucide-astro/MessageCircle";
+import LocateFixed from "lucide-astro/LocateFixed";
 
 const cities = [
   { code: "DELHI", label: "Delhi-NCR", region: "National Capital Region" },
@@ -40,8 +41,8 @@ const aqi = snapshot.indexValue || 385;
 <Layout title="AirDelta — Today's Clean Air Guide">
   <div class="space-y-7">
     <!-- Top Location & Live Status Bar (Transitions.dev City Dropdown + Loading.dev Wave) -->
-    <div class="bg-white border border-[#e5e5e5] rounded-2xl p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 stagger-card">
-      <div class="flex flex-wrap items-center gap-3">
+    <div class="bg-white border border-[#e5e5e5] rounded-2xl p-3.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 stagger-card">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0">
         <span class="text-xs font-bold text-[#171717] flex items-center gap-1.5">
           <MapPin class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
           <span data-i18n="yourCity">Your City</span>
@@ -72,7 +73,7 @@ const aqi = snapshot.indexValue || 385;
             inert
           >
             <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#737373] border-b border-[#e5e5e5]/70 mb-1" data-i18n="selectCityTitle">
-              Select OpenAQ City
+              Select City
             </div>
             {cities.map((c) => (
               <button
@@ -93,6 +94,24 @@ const aqi = snapshot.indexValue || 385;
         </div>
 
         <button
+          id="btn-use-location"
+          type="button"
+          class="px-3.5 py-1.5 rounded-full bg-[#fff7ed] hover:bg-[#ffedd5] border border-[#fed7aa] text-xs font-bold text-[#c2410c] flex items-center gap-1.5 cursor-pointer press-scale"
+          title="Share coarse ~1.1 km location to fetch your live local Open-Meteo AQI"
+        >
+          <LocateFixed id="today-locate-icon" class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+          <span data-i18n="useMyLocation">Use My Location</span>
+        </button>
+
+        <a
+          href="/map"
+          class="px-3.5 py-1.5 rounded-full bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold text-[#171717] flex items-center gap-1.5 cursor-pointer press-scale"
+        >
+          <MapPin class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+          <span data-i18n="openFullMap">AQI Map</span>
+        </a>
+
+        <button
           id="btn-refresh-air"
           type="button"
           class="px-3.5 py-1.5 rounded-full bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-xs font-bold text-[#171717] flex items-center gap-1.5 cursor-pointer press-scale"
@@ -102,31 +121,25 @@ const aqi = snapshot.indexValue || 385;
         </button>
       </div>
 
-      <div id="live-provider-status" role="status" aria-live="polite" class="flex items-center gap-2.5 text-xs font-mono">
-        <AirWaveLoader client:load id="hero-status-wave" size={18} color="#ea580c" origin="bottom" duration={950} playState="running" />
-        <span id="provider-dot" class="w-2 h-2 rounded-full bg-[#d97706]"></span>
-        <span id="provider-status-text" class="text-[#525252] font-semibold" data-i18n="connectingOpenAq">Connecting to OpenAQ live sensor...</span>
+      <div id="live-provider-status" role="status" aria-live="polite" class="flex items-center gap-2 text-xs font-mono min-w-0">
+        <span id="provider-dot" class="w-2 h-2 rounded-full bg-[#d97706] shrink-0"></span>
+        <span id="provider-status-text" class="text-[#525252] font-semibold truncate" data-i18n="connectingOpenAq">Connecting to live air sensor...</span>
       </div>
     </div>
 
     <!-- Hero Air Quality Card (Interactive Airflow Stage + Wave Spectrum) -->
-    <div id="live-air-hero" class="relative overflow-hidden bg-white border border-[#e5e5e5] rounded-3xl p-6 sm:p-8 shadow-xs hero-grid-bg stagger-card">
+    <div id="live-air-hero" class="relative overflow-hidden bg-white border border-[#e5e5e5] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs hero-grid-bg stagger-card">
       <div id="hero-atmosphere-glow" class="absolute inset-0 pointer-events-none transition-opacity duration-500" style="background: radial-gradient(circle at 82% 24%, rgba(234, 88, 12, 0.14), transparent 58%);" aria-hidden="true"></div>
       <canvas id="air-particle-canvas" class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></canvas>
 
-      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#e5e5e5]/80">
-        <div class="space-y-2">
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6 pb-5 sm:pb-6 border-b border-[#e5e5e5]/80">
+        <div class="space-y-2 min-w-0">
           <div class="flex flex-wrap items-center gap-2">
-            <span class="live-air-beacon px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] inline-flex items-center gap-1.5">
-              <AirWaveLoader client:load id="hero-fetch-wave" size={14} color="#ea580c" origin="bottom" duration={900} playState="running" />
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] inline-flex items-center">
               <span id="hero-sync-label" data-i18n="liveAirBadge">LIVE AIR QUALITY</span>
             </span>
-            <span id="hero-badge-pill"><BadgePill badge={snapshot.badge} /></span>
-            <span id="hero-source-pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#f5f5f5] text-[#525252] border border-[#e5e5e5]">
-              OPENAQ
-            </span>
           </div>
-          <h1 id="hero-city-title" class="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#171717]">Delhi-NCR</h1>
+          <h1 id="hero-city-title" class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-[#171717]">Delhi-NCR</h1>
           <p id="hero-station-meta" class="text-xs sm:text-sm text-[#525252] font-medium" data-i18n="connectingOpenAq">
             Loading nearest ground station...
           </p>
@@ -136,20 +149,20 @@ const aqi = snapshot.indexValue || 385;
         </div>
 
         <!-- Big Crisp AQI Readout + Wave Spectrum Pod -->
-        <div class="bg-white/95 backdrop-blur-xs px-6 py-5 rounded-2xl border border-[#e5e5e5] shadow-sm min-w-[265px] space-y-3">
-          <div class="flex items-center justify-between gap-4">
-            <div>
+        <div class="bg-white/95 backdrop-blur-xs p-4 sm:px-6 sm:py-5 rounded-2xl border border-[#e5e5e5] shadow-sm w-full md:w-auto md:min-w-[270px] min-w-0 space-y-3">
+          <div class="flex items-center justify-between gap-3 sm:gap-4">
+            <div class="min-w-0">
               <span id="hero-standard-label" class="text-[11px] text-[#737373] uppercase tracking-wider block font-mono font-bold" data-i18n="aqiScoreLabel">AQI Score</span>
               <span id="hero-category" class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] mt-1.5">
                 {snapshot.category || "Severe"}
               </span>
             </div>
-            <div class="flex items-end gap-3">
+            <div class="flex items-end gap-2.5 sm:gap-3 shrink-0">
               <div class="flex flex-col items-center gap-1 pb-1">
-                <AirWaveLoader client:load id="hero-aqi-wave" size={32} color="#ea580c" origin="bottom" duration={1100} playState="running" />
+                <AirWaveLoader client:load id="hero-aqi-wave" size={28} color="#ea580c" origin="bottom" duration={1100} playState="running" />
                 <span class="text-[9px] font-mono font-bold uppercase tracking-wider text-[#737373]" data-i18n="airWaveLabel">Air Wave</span>
               </div>
-              <div id="hero-aqi-value" class="text-6xl font-extrabold tracking-tight text-[#ea580c] font-mono leading-none">
+              <div id="hero-aqi-value" class="hero-aqi-display font-extrabold tracking-tight text-[#ea580c] font-mono">
                 {aqi}
               </div>
             </div>
@@ -176,8 +189,8 @@ const aqi = snapshot.indexValue || 385;
       </div>
 
       <!-- Interactive Airflow Controls Bar -->
-      <div class="relative z-10 mt-5 px-4 py-3 rounded-2xl bg-[#f7f9fa]/95 backdrop-blur-xs border border-[#e5e5e5] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-2">
+      <div class="relative z-10 mt-5 px-3 sm:px-4 py-3 rounded-2xl bg-[#f7f9fa]/95 backdrop-blur-xs border border-[#e5e5e5] flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2 min-w-0">
           <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-[#737373] mr-1 flex items-center gap-1">
             <Sparkles class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
             <span data-i18n="previewAirLabel">Preview Breathing Air:</span>
@@ -193,7 +206,7 @@ const aqi = snapshot.indexValue || 385;
           </button>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between lg:justify-end gap-3">
+        <div class="flex flex-wrap items-center justify-between lg:justify-end gap-2 sm:gap-3 min-w-0">
           <span id="air-mode-readout" class="text-xs font-mono font-bold text-[#171717] bg-white px-3 py-1 rounded-full border border-[#e5e5e5]">
             PM2.5: {snapshot.pm25} µg/m³
           </span>
@@ -211,65 +224,76 @@ const aqi = snapshot.indexValue || 385;
       </div>
 
       <!-- 4 Simple Pollutant Cards with Lucide Icons -->
-      <div class="relative z-10 mt-5 grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs">
-          <div class="flex items-center justify-between mb-1.5">
+      <div class="relative z-10 mt-5 grid grid-cols-1 min-[400px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="p-3.5 sm:p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs min-w-0">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
             <span class="text-xs text-[#525252] font-bold" data-i18n="fineDustLabel">Fine Dust (PM2.5)</span>
-            <CloudFog class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+            <CloudFog class="w-4 h-4 text-[#ea580c] shrink-0" aria-hidden="true" />
           </div>
-          <span id="metric-pm25" class="text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm25} µg/m³</span>
+          <span id="metric-pm25" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm25} µg/m³</span>
           <span id="metric-pm25-who" class="text-[11px] text-[#ea580c] font-semibold mt-0.5 block" data-i18n="checkingWhoLimit">Checking WHO safe limit...</span>
         </div>
 
-        <div class="p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs">
-          <div class="flex items-center justify-between mb-1.5">
+        <div class="p-3.5 sm:p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs min-w-0">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
             <span class="text-xs text-[#525252] font-bold" data-i18n="roadDustLabel">Road Dust (PM10)</span>
-            <Activity class="w-4 h-4 text-[#d97706]" aria-hidden="true" />
+            <Activity class="w-4 h-4 text-[#d97706] shrink-0" aria-hidden="true" />
           </div>
-          <span id="metric-pm10" class="text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm10} µg/m³</span>
+          <span id="metric-pm10" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm10} µg/m³</span>
           <span id="metric-pm10-who" class="text-[11px] text-[#d97706] font-semibold mt-0.5 block" data-i18n="checkingWhoLimit">Checking WHO safe limit...</span>
         </div>
 
-        <div class="p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs">
-          <div class="flex items-center justify-between mb-1.5">
+        <div class="p-3.5 sm:p-4 bg-white rounded-2xl border border-[#e5e5e5] shadow-2xs min-w-0">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
             <span class="text-xs text-[#525252] font-bold" data-i18n="trafficSmokeLabel">Traffic Smoke (NO₂)</span>
-            <Car class="w-4 h-4 text-[#b45309]" aria-hidden="true" />
+            <Car class="w-4 h-4 text-[#b45309] shrink-0" aria-hidden="true" />
           </div>
-          <span id="metric-no2" class="text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pollutants?.no2 ?? 84.5} µg/m³</span>
+          <span id="metric-no2" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pollutants?.no2 ?? 84.5} µg/m³</span>
           <span id="metric-no2-note" class="text-[11px] text-[#737373] font-medium mt-0.5 block" data-i18n="normalTrafficLevels">Normal traffic levels</span>
         </div>
 
-        <div class="p-4 bg-[#f0fdf4] rounded-2xl border border-[#bbf7d0] shadow-2xs">
-          <div class="flex items-center justify-between mb-1.5">
+        <div class="p-3.5 sm:p-4 bg-[#f0fdf4] rounded-2xl border border-[#bbf7d0] shadow-2xs min-w-0">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
             <span class="text-xs text-[#15803d] font-bold" data-i18n="bestAiringLabel">Best Airing Window</span>
-            <Clock class="w-4 h-4 text-[#15803d]" aria-hidden="true" />
+            <Clock class="w-4 h-4 text-[#15803d] shrink-0" aria-hidden="true" />
           </div>
-          <span id="metric-cleanest-time" class="text-xl font-extrabold text-[#15803d] font-mono block">13:00 – 15:30</span>
+          <span id="metric-cleanest-time" class="text-lg sm:text-xl font-extrabold text-[#15803d] font-mono block">13:00 – 15:30</span>
           <span id="metric-cleanest-pm25" class="text-[11px] text-[#15803d] font-semibold mt-0.5 block" data-i18n="bestTimeOpenWindows">Best time to open windows</span>
         </div>
       </div>
     </div>
 
     <!-- 3 Simple Steps For Today -->
-    <div class="bg-white border border-[#e5e5e5] rounded-3xl p-6 sm:p-8 shadow-xs stagger-card">
+    <div class="bg-white border border-[#e5e5e5] rounded-3xl p-4 sm:p-6 md:p-8 shadow-xs stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-[#f0f0f0]">
         <div>
           <span class="text-[11px] font-mono uppercase tracking-wider text-[#ea580c] font-bold block mb-1" data-i18n="whatToDoToday">
             WHAT TO DO TODAY
           </span>
-          <h2 class="text-2xl font-extrabold text-[#171717]" data-i18n="threeSimpleSteps">3 Simple Steps for Your Family</h2>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-[#171717]" data-i18n="threeSimpleSteps">3 Simple Steps for Your Family</h2>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <span id="today-grap-badge" class="px-3.5 py-1 rounded-full text-xs font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] font-mono">
             GRAP
           </span>
+          <a
+            id="btn-quick-whatsapp"
+            href="https://wa.me/?text=AirDelta%20AQI%20Report"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-action px-4 py-1.5 rounded-full bg-[#15803d] hover:bg-[#166534] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors press-scale shadow-xs"
+          >
+            <MessageCircle class="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span data-i18n="sendWhatsApp">Send on WhatsApp</span>
+          </a>
           <button 
             id="btn-quick-share" 
             type="button" 
+            aria-label="Copy today's air report"
             class="px-3.5 py-1.5 rounded-full bg-[#f7f9fa] hover:bg-[#e5e5e5] border border-[#d4d4d4] text-[#171717] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors press-scale"
           >
-            <Share2 class="w-3.5 h-3.5 text-[#ea580c]" aria-hidden="true" />
-            <span data-i18n="shareBtn">Share</span>
+            <Copy class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+            <span data-i18n="copyTextBtn">Copy</span>
           </button>
         </div>
       </div>
@@ -353,19 +377,20 @@ const aqi = snapshot.indexValue || 385;
     </div>
 
     <!-- CTA Banner -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e5e5e5] rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs stagger-card">
+    <div class="p-4 sm:p-6 md:p-8 bg-white border border-[#e5e5e5] rounded-3xl flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 shadow-xs stagger-card">
       <div class="space-y-1.5 max-w-xl">
         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa] uppercase font-mono tracking-wider" data-i18n="personalDailyPlan">
           Personal Daily Plan
         </span>
-        <h2 class="text-2xl font-extrabold text-[#171717]" data-i18n="ctaHeadline">See how much smoke your family can avoid today.</h2>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-[#171717]" data-i18n="ctaHeadline">See how much smoke your family can avoid today.</h2>
         <p class="text-xs sm:text-sm text-[#525252] leading-relaxed" data-i18n="ctaDesc">
           Compare your normal daily routine against a few easy timing and travel swaps — and see the exact health benefit in seconds.
         </p>
       </div>
       <a 
+        id="btn-cta-plan"
         href="/plan" 
-        class="btn-action w-full md:w-auto px-8 py-3.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-sm rounded-full shadow-md shadow-orange-500/20 transition-all text-center whitespace-nowrap flex items-center justify-center gap-2 press-scale cursor-pointer"
+        class="btn-action w-full md:w-auto px-6 sm:px-8 py-3.5 bg-[#ea580c] hover:bg-[#c2410c] text-white font-bold text-sm rounded-full shadow-md shadow-orange-500/20 transition-all text-center whitespace-nowrap flex items-center justify-center gap-2 press-scale cursor-pointer"
       >
         <span data-i18n="optimizeRoutine">Build My Safer Plan →</span>
         <ArrowRight class="w-4 h-4" aria-hidden="true" />
@@ -378,8 +403,8 @@ const aqi = snapshot.indexValue || 385;
     </div>
 
     <!-- Toast -->
-    <div id="brief-toast" role="status" aria-live="polite" class="hidden fixed bottom-6 right-6 z-50 p-4 bg-[#171717] text-white rounded-2xl shadow-xl flex items-center gap-2 text-xs font-semibold">
-      <CheckCircle2 class="w-4 h-4 text-[#ea580c]" aria-hidden="true" />
+    <div id="brief-toast" role="status" aria-live="polite" class="hidden fixed bottom-20 md:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 p-4 bg-[#171717] text-white rounded-2xl shadow-xl flex items-center justify-center sm:justify-start gap-2 text-xs font-semibold">
+      <CheckCircle2 class="w-4 h-4 text-[#ea580c] shrink-0" aria-hidden="true" />
       <span data-i18n="todayBriefCopied">Today's air summary copied!</span>
     </div>
   </div>
@@ -388,10 +413,13 @@ const aqi = snapshot.indexValue || 385;
     import { getTranslation } from "@airdelta/i18n";
     import {
       CITY_PRESETS,
-      apiFetchJson,
+      buildWhatsAppShareUrl,
       clearApiCache,
       dispatchWaveUpdate,
+      fetchResilientAir,
       getSelectedCity,
+      requestLiveLocationPermission,
+      setCustomLocation,
       setSelectedCity,
       getGrapLabelForAqi,
       formatLocalTime,
@@ -412,6 +440,9 @@ const aqi = snapshot.indexValue || 385;
     const cityDisplayName = document.getElementById("city-display-name");
     const refreshBtn = document.getElementById("btn-refresh-air");
     const refreshIcon = document.getElementById("refresh-icon");
+    const locateBtn = document.getElementById("btn-use-location");
+    const locateIcon = document.getElementById("today-locate-icon");
+    const ctaPlanLink = document.getElementById("btn-cta-plan") as HTMLAnchorElement | null;
     const providerDot = document.getElementById("provider-dot");
     const providerText = document.getElementById("provider-status-text");
     const syncLabel = document.getElementById("hero-sync-label");
@@ -431,9 +462,18 @@ const aqi = snapshot.indexValue || 385;
     let isFlowRunning = !prefersReducedMotion;
 
     function syncCityDropdownVisual(code: string) {
-      const preset = CITY_PRESETS[code] || CITY_PRESETS.DELHI;
+      const current = getSelectedCity();
+      const preset = code === "LIVE" ? current : (CITY_PRESETS[code] || current);
       if (cityInput) cityInput.value = preset.code;
       if (cityDisplayName) cityDisplayName.textContent = preset.label;
+      if (ctaPlanLink) {
+        const params = new URLSearchParams({
+          lat: String(preset.lat),
+          lng: String(preset.lng),
+          label: preset.label
+        });
+        ctaPlanLink.href = `/plan?${params.toString()}`;
+      }
       document.querySelectorAll<HTMLElement>(".city-menu-item").forEach((item) => {
         const isCurrent = item.getAttribute("data-city-code") === preset.code;
         const check = item.querySelector(".city-check");
@@ -753,27 +793,27 @@ const aqi = snapshot.indexValue || 385;
       const catEl = document.getElementById("hero-category");
       const aqiEl = document.getElementById("hero-aqi-value");
       const markerEl = document.getElementById("aqi-scale-marker");
-      const badgeWrap = document.getElementById("hero-badge-pill");
-      const sourcePill = document.getElementById("hero-source-pill");
       const grapBadge = document.getElementById("today-grap-badge");
 
       if (titleEl) titleEl.textContent = cityLabel;
-      if (badgeWrap) badgeWrap.replaceChildren(createBadgeNode(snapshot.badge));
-      if (sourcePill) sourcePill.textContent = String(snapshot.source || "openaq").toUpperCase();
       if (metaEl) {
-        const dist = typeof snapshot.stationDistanceKm === "number" ? `${snapshot.stationDistanceKm} km away` : "nearby";
+        const dist = typeof snapshot.stationDistanceKm === "number" ? ` (${snapshot.stationDistanceKm} km away)` : "";
         const stationName = String(snapshot.attribution || "").replace("OpenAQ Station: ", "");
-        metaEl.textContent = `Station: ${stationName} (${dist})`;
+        metaEl.textContent = stationName ? `${stationName}${dist}` : `Grid ${snapshot.cell}`;
       }
       if (stdNoteEl) {
         const observed = new Date(snapshot.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        stdNoteEl.textContent = `${snapshot.indexStandard === "eu_aqi" ? "EU AQI" : "Indian CPCB AQI"} · Updated ${observed}`;
+        const stdTitle = snapshot.indexStandard === "eu_aqi" ? "EU AQI" : snapshot.indexStandard === "us_epa" ? "Open-Meteo AQI" : "Indian CPCB AQI";
+        stdNoteEl.textContent = `${stdTitle} · Updated ${observed}`;
       }
-      if (stdLabelEl) stdLabelEl.textContent = `${snapshot.indexStandard === "eu_aqi" ? "EU" : "CPCB"} ${tr("aqiScoreLabel")}`;
+      if (stdLabelEl) {
+        const prefix = snapshot.indexStandard === "eu_aqi" ? "EU" : snapshot.indexStandard === "us_epa" ? "Live" : "CPCB";
+        stdLabelEl.textContent = `${prefix} ${tr("aqiScoreLabel")}`;
+      }
       if (catEl) catEl.textContent = trCategory(cat);
       if (aqiEl) {
         aqiEl.textContent = String(aqi);
-        aqiEl.className = `text-6xl font-extrabold tracking-tight font-mono leading-none ${
+        aqiEl.className = `hero-aqi-display font-extrabold tracking-tight font-mono ${
           numAqi > 300 ? "text-[#dc2626]" : numAqi > 200 ? "text-[#ea580c]" : numAqi > 100 ? "text-[#d97706]" : "text-[#15803d]"
         }`;
       }
@@ -885,6 +925,7 @@ const aqi = snapshot.indexValue || 385;
       } catch {}
 
       syncAirModeUi();
+      syncTodayWhatsAppHref();
       if (!isFlowRunning) drawAirFrame(false);
     }
 
@@ -892,37 +933,45 @@ const aqi = snapshot.indexValue || 385;
       if (forceFresh) clearApiCache();
       const city = getSelectedCity();
       syncCityDropdownVisual(city.code);
-      if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#ea580c] animate-pulse";
+      if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#ea580c]";
       if (providerText) providerText.textContent = `${tr("connectingOpenAq")} (${city.label})`;
       if (syncLabel) syncLabel.textContent = tr("liveAirBadge");
       if (refreshIcon) refreshIcon.classList.add("animate-spin");
-      dispatchWaveUpdate("hero-status-wave", { color: "#ea580c", duration: 800, playState: "running" });
-      dispatchWaveUpdate("hero-fetch-wave", { color: "#ea580c", duration: 800, playState: "running" });
 
       try {
-        const [snapshot, forecast] = await Promise.all([
-          apiFetchJson<any>(`/v1/air?lat=${city.lat}&lng=${city.lng}`),
-          apiFetchJson<any>(`/v1/air/forecast?lat=${city.lat}&lng=${city.lng}`)
-        ]);
+        const { snapshot, forecast } = await fetchResilientAir(city.lat, city.lng);
         updateDashboard(snapshot, forecast, city.label);
         if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#15803d]";
         if (providerText) {
-          const stationName = String(snapshot.attribution || "").replace("OpenAQ Station: ", "");
-          providerText.textContent = `Live ${String(snapshot.source).toUpperCase()} · ${stationName}`;
+          providerText.textContent = `${city.label} · ${snapshot.cell}`;
         }
         if (syncLabel) syncLabel.textContent = tr("liveAirBadge");
-        dispatchWaveUpdate("hero-status-wave", { color: "#15803d", duration: 1800, playState: "paused" });
-        dispatchWaveUpdate("hero-fetch-wave", { color: "#15803d", duration: 1600, playState: isFlowRunning ? "running" : "paused" });
       } catch {
         if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#d97706]";
         if (providerText) providerText.textContent = tr("offlineSampleMsg");
         if (syncLabel) syncLabel.textContent = tr("savedSampleBadge");
-        dispatchWaveUpdate("hero-status-wave", { color: "#d97706", playState: "paused" });
-        dispatchWaveUpdate("hero-fetch-wave", { color: "#d97706", playState: "paused" });
       } finally {
         if (refreshIcon) refreshIcon.classList.remove("animate-spin");
       }
     }
+
+    locateBtn?.addEventListener("click", async () => {
+      if (locateIcon) locateIcon.classList.add("animate-spin");
+      if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#ea580c]";
+      if (providerText) providerText.textContent = "Requesting location permission (~1.1 km privacy grid)...";
+
+      const res = await requestLiveLocationPermission();
+      if (locateIcon) locateIcon.classList.remove("animate-spin");
+
+      if (!res.ok) {
+        if (providerDot) providerDot.className = "w-2 h-2 rounded-full bg-[#dc2626]";
+        if (providerText) providerText.textContent = res.message;
+        return;
+      }
+
+      setCustomLocation(res.lat, res.lng, "My Live Location");
+      await loadLiveAir(true);
+    });
 
     window.addEventListener("airdelta:langchange", () => {
       setFlowRunning(isFlowRunning);
@@ -958,21 +1007,52 @@ const aqi = snapshot.indexValue || 385;
       });
     });
 
+    const whatsappBtn = document.getElementById("btn-quick-whatsapp") as HTMLAnchorElement | null;
     const shareBtn = document.getElementById("btn-quick-share");
     const toast = document.getElementById("brief-toast");
 
+    function buildTodayReportText(): string {
+      const city = getSelectedCity();
+      const aqi = latestSnapshot?.indexValue ?? 385;
+      const cat = latestSnapshot?.category ?? "Severe";
+      const pm25 = latestSnapshot?.pm25 ?? 382.5;
+      const pm10 = latestSnapshot?.pm10 ?? 512;
+      const no2 = latestSnapshot?.pollutants?.no2 ?? 84.5;
+      const grap = getGrapLabelForAqi(Number(aqi) || 0);
+      const windowStr = latestForecast?.cleanestWindow
+        ? `${formatLocalTime(latestForecast.cleanestWindow.startTs)} – ${formatLocalTime(latestForecast.cleanestWindow.endTs)}`
+        : "13:00 – 15:30";
+
+      return [
+        `*AirDelta AQI Report — ${city.label}*`,
+        `AQI: ${aqi} (${cat}) · ${grap.label}`,
+        `Fine Dust (PM2.5): ${pm25} µg/m³ · PM10: ${pm10} µg/m³ · NO₂: ${no2} µg/m³`,
+        `Best Airing Window: ${windowStr}`,
+        ``,
+        `*3 Steps for Today:*`,
+        `1. Skip early outdoor workouts before 10 AM.`,
+        `2. Open windows briefly around ${windowStr}.`,
+        `3. Take the Metro or wear a snug N95 mask.`,
+        ``,
+        `Build your safer plan: ${window.location.origin}/plan`
+      ].join("\n");
+    }
+
+    function syncTodayWhatsAppHref() {
+      if (whatsappBtn) {
+        whatsappBtn.href = buildWhatsAppShareUrl(buildTodayReportText());
+      }
+    }
+
+    syncTodayWhatsAppHref();
+
+    whatsappBtn?.addEventListener("click", () => {
+      syncTodayWhatsAppHref();
+    });
+
     if (shareBtn) {
       shareBtn.addEventListener("click", () => {
-        const city = getSelectedCity();
-        const aqi = latestSnapshot?.indexValue ?? 385;
-        const cat = latestSnapshot?.category ?? "Severe";
-        const pm25 = latestSnapshot?.pm25 ?? 382.5;
-        const windowStr = latestForecast?.cleanestWindow
-          ? `${formatLocalTime(latestForecast.cleanestWindow.startTs)} – ${formatLocalTime(latestForecast.cleanestWindow.endTs)}`
-          : "13:00 – 15:30";
-
-        const briefText = `AirDelta ${city.label} Update\nAQI: ${aqi} (${cat}) · Fine Dust: ${pm25} µg/m³\n\n1. Skip heavy outdoor workouts in peak hours.\n2. Open windows briefly around ${windowStr}.\n3. Wear an N95 mask or take the Metro.\n\nSee your plan: ${window.location.origin}`;
-        
+        const briefText = buildTodayReportText();
         navigator.clipboard.writeText(briefText).then(() => {
           if (toast) {
             toast.classList.remove("hidden");

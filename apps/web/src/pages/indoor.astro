@@ -14,6 +14,7 @@ import { calculateIndoorMassBalance } from "@airdelta/engine";
 import Camera from "lucide-astro/Camera";
 import Upload from "lucide-astro/Upload";
 import ShieldCheck from "lucide-astro/ShieldCheck";
+import MessageCircle from "lucide-astro/MessageCircle";
 
 const ambientPm25 = 382.5;
 const candidateSources = [
@@ -84,7 +85,7 @@ const massBalance = calculateIndoorMassBalance({
     <!-- Upload Dropzone & Privacy Guarantee -->
     <div 
       id="upload-dropzone" 
-      class="p-8 bg-[#f7f9fa] border-2 border-dashed border-[#d4d4d4] hover:border-[#ea580c] rounded-3xl text-center space-y-4 transition-all stagger-card"
+      class="p-5 sm:p-8 bg-[#f7f9fa] border-2 border-dashed border-[#d4d4d4] hover:border-[#ea580c] rounded-3xl text-center space-y-4 transition-all stagger-card"
     >
       <input type="file" id="photo-file-input" accept="image/*" class="visually-hidden" />
 
@@ -99,23 +100,23 @@ const massBalance = calculateIndoorMassBalance({
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-        <div class="w-44">
+      <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2 max-w-lg mx-auto sm:max-w-none">
+        <div class="w-full sm:w-44">
           <TransitionDropdown id="room-hint-select" name="roomHint" pill minWidth={190} options={roomOptions} selectedValue="kitchen" />
         </div>
 
         <button 
           id="btn-browse-photo" 
           type="button" 
-          class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer press-scale"
+          class="btn-action w-full sm:w-auto justify-center px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer press-scale"
         >
-          <Upload class="w-4 h-4" aria-hidden="true" />
+          <Upload class="w-4 h-4 shrink-0" aria-hidden="true" />
           <span id="btn-browse-label" data-i18n="choosePhoto">Choose Photo</span>
         </button>
         <button 
           id="btn-sample-scan" 
           type="button" 
-          class="px-4 py-2 bg-white hover:bg-[#f0f0f0] border border-[#d4d4d4] text-[#171717] text-xs font-semibold rounded-full transition-all cursor-pointer press-scale"
+          class="w-full sm:w-auto justify-center px-4 py-2.5 bg-white hover:bg-[#f0f0f0] border border-[#d4d4d4] text-[#171717] text-xs font-semibold rounded-full transition-all cursor-pointer press-scale"
           data-i18n="trySamplePhoto"
         >
           Try Sample Kitchen Photo
@@ -129,7 +130,7 @@ const massBalance = calculateIndoorMassBalance({
     </div>
 
     <!-- Step 1: Confirm What's in Your Room -->
-    <div id="step-1-container" class="p-6 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-4 stagger-card">
+    <div id="step-1-container" class="p-4 sm:p-6 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-4 stagger-card">
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div>
           <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block" data-i18n="step1Tag">Step 1 · Confirm Sources</span>
@@ -159,8 +160,8 @@ const massBalance = calculateIndoorMassBalance({
     </div>
 
     <!-- Step 2: Indoor Air Impact -->
-    <div class="p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6 stagger-card">
-      <div>
+    <div class="p-4 sm:p-6 bg-[#fff7ed] border border-[#fed7aa] rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6 stagger-card">
+      <div class="min-w-0">
         <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block" data-i18n="step2Tag">Step 2 · Indoor Air Impact</span>
         <h2 class="text-lg font-bold text-[#171717] mt-0.5" data-i18n="step2Heading">How Much Cleaner Your Room Gets</h2>
         <p class="text-xs text-[#525252] mt-1 max-w-xl leading-relaxed">
@@ -168,15 +169,27 @@ const massBalance = calculateIndoorMassBalance({
         </p>
       </div>
 
-      <div class="flex items-baseline gap-4 text-right">
-        <div>
+      <div class="flex flex-wrap items-center md:items-end justify-between md:justify-end gap-3 sm:gap-4 shrink-0">
+        <div class="text-left md:text-right">
           <span class="text-xs text-[#737373] block" data-i18n="indoorFineDust">Indoor Fine Dust</span>
-          <span id="val-indoor-conc" class="text-4xl font-extrabold text-[#171717] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
+          <span id="val-indoor-conc" class="text-3xl sm:text-4xl font-extrabold text-[#171717] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
           <span class="text-xs text-[#525252] font-medium"> µg/m³</span>
         </div>
-        <div class="px-4 py-2.5 rounded-2xl bg-[#ea580c] text-white shadow-sm">
-          <span id="val-pct-reduction" class="text-sm font-mono font-extrabold block">-{massBalance.percentageReduction}%</span>
-          <span class="text-[10px] text-white/90 font-mono font-medium" data-i18n="lessDustBadge">Less Dust</span>
+        <div class="flex items-center gap-2">
+          <div class="px-4 py-2 rounded-2xl bg-[#ea580c] text-white shadow-sm text-center">
+            <span id="val-pct-reduction" class="text-sm font-mono font-extrabold block">-{massBalance.percentageReduction}%</span>
+            <span class="text-[10px] text-white/90 font-mono font-medium" data-i18n="lessDustBadge">Less Dust</span>
+          </div>
+          <a
+            id="btn-indoor-whatsapp"
+            href="https://wa.me/?text=AirDelta%20Room%20Report"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-action px-4 py-2.5 rounded-full bg-[#15803d] hover:bg-[#166534] text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors press-scale whitespace-nowrap"
+          >
+            <MessageCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span data-i18n="sendRoomWhatsApp">Send Report</span>
+          </a>
         </div>
       </div>
     </div>
@@ -190,7 +203,7 @@ const massBalance = calculateIndoorMassBalance({
         </div>
         
         <!-- Filter Tabs -->
-        <div class="flex items-center gap-1.5 overflow-x-auto text-xs">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
           <button type="button" class="fix-filter-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer transition-colors press-scale" data-tier="all" data-i18n="tierAll">
             All
           </button>
@@ -229,9 +242,9 @@ const massBalance = calculateIndoorMassBalance({
           const defaultActive = fix.fixKey === "exhaust_during_cooking" || fix.fixKey === "hepa_air_purifier";
 
           return (
-            <div class="fix-item-card p-6 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 flex flex-col justify-between hover:border-[#fed7aa] transition-all" data-budget-band={fix.budgetBand}>
+            <div class="fix-item-card p-4 sm:p-6 bg-white border border-[#e8e8e8] rounded-3xl shadow-xs space-y-4 flex flex-col justify-between hover:border-[#fed7aa] transition-all" data-budget-band={fix.budgetBand}>
               <div class="space-y-2.5">
-                <div class="flex items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
                   <span class={`text-[10px] font-mono px-2.5 py-0.5 rounded-full border uppercase font-bold ${badgeClass}`}>
                     {budgetLabel}
                   </span>
@@ -265,7 +278,7 @@ const massBalance = calculateIndoorMassBalance({
   </div>
 
   <script>
-    import { apiFetchJson, getSelectedCity } from "../scripts/api-client.ts";
+    import { apiFetchJson, buildWhatsAppShareUrl, getSelectedCity } from "../scripts/api-client.ts";
 
     const browseBtn = document.getElementById("btn-browse-photo");
     const fileInput = document.getElementById("photo-file-input") as HTMLInputElement | null;
@@ -289,7 +302,7 @@ const massBalance = calculateIndoorMassBalance({
           const outEl = document.getElementById("val-outdoor-pm25");
           const subEl = document.getElementById("indoor-ambient-subtitle");
           if (outEl) outEl.textContent = `${liveAmbientPm25} µg/m³`;
-          if (subEl) subEl.textContent = `Live ${city.label} (${String(snap.source).toUpperCase()} PM2.5: ${liveAmbientPm25} µg/m³) · Private photo check & indoor air model`;
+          if (subEl) subEl.textContent = `Live ${city.label} (PM2.5: ${liveAmbientPm25} µg/m³) · Private photo check & indoor air model`;
           await confirmAndCalculate();
         }
       } catch {
@@ -428,10 +441,32 @@ const massBalance = calculateIndoorMassBalance({
         if (mitEl) mitEl.textContent = `${res.mitigatedIndoorPm25} µg/m³`;
         if (indoorConcEl) indoorConcEl.textContent = String(res.mitigatedIndoorPm25);
         if (pctRedEl) pctRedEl.textContent = `-${res.percentageReduction}%`;
+        syncIndoorWhatsAppHref();
       } catch {
         // keep current fallback values
       }
     }
+
+    const indoorWhatsappBtn = document.getElementById("btn-indoor-whatsapp") as HTMLAnchorElement | null;
+    function syncIndoorWhatsAppHref() {
+      if (!indoorWhatsappBtn) return;
+      const city = getSelectedCity();
+      const out = document.getElementById("val-outdoor-pm25")?.textContent?.trim() || `${liveAmbientPm25} µg/m³`;
+      const unmit = document.getElementById("val-unmitigated")?.textContent?.trim() || "--";
+      const mit = document.getElementById("val-mitigated")?.textContent?.trim() || "--";
+      const pct = document.getElementById("val-pct-reduction")?.textContent?.trim() || "--";
+      const msg = [
+        `*AirDelta Room Air Check — ${city.label}*`,
+        `Outdoor PM2.5: ${out}`,
+        `Unmitigated Indoor: ${unmit}`,
+        `With Fixes: ${mit} (${pct} less dust)`,
+        ``,
+        `Check your room: ${window.location.origin}/indoor`
+      ].join("\n");
+      indoorWhatsappBtn.href = buildWhatsAppShareUrl(msg);
+    }
+    syncIndoorWhatsAppHref();
+    indoorWhatsappBtn?.addEventListener("click", syncIndoorWhatsAppHref);
 
     if (browseBtn && fileInput) {
       browseBtn.addEventListener("click", () => fileInput.click());

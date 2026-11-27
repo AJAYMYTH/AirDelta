@@ -8,6 +8,7 @@ import { getAllLanguages } from "@airdelta/i18n";
 import Copy from "lucide-astro/Copy";
 import Check from "lucide-astro/Check";
 import ShieldAlert from "lucide-astro/ShieldAlert";
+import MessageCircle from "lucide-astro/MessageCircle";
 
 const snapshot = delhiSmogData.snapshot as AirSnapshot;
 
@@ -44,7 +45,7 @@ const noticeLangOptions = languages.map((l) => ({
         <div>
           <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171717]" data-i18n="communityHeading">Neighborhood Air Alerts</h1>
           <p id="community-subtitle" class="text-xs sm:text-sm text-[#525252] mt-1" data-i18n="communitySubtitle">
-            Clear, ready-to-share alerts for housing societies, schools, and offices using live OpenAQ data
+            Clear, ready-to-share alerts for housing societies, schools, and offices using live air data
           </p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
@@ -58,21 +59,31 @@ const noticeLangOptions = languages.map((l) => ({
     </div>
 
     <!-- Active Advisory Preview Card -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-6 stagger-card">
+    <div class="p-4 sm:p-6 md:p-8 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-6 stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#e5e5e5]">
-        <div>
+        <div class="min-w-0">
           <span id="advisory-audience-label" class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block">For: Housing Societies &amp; Apartments</span>
-          <h2 id="advisory-headline" class="text-xl font-bold text-[#171717] mt-1">{rwaAdvisoryHindi.headline}</h2>
+          <h2 id="advisory-headline" class="text-lg sm:text-xl font-bold text-[#171717] mt-1">{rwaAdvisoryHindi.headline}</h2>
         </div>
 
-        <div class="flex items-center gap-2 self-start sm:self-auto">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto shrink-0">
+          <a
+            id="btn-whatsapp-notice"
+            href={`https://wa.me/?text=${encodeURIComponent(rwaAdvisoryHindi.shareCardText || rwaAdvisoryHindi.headline)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-action px-5 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer press-scale"
+          >
+            <MessageCircle class="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span data-i18n="sendWhatsApp">Send on WhatsApp</span>
+          </a>
           <button
             id="btn-copy-notice"
             type="button"
-            class="btn-action px-6 py-2.5 bg-[#ea580c] hover:bg-[#c2410c] text-white text-xs font-bold rounded-full shadow-sm transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer press-scale"
+            class="px-4 py-2.5 bg-[#f7f9fa] hover:bg-[#ebebeb] border border-[#d4d4d4] text-[#171717] text-xs font-bold rounded-full transition-all flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer press-scale"
           >
-            <Copy id="copy-icon" class="w-4 h-4" aria-hidden="true" />
-            <span id="copy-btn-text" data-i18n="copyNotice">Copy for WhatsApp</span>
+            <Copy id="copy-icon" class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+            <span id="copy-btn-text" data-i18n="copyTextBtn">Copy</span>
           </button>
         </div>
       </div>
@@ -106,7 +117,7 @@ const noticeLangOptions = languages.map((l) => ({
 
       <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#525252]">
         <span id="advisory-status-line" role="status" aria-live="polite" class="flex items-center gap-2 font-medium">
-          <span class="w-2 h-2 rounded-full bg-[#15803d]"></span> Matched to live OpenAQ readings &amp; official GRAP rules
+          <span class="w-2 h-2 rounded-full bg-[#15803d]"></span> Matched to live air readings &amp; official GRAP rules
         </span>
         <span class="font-mono text-[#ea580c] font-semibold" data-i18n="readyToPaste">Ready to paste in WhatsApp or Telegram</span>
       </div>
@@ -118,7 +129,7 @@ const noticeLangOptions = languages.map((l) => ({
     </div>
 
     <!-- Anonymous Community Impact Ledger (k >= 5 Anonymity Standard) -->
-    <div class="p-6 sm:p-8 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-4 stagger-card">
+    <div class="p-4 sm:p-6 md:p-8 bg-white border border-[#e5e5e5] rounded-3xl shadow-xs space-y-4 stagger-card">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <span class="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#dcfce7] text-[#15803d] border border-[#86efac] font-bold" data-i18n="privacyStandardBadge">
@@ -126,7 +137,7 @@ const noticeLangOptions = languages.map((l) => ({
           </span>
           <h2 class="text-base sm:text-lg font-bold text-[#171717] mt-1.5" data-i18n="communityLedgerHeading">Sector 14 Neighborhood Clean-Air Impact</h2>
         </div>
-        <div class="flex items-center gap-2 text-xs">
+        <div class="flex flex-wrap items-center gap-2 text-xs">
           <span class="text-[#525252] font-medium" data-i18n="testGroupSize">Test Group Size:</span>
           <button type="button" class="k-sim-btn px-3 py-1 rounded-full bg-[#ea580c] text-white font-bold cursor-pointer" data-k="18" data-i18n="homesShown">18 Homes (Shown)</button>
           <button type="button" class="k-sim-btn px-3 py-1 rounded-full bg-[#f7f9fa] text-[#525252] border border-[#e5e5e5] font-semibold cursor-pointer" data-k="3" data-i18n="homesHidden">3 Homes (&lt;5 Hidden)</button>
@@ -191,9 +202,10 @@ const noticeLangOptions = languages.map((l) => ({
   </div>
 
   <script>
-    import { apiFetchJson, getSelectedCity } from "../scripts/api-client.ts";
+    import { apiFetchJson, buildWhatsAppShareUrl, getSelectedCity } from "../scripts/api-client.ts";
     import { setTransitionDropdownValue } from "../scripts/dropdown.ts";
 
+    const whatsappNoticeBtn = document.getElementById("btn-whatsapp-notice") as HTMLAnchorElement | null;
     const copyBtn = document.getElementById("btn-copy-notice");
     const copyBtnText = document.getElementById("copy-btn-text");
     const toast = document.getElementById("copy-toast");
@@ -207,10 +219,31 @@ const noticeLangOptions = languages.map((l) => ({
 
     let currentShareCard = "";
 
+    function buildCommunityNoticeText(): string {
+      if (currentShareCard) return currentShareCard;
+      const bulletLines = Array.from(bullets?.querySelectorAll("span.leading-relaxed") || [])
+        .map((el) => `• ${el.textContent?.trim()}`)
+        .filter(Boolean);
+      return [
+        headline?.textContent?.trim() || "",
+        "",
+        body?.textContent?.trim() || "",
+        bulletLines.length > 0 ? `\n${bulletLines.join("\n")}` : "",
+        `\nAirDelta Live Report: ${window.location.origin}`
+      ].filter(Boolean).join("\n");
+    }
+
+    function syncCommunityWhatsAppHref() {
+      if (whatsappNoticeBtn) {
+        whatsappNoticeBtn.href = buildWhatsAppShareUrl(buildCommunityNoticeText());
+      }
+    }
+
     function renderAdvisory(adv: any) {
       if (headline) headline.textContent = adv.headline;
       if (body) body.textContent = adv.body;
       currentShareCard = adv.shareCardText || "";
+      syncCommunityWhatsAppHref();
 
       if (bullets && Array.isArray(adv.actionBulletPoints)) {
         const nodes = adv.actionBulletPoints.map((p: string) => {
@@ -264,7 +297,7 @@ const noticeLangOptions = languages.map((l) => ({
           })
         });
         renderAdvisory(adv);
-        if (statusLine) statusLine.textContent = `Generated live for ${city.label} in ${lang.toUpperCase()} via OpenAQ`;
+        if (statusLine) statusLine.textContent = `Generated live for ${city.label} in ${lang.toUpperCase()}`;
       } catch {
         if (statusLine) statusLine.textContent = "API offline — displaying build-time Hindi/English fallback";
       }
@@ -322,15 +355,21 @@ const noticeLangOptions = languages.map((l) => ({
       }
     });
 
+    syncCommunityWhatsAppHref();
+
+    whatsappNoticeBtn?.addEventListener("click", () => {
+      syncCommunityWhatsAppHref();
+    });
+
     copyBtn?.addEventListener("click", () => {
-      const textToCopy = currentShareCard || `${headline?.textContent}\n\n${body?.textContent}`;
+      const textToCopy = buildCommunityNoticeText();
       navigator.clipboard.writeText(textToCopy).then(() => {
         if (copyBtnText) copyBtnText.textContent = "Copied!";
         if (toast) {
           toast.classList.remove("hidden");
           setTimeout(() => {
             toast.classList.add("hidden");
-            if (copyBtnText) copyBtnText.textContent = "Copy for WhatsApp";
+            if (copyBtnText) copyBtnText.textContent = (window as any).AirDeltaRuntime?.t?.("copyTextBtn") || "Copy";
           }, 3000);
         }
       });

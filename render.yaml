@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: airdelta-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: AIR_STRATEGY
+        value: race
+      - key: OPENAQ_ENABLED
+        value: "true"
+      - key: GOOGLE_AQ_ENABLED
+        value: "false"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAQ_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        generateValue: true
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+  - type: web
+    name: airdelta-web
+    runtime: static
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @airdelta/web... run build
+    staticPublishPath: apps/web/dist
+    envVars:
+      - key: PUBLIC_API_URL
+        fromService:
+          type: web
+          name: airdelta-api
+          envVarKey: RENDER_EXTERNAL_URL
