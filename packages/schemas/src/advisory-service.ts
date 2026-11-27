@@ -14,7 +14,8 @@ export class AdvisoryService {
   generateAdvisory(
     audience: AudienceType,
     air: AirSnapshot,
-    lang = "hi"
+    lang = "hi",
+    webAppUrl = "https://airdelta-web.onrender.com"
   ): AdvisoryResponse {
     const aqi = air.indexValue ?? 385;
     const category = air.category || "Moderate";
@@ -40,7 +41,8 @@ export class AdvisoryService {
       category,
       grapRule.stageName,
       air.attribution,
-      actionBulletPoints
+      actionBulletPoints,
+      webAppUrl
     );
 
     return {
@@ -165,8 +167,10 @@ export class AdvisoryService {
     category: string,
     stageName: string,
     attribution: string,
-    bulletPoints: string[]
+    bulletPoints: string[],
+    webAppUrl = "https://airdelta-web.onrender.com"
   ): string {
+    const cleanWebUrl = webAppUrl.replace(/\/$/, "");
     return [
       `📢 *AIRDELTA COMMUNITY ADVISORY*`,
       `${headline}`,
@@ -177,7 +181,7 @@ export class AdvisoryService {
       ...bulletPoints.map((b) => `• ${b}`),
       ``,
       `🛡️ *Verified Source:* AirDelta · CPCB NAQI & OpenAQ Guidelines`,
-      `🔗 Plan your family's routine: https://airdelta.app`
+      `🔗 Plan your family's routine: ${cleanWebUrl}`
     ].join("\n");
   }
 }

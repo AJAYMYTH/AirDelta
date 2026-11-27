@@ -9,7 +9,10 @@ import { setBoundedMapEntry } from "../utils/security.js";
 export interface BotConfig {
   token?: string;
   webhookSecret?: string;
+  webAppUrl?: string;
 }
+
+const DEFAULT_WEB_APP_URL = "https://airdelta-web.onrender.com";
 
 const BOT_CITIES: Record<string, { label: string; lat: number; lng: number }> = {
   delhi: { label: "Delhi-NCR (ITO)", lat: 28.6139, lng: 77.209 },
@@ -23,6 +26,7 @@ export class AirDeltaBot {
   private userLangMap = new Map<number, string>();
   private userCoordsMap = new Map<number, { label: string; lat: number; lng: number; cell?: string }>();
   private initPromise: Promise<void> | null = null;
+  private readonly webAppUrl: string;
 
   constructor(
     private airService: AirDataService,
@@ -30,6 +34,9 @@ export class AirDeltaBot {
     private visionService: VisionService,
     config: BotConfig = {}
   ) {
+    const rawWebUrl =
+      config.webAppUrl || process.env.PUBLIC_WEB_URL || process.env.WEB_APP_URL || DEFAULT_WEB_APP_URL;
+    this.webAppUrl = rawWebUrl.replace(/\/$/, "");
     const token = config.token || process.env.TELEGRAM_BOT_TOKEN;
     if (token && token.trim().length > 10) {
       this.bot = new Bot(token);
@@ -239,7 +246,7 @@ export class AirDeltaBot {
         `💡 *Top Recommended Fix:*`,
         `• *${audit.curatedFixes[0]?.title}*: ${audit.curatedFixes[0]?.description}`,
         ``,
-        `🔗 Open full visual audit: https://airdelta.app/indoor`
+        `🔗 Open full visual audit: ${this.webAppUrl}/indoor`
       ];
 
       await ctx.reply(lines.join("\n"), { parse_mode: "Markdown" });
@@ -299,7 +306,7 @@ export class AirDeltaBot {
       ...res.planB.changes.map((c) => `• *${c.title}* (${c.deltaUg} µg)`),
       ``,
       `🌱 *Avoided Emissions:* ${Math.abs(res.emissions.deltaGramsCo2e)} g CO₂e [ASSUMED]`,
-      `🔗 Open full interactive timeline: https://airdelta.app/plan?lat=${lat}&lng=${lng}`
+      `🔗 Open full interactive timeline: ${this.webAppUrl}/plan?lat=${lat}&lng=${lng}`
     ];
 
     return lines.join("\n");
@@ -312,7 +319,7 @@ export class AirDeltaBot {
     lang = "hi"
   ): Promise<string> {
     const snapshot = await this.airService.getAirSnapshot(lat, lng);
-    const advisory = this.advisoryService.generateAdvisory(audience, snapshot, lang);
+    const advisory = this.advisoryService.generateAdvisory(audience, snapshot, lang, this.webAppUrl);
     return advisory.shareCardText;
   }
 

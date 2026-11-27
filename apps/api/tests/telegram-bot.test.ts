@@ -67,7 +67,8 @@ describe("Telegram Bot Channel (Option B) test suite", () => {
 
     expect(today).toContain("Live Location (19.08, 72.88)");
     expect(plan).toContain("Live Location (19.08, 72.88)");
-    expect(plan).toContain("lat=19.08&lng=72.88");
+    expect(plan).toContain("https://airdelta-web.onrender.com/plan?lat=19.08&lng=72.88");
+    expect(plan).not.toContain("airdelta.app");
   });
 
   it("handles POST /webhooks/telegram updates and enforces webhook secret when configured", async () => {
