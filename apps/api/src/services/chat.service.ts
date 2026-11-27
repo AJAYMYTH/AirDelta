@@ -485,8 +485,9 @@ Respond practically with: (1) tailored routine/hack/sustainable alternative for 
       : prompt;
 
     const text = await generateWithModelFallback(this.ai, models, contents, {
-      firstTimeoutMs: image ? 8500 : 6000,
-      fallbackTimeoutMs: image ? 8500 : 4500
+      firstTimeoutMs: image ? 7000 : 4500,
+      fallbackTimeoutMs: 2800,
+      totalTimeoutMs: image ? 10000 : 6500
     });
     if (!text) return null;
 
@@ -503,12 +504,13 @@ Respond practically with: (1) tailored routine/hack/sustainable alternative for 
     budgetBand: BudgetBand,
     air: AirSnapshot,
     cleanestWindow: string,
-    image: ChatImageAttachment
+    _image: ChatImageAttachment
   ): Promise<string> {
     const roomHint = userMessage.toLowerCase().includes("bedroom") || userMessage.toLowerCase().includes("living")
       ? "bedroom"
       : "kitchen";
-    const audit = await this.visionService.auditIndoorPhoto(image.base64, image.mimeType, budgetBand, roomHint);
+    // Skip redundant Gemini Vision call here because multimodal Gemini already timed out or is disabled
+    const audit = await this.visionService.auditIndoorPhoto(undefined, "image/jpeg", budgetBand, roomHint);
     const ambientPm25 = air.pm25 ?? 180;
     const balance = calculateIndoorMassBalance({
       ambientPm25,

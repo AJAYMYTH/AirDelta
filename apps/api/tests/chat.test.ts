@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { AirDataService } from "@airdelta/air-adapters";
 import { ChatService, evaluateChatGuard } from "../src/services/chat.service.js";
 import { createApp } from "../src/index.js";
+import { generateWithModelFallback } from "../src/utils/gemini-client.js";
 
 describe("Interactive AI Chat Assistant & Prompt Guardrails", () => {
   const airService = new AirDataService({ replayMode: true });
@@ -144,5 +145,22 @@ describe("Interactive AI Chat Assistant & Prompt Guardrails", () => {
     const blockedImgJson: any = await imageWithCodingRes.json();
     expect(blockedImgJson.refused).toBe(true);
     expect(blockedImgJson.refusalReason).toBe("coding_request");
+  });
+
+  it("caps multi-model fallback latency inside totalTimeoutMs", async () => {
+    const neverResolvingAi: any = {
+      models: {
+        generateContent: () => new Promise(() => {})
+      }
+    };
+    const t0 = Date.now();
+    const result = await generateWithModelFallback(
+      neverResolvingAi,
+      ["m1", "m2", "m3"],
+      "hello",
+      { firstTimeoutMs: 50, fallbackTimeoutMs: 50, totalTimeoutMs: 80 }
+    );
+    expect(result).toBeNull();
+    expect(Date.now() - t0).toBeLessThan(250);
   });
 });

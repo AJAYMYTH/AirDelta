@@ -23,15 +23,21 @@ export async function generateWithModelFallback(
     responseMimeType?: string;
     firstTimeoutMs?: number;
     fallbackTimeoutMs?: number;
+    totalTimeoutMs?: number;
   } = {}
 ): Promise<string | null> {
   if (!ai) return null;
-  const firstMs = options.firstTimeoutMs ?? 6000;
-  const fallbackMs = options.fallbackTimeoutMs ?? 4500;
+  const firstMs = options.firstTimeoutMs ?? 5000;
+  const fallbackMs = options.fallbackTimeoutMs ?? 3000;
+  const totalBudgetMs = options.totalTimeoutMs ?? 7500;
+  const deadline = Date.now() + totalBudgetMs;
 
   for (let i = 0; i < models.length; i++) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs < 750) break;
+
     const model = models[i];
-    const timeoutMs = i === 0 ? firstMs : fallbackMs;
+    const timeoutMs = Math.min(i === 0 ? firstMs : fallbackMs, remainingMs);
     try {
       const response = await Promise.race([
         ai.models.generateContent({
@@ -45,8 +51,10 @@ export async function generateWithModelFallback(
       ]);
       const text = response.text?.trim();
       if (text) return text;
-    } catch {
-      // Fall through to next candidate model
+    } catch (err: any) {
+      const status = err?.status ?? err?.code;
+      if (status === 401 || status === 403) break;
+      // Fall through to next candidate model within remaining budget
     }
   }
 

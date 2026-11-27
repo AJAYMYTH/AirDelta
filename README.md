@@ -1,6 +1,6 @@
 # AirDelta (Δ) — AI-Assisted Winter Smog Action Engine
 
-[![Tests](https://img.shields.io/badge/tests-66%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
+[![Tests](https://img.shields.io/badge/tests-67%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat-square)](https://github.com/AJAYMYTH/AirDelta/actions)
 [![Engine](https://img.shields.io/badge/engine-pure%20TypeScript-blue?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Standards](https://img.shields.io/badge/standard-CPCB%20NAQI%20%7C%20CAQM%20GRAP-orange?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
@@ -235,7 +235,7 @@ curl -X POST "http://localhost:3000/v1/jobs/retention-purge?days=30"
 AirDelta includes an exhaustive suite of unit, property, security, and end-to-end evaluation tests (automated via GitHub Actions in [.github/workflows/ci.yml](.github/workflows/ci.yml)):
 
 ```bash
-# Run all 66 tests across 13 test suites
+# Run all 67 tests across 13 test suites
 pnpm test
 
 # Typecheck all workspace packages and Astro pages (0 errors, 0 warnings)

@@ -187,12 +187,13 @@ airdelta/
   - Removed the `Gemini AI` source badge chip after chat responses (`apps/web/src/scripts/chat-widget.ts`).
   - Created XSS-safe DOM Markdown renderer (`apps/web/src/scripts/markdown.ts`) supporting headings, bullet/numbered lists, bold, italic, and inline code without `innerHTML`.
   - Created dedicated `/assistant` page (`apps/web/src/pages/assistant.astro`) with live city/GPS location & lifestyle controls synced to `airdelta_plan_prefs`, drag-and-drop/upload EXIF-stripped photo analysis (`apps/web/src/scripts/image-utils.ts`), and navigation item (`navAssistant`) across all 13 languages in `packages/i18n/src/page-translations.ts`.
-  - Extended `POST /v1/chat` (`apps/api/src/routes/chat.route.ts`, `apps/api/src/services/chat.service.ts`, 6 MB `bodyLimit` in `apps/api/src/index.ts`) to support multimodal `imageBase64` + `mimeType` analysis while keeping coding/injection/off-topic guardrails active (`66/66` tests passing).
+  - Extended `POST /v1/chat` (`apps/api/src/routes/chat.route.ts`, `apps/api/src/services/chat.service.ts`, 6 MB `bodyLimit` in `apps/api/src/index.ts`) to support multimodal `imageBase64` + `mimeType` analysis while keeping coding/injection/off-topic guardrails active.
+  - Resolved `/v1/chat` `net::ERR_ABORTED` timeout issue: capped server-side `generateWithModelFallback` total timeout budget (`6.5s` text / `10s` image) in `apps/api/src/utils/gemini-client.ts`, eliminated redundant second Vision fallback call in `buildImageFallbackReply`, raised client `apiFetchJson` `/v1/chat` timeout to `30s`, and added `/healthz` pre-warming on chat drawer open (`67/67` tests passing).
 
 ## Development Progress
-- **Current Status:** Production-hardened across all 9 Astro pages (`/`, `/map`, `/plan`, `/assistant`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), floating quick-chat drawer, Hono API (Render), and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 66/66 tests passing.
+- **Current Status:** Production-hardened across all 9 Astro pages (`/`, `/map`, `/plan`, `/assistant`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), floating quick-chat drawer, Hono API (Render), and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 67/67 tests passing.
 - **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public visibility verified via GitHub API, < 10 MB submission cap).
-- **Test Suite Status:** 66/66 tests passing across 13 test suites (`pnpm test`).
+- **Test Suite Status:** 67/67 tests passing across 13 test suites (`pnpm test`).
 - **Compilation Status:** 0 errors, 0 warnings across `pnpm -r run build` and `pnpm typecheck` (`apps/web`: 23 files, 0 errors/warnings/hints, 9 static pages built).
 - **Pending / Blocked Items:**
   - Authenticate Cloudflare account (Cloudflare plugin or `wrangler login`) and deploy `apps/web/dist` to Cloudflare.

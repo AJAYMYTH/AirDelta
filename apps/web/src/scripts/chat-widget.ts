@@ -1,6 +1,7 @@
 import {
   apiFetchJson,
   fetchResilientAir,
+  getApiBase,
   getSelectedCity
 } from "./api-client";
 import { renderSafeMarkdown } from "./markdown";
@@ -281,7 +282,7 @@ export function createAirChatController(els: AirChatElements) {
           method: "POST",
           body: JSON.stringify(payload)
         },
-        attachedImage ? 15000 : 9500
+        30000
       );
 
       typingEl.remove();
@@ -395,10 +396,18 @@ export function initAirChatWidget() {
     removeImgBtn: document.getElementById("airchat-image-remove") as HTMLButtonElement | null
   });
 
+  let warmedBackend = false;
+  function prewarmBackend() {
+    if (warmedBackend) return;
+    warmedBackend = true;
+    fetch(`${getApiBase()}/healthz`, { signal: AbortSignal.timeout(8000) }).catch(() => {});
+  }
+
   function openPanel() {
     panel!.classList.remove("hidden");
     launcher!.setAttribute("aria-expanded", "true");
     controller.updateContextBadge();
+    prewarmBackend();
     setTimeout(() => input!.focus(), 50);
   }
 
