@@ -1,16 +1,17 @@
 # AirDelta (Δ) — AI-Assisted Winter Smog Action Engine
 
-[![Tests](https://img.shields.io/badge/tests-52%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
+[![Tests](https://img.shields.io/badge/tests-58%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat-square)](https://github.com/AJAYMYTH/AirDelta/actions)
 [![Engine](https://img.shields.io/badge/engine-pure%20TypeScript-blue?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Standards](https://img.shields.io/badge/standard-CPCB%20NAQI%20%7C%20CAQM%20GRAP-orange?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Languages](https://img.shields.io/badge/languages-12%20Indian%20Regional-purple?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Database](https://img.shields.io/badge/database-Supabase%20Postgres%20%2B%20RLS-3ECF8E?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Channel](https://img.shields.io/badge/channel-Astro%20PWA%20%2B%20Telegram%20Bot-0284c7?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 
-> **Event:** PromptWars Hackathon · **Chosen Vertical:** Public Health & Climate Resilience (Severe Winter Smog & Urban Air Pollution in India)  
+> **Event:** PromptWars Hackathon Challenge 6 · **Chosen Vertical:** Public Health & Climate Resilience (Severe Winter Smog & Urban Air Pollution in India) · **Built by:** AJAYMYTH (Javali Ajayakumar)  
 > **Thesis:** Everyone displays the raw AQI. Almost nobody answers: *"What should my family actually change today, what does it save our lungs in toxic particles, and how sure are you?"*
 
-AirDelta computes a household's personalized **Plan A (normal day) vs. Plan B (optimized day)** inhaled $\text{PM}_{2.5}$ dose difference and carbon emissions ledger using deterministic physical and biological exposure models (`@airdelta/engine`). Live monitoring defaults to **OpenAQ v3 physical ground stations** (with Open-Meteo CAMS forecast fallback and deterministic offline replay; Google Air Quality API is disabled by default). Gemini (`gemini-3.6-flash` with fallback chain) is used exclusively for narrative explanation, contextual advice, indoor vision audits, and multilingual translation across **all 12 major Indian regional languages**, strictly verified by an automated numeric-grounding validator.
+AirDelta computes a household's personalized **Plan A (normal day) vs. Plan B (optimized day)** inhaled $\text{PM}_{2.5}$ dose difference and carbon emissions ledger using deterministic physical and biological exposure models (`@airdelta/engine`). Live monitoring runs a **smart dual-adapter race & zero-failure fallback** across **OpenAQ v3 physical ground stations** (CPCB/DPCC/SPCB accuracy) and **Open-Meteo ECMWF CAMS** (low latency + global coverage), degrading safely to stale cache or an offline Nov 2026 Delhi smog replay fixture without ever failing an AQI lookup. Gemini (`gemini-3.6-flash` with fallback chain) is used exclusively for narrative explanation, contextual advice, indoor vision audits, and multilingual translation across **all 12 major Indian regional languages + English**, strictly verified by an automated numeric-grounding validator.
 
 ---
 
@@ -26,13 +27,13 @@ AirDelta computes a household's personalized **Plan A (normal day) vs. Plan B (o
 ### 2. Approach & Logic
 1. **Strict Math Boundary (`LLM Explains, Code Computes`):** The LLM never computes or invents pollution numbers, inhaled doses, or savings percentages. Pure TypeScript modules (`@airdelta/engine`) execute all exposure, mass-balance, and emissions equations.
 2. **Numeric Grounding Validator:** Every sentence returned by Gemini is scanned for numeric tokens (`GroundingValidatorService`). Any ungrounded number triggers automatic fallback to verified multilingual deterministic templates (`TemplateFallbackService`).
-3. **OpenAQ v3 Default Primary + Resilient Degradation:** `AirDataService` queries OpenAQ v3 stations within 25 km (prioritizing fresh `< 3h` multi-pollutant CPCB/SPCB stations, picking the newest sensor timestamp per pollutant, converting units to µg/m³, and computing official CPCB NAQI breakpoints), uses Open-Meteo ECMWF CAMS for 72h hourly dispersion forecasts, and degrades safely to stale cache or offline replay fixtures (`fixtures/delhi-smog-nov2026.json`) without ever fabricating readings.
+3. **Dual-Adapter Hedged Race & Zero-Error Fallback:** `AirDataService` runs an intelligent hedged race (`race` strategy, `2.2s` accuracy budget) between **OpenAQ v3 physical ground stations** (CPCB/DPCC/SPCB accuracy within 25 km, picking freshest sensor timestamps & computing official CPCB NAQI breakpoints) and **Open-Meteo ECMWF CAMS** (sub-second global coverage & 72h hourly dispersion forecasts). If OpenAQ times out or is unavailable, Open-Meteo answers seamlessly; if both fail, it degrades safely to bounded LRU stale cache or offline replay fixtures (`fixtures/delhi-smog-nov2026.json`) without ever throwing an AQI fetch error.
 4. **Human-in-the-Loop Indoor Vision Audit:** Uploaded room photos are downscaled and re-encoded via HTML `<canvas>` on the client to strip EXIF geolocation before Gemini Vision proposes candidate sources, which the user confirms/edits before recalculating single-compartment indoor mass balance.
 
 ### 3. How the Solution Works
-1. **Air Data Layer (`@airdelta/air-adapters`):** Coalesces concurrent requests per `0.01°` (~1.1 km) grid cell, fetches live OpenAQ v3 station telemetry + Open-Meteo CAMS forecast, and attaches one of four provenance badges (`[Measured]`, `[Forecast]`, `[Modelled]`, `[Assumed]`).
+1. **Air Data Layer (`@airdelta/air-adapters`):** Coalesces concurrent requests per `0.01°` (~1.1 km) grid cell, caps spatial/forecast caches via bounded LRU eviction (`maxCacheEntries: 500`), runs the OpenAQ + Open-Meteo dual-adapter fallback hierarchy, and attaches provenance badges (`[Measured]`, `[Forecast]`, `[Modelled]`, `[Assumed]`).
 2. **Optimization Engine (`@airdelta/engine`):** Simulates Plan A segment-by-segment inhaled $\text{PM}_{2.5}$ dose ($D = \sum C_{seg} \times VE_{seg} \times \Delta t_{seg}$) and compares Plan B shifts (moving walks to the cleanest afternoon window, shifting two-wheeler/car commutes to Metro + N95, running kitchen exhaust).
-3. **Dual Delivery Channels (`apps/web` + `apps/api` + `grammY`):** Both the 7-page Astro PWA and the `@AirDeltaBot` Telegram bot consume the unified Hono REST API (`/v1/air`, `/v1/plans`, `/v1/indoor-audits`, `/v1/advisories`).
+3. **Dual Delivery Channels (`apps/web` + `apps/api` + `grammY`):** Both the 8-page Astro PWA (`/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`, `/`) and the `@airdeltabot` Telegram bot consume the unified Hono REST API (`/v1/air`, `/v1/plans`, `/v1/indoor-audits`, `/v1/advisories`, `/webhooks/telegram`).
 
 ### 4. Assumptions Made
 - **Versioned Constants Registry (`2026-11-a`):** Minute ventilation rates ($VE$) follow US EPA Exposure Factors Handbook Chapter 6; building envelope penetration ($F_{micro}$) follows EPIC India / Nazaroff indoor aerosol studies; transport emission factors follow CPCB & DMRC data; uncertainty bounds propagate deterministically at $[0.80, 1.25] \times D$ (or $\pm 15\%$ / $\pm 20\%$ as documented in `packages/engine/src/dose.ts`).
@@ -60,7 +61,7 @@ flowchart TD
     end
 
     FinalOutput --> Web["Astro + Tailwind CSS v4 PWA"]
-    FinalOutput --> Bot["Telegram Bot Channel (@AirDeltaBot)"]
+    FinalOutput --> Bot["Telegram Bot Channel (@airdeltabot)"]
     FinalOutput --> Supabase["Supabase Postgres (RLS + k >= 5 Anonymity)"]
 ```
 
@@ -107,17 +108,18 @@ Calculates emissions divergence (e.g. switching private petrol car or 2-wheeler 
 ```
 airdelta/
 ├── apps/
-│   ├── web/               # Astro + Tailwind CSS v4 PWA (Low-JS, mobile-first, 7 pages)
-│   └── api/               # Node.js + Hono REST API + Telegram Bot Webhook
+│   ├── web/               # Astro + Tailwind CSS v4 PWA (Low-JS, mobile-first, 8 pages)
+│   └── api/               # Node.js + Hono REST API + Telegram Bot Webhook (Render-ready)
 ├── packages/
 │   ├── engine/            # Pure TypeScript dose, mass-balance & optimizer engine (Zero I/O)
 │   ├── schemas/           # Shared Zod schemas, TypeScript types, validation contracts
-│   ├── air-adapters/      # Multi-provider air adapters (Google AQ, OpenAQ, Open-Meteo, Replay)
+│   ├── air-adapters/      # Multi-provider air adapters (OpenAQ, Open-Meteo, Google AQ, Replay)
 │   ├── fix-library/       # Curated indoor mitigation database indexed by budget band
 │   └── i18n/              # 12+ Indian regional languages dictionary & localization engine
 ├── evals/                 # End-to-end evaluation suite for numeric grounding & safety
 ├── fixtures/              # Nov 6–8, 2026 Delhi severe smog episode dataset (AQI 385, GRAP Stage III)
 ├── supabase/              # PostgreSQL schema, migrations, RLS policies, and seed data
+├── .github/workflows/     # GitHub Actions CI (build, typecheck, and Vitest verification)
 └── docs/                  # PRD, TRD, Impact-Methodology, Navigation-Plan
 ```
 
@@ -127,25 +129,27 @@ airdelta/
 
 | Page | Route | Description |
 | :--- | :--- | :--- |
-| **Today Dashboard** | `/` | Real-time CPCB AQI, pollutant breakdown, cleanest afternoon ventilation window, and active CAQM GRAP stage. |
-| **Plan A vs Plan B** | `/plan` | Side-by-side comparison of normal vs optimized day: $-39.5\%$ inhaled dose reduction, transit carbon trade-offs, and assumptions audit. |
+| **Today Dashboard** | `/` | Live GPS or city AQI, pollutant breakdown, OpenAQ/Open-Meteo adapter selector, cleanest window, CAQM GRAP stage, and direct WhatsApp share. |
+| **Live AQI Map** | `/map` | Fullscreen-capable interactive Leaflet map (zero-key OpenStreetMap tiles), tap-anywhere inspection, browser geolocation, and per-location plan generation. |
+| **Plan A vs Plan B** | `/plan` | Side-by-side comparison of normal vs optimized day: live-location support, inhaled dose reduction, transit carbon trade-offs, and assumptions audit. |
 | **Indoor Photo Audit**| `/indoor` | Gemini Vision analysis of room photos (client-side EXIF stripping), detects unsealed cracks, exhaust fans, and calculates CADR targets. |
-| **Community Advisories** | `/community` | One-tap WhatsApp / Telegram notice generator in regional languages + $k \ge 5$ anonymous community impact ledger. |
+| **Community Advisories** | `/community` | One-tap WhatsApp share / Telegram notice generator in regional languages + $k \ge 5$ anonymous community impact ledger. |
 | **Smog Replay Studio** | `/replay` | Interactive 24-hour timeline scrubber replaying the Nov 6–8, 2026 Delhi severe inversion episode with live dose accumulation dynamics. |
 | **Methodology** | `/method` | Transparent exposure science page with interactive versioned Constants Registry `2026-11-a` and academic citations. |
-| **Settings & Privacy**| `/settings` | Switch between 12 Indian regional languages, zero-PII data export (JSON), and local storage purge. |
+| **Settings & Privacy**| `/settings` | Switch between 12 Indian regional languages + English, view provider attribution, zero-PII data export (JSON), and local storage purge. |
 
 ---
 
-## 🤖 Telegram Bot Channel (`@AirDeltaBot`)
+## 🤖 Telegram Bot Channel (`@airdeltabot`)
 
-AirDelta provides a free, zero-cost conversational interface via `grammY` on the Telegram Bot API:
-- `/start` — 60-second guided onboarding (city, grid cell, routine, budget band).
+AirDelta provides a free, zero-cost conversational interface via `grammY` on the Telegram Bot API (ready for webhook deployment on Render via `render.yaml` / `Dockerfile`):
+- `/start` — 60-second guided onboarding with one-tap **Share My Live Location** and quick city buttons.
+- `/location` — One-tap GPS / **Telegram Live Location** streaming (`edited_message:location` auto-updates AQI when moving to a new grid cell).
 - `/today` — Instant ambient AQI, dominant pollutant, and cleanest window.
 - `/plan` — Generate personalized Plan A vs Plan B and dose savings.
 - `/indoor` — Submit a photo of your living room or kitchen for an instant CADR audit.
 - `/advisory` — Generate a copy-paste WhatsApp notice for your RWA or apartment society.
-- `/lang` — Switch bot language to any of the 12 Indian regional languages.
+- `/lang` — Switch bot language to Indian regional languages (`en`, `hi`, `bn`, `te`, `ta`, `kn`, etc.).
 - **07:00 IST Morning Brief** — Proactive push notification triggered daily via scheduler endpoint `POST /webhooks/telegram/jobs/morning-brief`.
 
 ---
@@ -226,26 +230,28 @@ curl -X POST "http://localhost:3000/v1/jobs/retention-purge?days=30"
 
 ---
 
-## 🧪 Testing & Verification
+## 🧪 Testing, Security & Verification
 
-AirDelta includes an exhaustive suite of unit, property, and end-to-end evaluation tests:
+AirDelta includes an exhaustive suite of unit, property, security, and end-to-end evaluation tests (automated via GitHub Actions in [.github/workflows/ci.yml](.github/workflows/ci.yml)):
 
 ```bash
-# Run all 52 tests across 12 test suites
+# Run all 58 tests across 12 test suites
 pnpm test
 
-# Typecheck all 8 packages and apps (0 errors, 0 warnings)
+# Typecheck all workspace packages and Astro pages (0 errors, 0 warnings)
 pnpm typecheck
 
 # Full monorepo production build
 pnpm -r run build
 ```
 
-### Test Coverage Highlights
-- **Engine Monotonicity:** Verified across 50 synthetic households and fast-check property generators.
+### Verification & Hardening Highlights
+- **Engine Monotonicity:** Verified across 50 synthetic households and deterministic property invariants.
 - **Numeric Grounding Validator:** Proves zero numerical hallucinations escape to user-facing text.
+- **API Hardening & Bounds Validation:** Enforces HTTP security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`), payload size limits (`bodyLimit`), WGS84 coordinate bounds (`lat`/`lng`), Zod request schemas, timing-safe secret comparison (`crypto.timingSafeEqual`) for Telegram webhooks and `CRON_SECRET` jobs, and sanitized error responses.
+- **Bounded Resource Usage:** Caps spatial/forecast caches (`maxCacheEntries: 500` LRU eviction) and Telegram chat state maps (`2000` entries) for predictable low-memory execution on free-tier containers.
 - **Adversarial & PII Scrubbing:** Verifies stripping of Indian phone numbers, Aadhaar numbers, emails, and prompt-injection jailbreaks.
-- **Multilingual Fallback:** Verified non-empty, grammatically grounded fallback narratives across all 12 Indian regional languages.
+- **Multilingual Fallback:** Verified non-empty, grammatically grounded fallback narratives across all 12 Indian regional languages + English.
 
 ---
 
@@ -283,5 +289,5 @@ pnpm --filter @airdelta/web run dev
 ---
 
 <p align="center">
-  <b>AirDelta</b> · Built with ❤️ for public health during winter smog in India · PromptWars Hackathon 2026
+  <b>AirDelta</b> · Built by <b>AJAYMYTH (Javali Ajayakumar)</b> for PromptWars Challenge 6 · Public Health &amp; Climate Resilience
 </p>

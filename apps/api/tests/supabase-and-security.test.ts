@@ -142,18 +142,64 @@ describe("Phase 6: Supabase Postgres & Security Hardening", () => {
     });
   });
 
-  describe("Retention Purge Job Route", () => {
-    it("POST /v1/jobs/retention-purge executes correctly", async () => {
+  describe("Retention Purge Job Route & API Hardening", () => {
+    it("POST /v1/jobs/retention-purge executes correctly and rejects out-of-range days", async () => {
       const app = createApp();
       const res = await app.request("/v1/jobs/retention-purge?days=30", {
         method: "POST"
       });
 
       expect(res.status).toBe(200);
+      expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
+      expect(res.headers.get("X-Frame-Options")).toBe("DENY");
+
       const body: any = await res.json();
       expect(body.status).toBe("success");
       expect(body.message).toContain("Purged plans older than 30 days");
       expect(typeof body.deletedCount).toBe("number");
+
+      const invalidDays = await app.request("/v1/jobs/retention-purge?days=99999", {
+        method: "POST"
+      });
+      expect(invalidDays.status).toBe(400);
+    });
+
+    it("enforces CRON_SECRET on scheduled endpoints when configured", async () => {
+      const prevCron = process.env.CRON_SECRET;
+      process.env.CRON_SECRET = "cron-guard-secret";
+      try {
+        const app = createApp();
+        const unauthorized = await app.request("/v1/jobs/retention-purge?days=30", {
+          method: "POST"
+        });
+        expect(unauthorized.status).toBe(401);
+
+        const authorized = await app.request("/v1/jobs/retention-purge?days=30", {
+          method: "POST",
+          headers: { "X-Cron-Secret": "cron-guard-secret" }
+        });
+        expect(authorized.status).toBe(200);
+      } finally {
+        if (prevCron === undefined) delete process.env.CRON_SECRET;
+        else process.env.CRON_SECRET = prevCron;
+      }
+    });
+
+    it("validates WGS84 coordinate bounds and indoor confirmation limits", async () => {
+      const app = createApp();
+
+      const outOfBoundsLat = await app.request("/v1/air?lat=95&lng=77.2");
+      expect(outOfBoundsLat.status).toBe(400);
+
+      const outOfBoundsLng = await app.request("/v1/air/forecast?lat=28.6&lng=-190");
+      expect(outOfBoundsLng.status).toBe(400);
+
+      const badIndoor = await app.request("/v1/indoor-audits/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomVolumeM3: -10, ambientPm25: 50000 })
+      });
+      expect(badIndoor.status).toBe(400);
     });
   });
 });

@@ -1,48 +1,69 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import { VisionService } from "../services/vision.service.js";
 import { calculateIndoorMassBalance } from "@airdelta/engine";
 import { getFixByKey } from "@airdelta/fix-library";
+
+const AuditIndoorSchema = z.object({
+  imageBase64: z.string().max(6_500_000).optional(),
+  image: z.string().max(6_500_000).optional(),
+  mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]).default("image/jpeg"),
+  budgetBand: z.enum(["none", "low", "medium", "high"]).default("low"),
+  roomHint: z.string().max(80).default("kitchen")
+});
+
+const ConfirmIndoorSchema = z.object({
+  confirmedSourceIds: z.array(z.string().max(120)).max(50).default([]),
+  selectedFixKeys: z.array(z.string().max(120)).max(50).default([]),
+  roomVolumeM3: z.number().finite().min(1).max(10000).default(45),
+  ambientPm25: z.number().finite().min(0).max(2000).default(380)
+});
 
 export function createIndoorRoutes(visionService: VisionService) {
   const router = new Hono();
 
   // POST /v1/indoor-audits
   router.post("/", async (c) => {
-    let body: any = {};
+    let rawBody: unknown = {};
     try {
-      body = await c.req.json();
+      const parsedJson = await c.req.json();
+      if (parsedJson && typeof parsedJson === "object") {
+        rawBody = parsedJson;
+      }
     } catch {
       // Body may be empty if testing heuristic fallback
     }
 
+    const parsed = AuditIndoorSchema.safeParse(rawBody);
+    const body = parsed.success ? parsed.data : AuditIndoorSchema.parse({});
     const base64Image = body.imageBase64 || body.image;
-    const mimeType = body.mimeType || "image/jpeg";
-    const budget = body.budgetBand || "low";
-    const roomHint = body.roomHint || "kitchen";
 
     try {
-      const result = await visionService.auditIndoorPhoto(base64Image, mimeType, budget, roomHint);
+      const result = await visionService.auditIndoorPhoto(base64Image, body.mimeType, body.budgetBand, body.roomHint);
       return c.json(result, 201);
-    } catch (err: any) {
-      return c.json({ error: "Indoor photo audit failed", message: err.message }, 500);
+    } catch {
+      return c.json({ error: "Indoor photo audit failed" }, 500);
     }
   });
 
   // POST /v1/indoor-audits/confirm
   router.post("/confirm", async (c) => {
-    let body: any;
+    let rawBody: unknown;
     try {
-      body = await c.req.json();
+      rawBody = await c.req.json();
     } catch {
       return c.json({ error: "Invalid JSON request body" }, 400);
     }
 
-    const {
-      confirmedSourceIds = [],
-      selectedFixKeys = [],
-      roomVolumeM3 = 45,
-      ambientPm25 = 380
-    } = body;
+    const parsed = ConfirmIndoorSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return c.json(
+        { error: "Invalid indoor confirmation parameters", details: parsed.error.flatten() },
+        400
+      );
+    }
+
+    const { confirmedSourceIds, selectedFixKeys, roomVolumeM3, ambientPm25 } = parsed.data;
 
     // Check confirmed interventions
     let hasExhaust = false;

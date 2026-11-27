@@ -163,15 +163,19 @@ airdelta/
   - Added `/location` command, 1-tap `📍 Share My Live Location` `Keyboard().requestLocation(...)` prompt, inline quick-action buttons, and `edited_message:location` streaming updates in `apps/api/src/bot/telegram.ts` and `apps/api/src/bot/polling-runner.ts` (plus `setMyCommands` menu registration).
   - Added production deployment configs: `Dockerfile`, `.dockerignore`, `render.yaml` (Render Blueprint for `@airdelta/api` + `@airdelta/web`), `netlify.toml`, and `scripts/set-telegram-webhook.mjs` (`pnpm bot:webhook`) for Telegram webhook registration.
 
+- [x] **Security Hardening, Bounded Caching & CI Verification (Nov 27, 2026):**
+  - Added `apps/api/src/utils/security.ts` with SHA-256 `timingSafeEqual` secret comparison, WGS84 `parseCoordinates` validation, and `setBoundedMapEntry` LRU map bounding.
+  - Hardened `apps/api/src/index.ts` and route handlers (`air.route.ts`, `indoor.route.ts`, `jobs.route.ts`, `telegram.route.ts`, `plans.route.ts`): HTTP security headers, `bodyLimit` guards, sanitized `500` error responses, Zod validation on `/v1/indoor-audits*`, coordinate bounds checks, and optional `CRON_SECRET` enforcement.
+  - Added bounded LRU cache eviction (`maxCacheEntries: 500`) in `packages/air-adapters/src/air-service.ts` and bounded chat preference maps (`2000` entries) in `apps/api/src/bot/telegram.ts`.
+  - Added `.github/workflows/ci.yml` and expanded security/cache unit tests.
+
 ## Development Progress
-- **Current Status:** OpenAQ default primary and fast Gemini 3.1 Flash-Lite narration verified end-to-end across API & web; Astro route compile and API progressive hydration verified; ready for git commit/push and manual browser + demo video walkthrough before 29/11/2026 11:59 PM IST.
-- **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public, single `main` branch, < 10 MB). Working tree has local edits ready to commit & push.
-- **Test Suite Status:** 52/52 tests passing across 12 test suites (`pnpm test`).
-- **Compilation & Doctor Status:** 0 errors, 0 warnings, 0 hints (`pnpm typecheck` & `pnpm -r run build`); `astryx doctor --built apps/web/dist` reports `pass: 24, warn: 3, fail: 0`.
+- **Current Status:** Production-hardened across all 8 Astro pages (`/`, `/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), Hono API, and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 58/58 tests passing.
+- **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public visibility verified via GitHub API, ~0.75 MB — well under 10 MB submission cap).
+- **Test Suite Status:** 58/58 tests passing across 12 test suites (`pnpm test`).
+- **Compilation Status:** 0 errors, 0 warnings across `pnpm -r run build` and `pnpm typecheck` (`apps/web`: 18 files, 0 errors/warnings/hints, 8 static pages built).
 - **Pending / Blocked Items:**
-  - Built-in `/browser` webview runtime timed out (`SCRIPT_ERROR: script timed out after 30000ms` on `about:blank`) — manual or Playwright browser walkthrough recommended before recording demo video.
-  - Apply `supabase/migrations/20261126000000_grant_permissions.sql` on remote Supabase project (`cwvsngmwzhytrjzdqvpn`) to resolve HTTP 401/403 `permission denied`.
-  - Set `TELEGRAM_WEBHOOK_SECRET` in `.env`, commit & push local changes to `origin/main`, and record/upload unlisted demo video.
+  - Record/upload unlisted YouTube or accessible Google Drive demo video and submit on PromptWars before 29/11/2026 11:59 PM IST (at most 3 attempts allowed).
 
 ## Technical Decisions
 1. **Strict Math Boundary:** LLM is strictly forbidden from performing mathematical calculations. `@airdelta/engine` computes all doses and percentages; Gemini only narrates and translates.

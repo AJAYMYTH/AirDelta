@@ -233,4 +233,16 @@ describe("@airdelta/air-adapters test suite", () => {
     expect(failSafe.indexValue).toBeGreaterThan(0);
     expect(failSafe.source).toBe("replay");
   });
+
+  it("bounds spatial cache size via LRU eviction under heavy map panning", async () => {
+    const service = new AirDataService({ replayMode: true, maxCacheEntries: 12 });
+
+    for (let i = 0; i < 20; i++) {
+      await service.getAirSnapshot(28.0 + i * 0.05, 77.0 + i * 0.05);
+    }
+
+    const cacheStats = service.getCacheStats();
+    expect(cacheStats.currentEntries).toBeLessThanOrEqual(12);
+    expect(cacheStats.maxEntries).toBe(12);
+  });
 });

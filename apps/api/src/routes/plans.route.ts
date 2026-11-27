@@ -44,8 +44,8 @@ export function createPlanRoutes(
       await dbService.savePlan(plan, householdId, profileParse.data);
 
       return c.json(plan, 201);
-    } catch (err: any) {
-      return c.json({ error: "Plan generation failed", message: err.message }, 500);
+    } catch {
+      return c.json({ error: "Plan generation failed" }, 500);
     }
   });
 
@@ -77,8 +77,8 @@ export function createPlanRoutes(
     try {
       const result = await dbService.recordAction(planId, actionKey);
       return c.json({ status: "success", actionId: result.id, planId, actionKey });
-    } catch (err: any) {
-      return c.json({ error: "Failed to record action", message: err.message }, 500);
+    } catch {
+      return c.json({ error: "Failed to record action" }, 500);
     }
   });
 

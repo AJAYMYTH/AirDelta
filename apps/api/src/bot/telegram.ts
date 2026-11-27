@@ -4,6 +4,7 @@ import { optimizeHouseholdPlan } from "@airdelta/engine";
 import { AdvisoryService } from "@airdelta/schemas";
 import { getTranslation, getGlossaryTerm } from "@airdelta/i18n";
 import { VisionService } from "../services/vision.service.js";
+import { setBoundedMapEntry } from "../utils/security.js";
 
 export interface BotConfig {
   token?: string;
@@ -137,7 +138,7 @@ export class AirDeltaBot {
         ? `Live Location (${lat.toFixed(2)}, ${lng.toFixed(2)})`
         : `My Location (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
 
-      this.userCoordsMap.set(chatId, { label, lat, lng, cell });
+      setBoundedMapEntry(this.userCoordsMap, chatId, { label, lat, lng, cell });
 
       const lang = this.userLangMap.get(chatId) || "en";
       const [todayText, planText] = await Promise.all([
@@ -159,7 +160,7 @@ export class AirDeltaBot {
       const cell = `${lat.toFixed(2)}:${lng.toFixed(2)}`;
       const prev = this.userCoordsMap.get(chatId);
       const label = `Live Location (${lat.toFixed(2)}, ${lng.toFixed(2)})`;
-      this.userCoordsMap.set(chatId, { label, lat, lng, cell });
+      setBoundedMapEntry(this.userCoordsMap, chatId, { label, lat, lng, cell });
 
       if (!prev || prev.cell !== cell) {
         const lang = this.userLangMap.get(chatId) || "en";
@@ -209,7 +210,7 @@ export class AirDeltaBot {
         });
       } else if (data.startsWith("lang_")) {
         const lang = data.replace("lang_", "");
-        this.userLangMap.set(chatId, lang);
+        setBoundedMapEntry(this.userLangMap, chatId, lang);
         await ctx.answerCallbackQuery({ text: `Language changed to ${lang.toUpperCase()}` });
         await ctx.reply(`✅ *Language updated to ${lang.toUpperCase()}!*\nUse /today, /plan, or /location.`, {
           parse_mode: "Markdown",
@@ -218,7 +219,7 @@ export class AirDeltaBot {
       } else if (data.startsWith("city_")) {
         const cityKey = data.replace("city_", "");
         const city = BOT_CITIES[cityKey] || BOT_CITIES.delhi;
-        this.userCoordsMap.set(chatId, city);
+        setBoundedMapEntry(this.userCoordsMap, chatId, city);
         await ctx.answerCallbackQuery({ text: `City set to ${city.label}` });
         const text = await this.getTodayText(city.lat, city.lng, this.userLangMap.get(chatId) || "en", city.label);
         await ctx.reply(text, { parse_mode: "Markdown", reply_markup: this.buildQuickActionsKeyboard() });

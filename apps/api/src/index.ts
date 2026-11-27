@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { bodyLimit } from "hono/body-limit";
 import { serve } from "@hono/node-server";
 import fs from "node:fs";
 import path from "node:path";
@@ -31,6 +32,26 @@ export function createApp(
   options: { disableLlm?: boolean } = {}
 ) {
   const app = new Hono();
+
+  // Security headers for API responses (compatible with cross-origin web client)
+  app.use("*", async (c, next) => {
+    await next();
+    c.header("X-Content-Type-Options", "nosniff");
+    c.header("X-Frame-Options", "DENY");
+    c.header("Referrer-Policy", "no-referrer");
+    c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  });
+
+  // Bound JSON payload size (5 MB for indoor photo uploads, 256 KB elsewhere)
+  app.use("/v1/indoor-audits/*", bodyLimit({ maxSize: 5 * 1024 * 1024 }));
+  app.use("/v1/plans/*", bodyLimit({ maxSize: 256 * 1024 }));
+  app.use("/v1/advisories/*", bodyLimit({ maxSize: 256 * 1024 }));
+
+  // Prevent unhandled internal errors from leaking stack traces
+  app.onError((err, c) => {
+    console.error("[AirDelta API] Unhandled error:", err);
+    return c.json({ error: "Internal server error" }, 500);
+  });
 
   // CORS middleware
   app.use("*", cors({

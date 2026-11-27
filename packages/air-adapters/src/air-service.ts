@@ -13,6 +13,7 @@ export interface AirDataServiceConfig {
   preferOpenMeteo?: boolean;
   strategy?: "openaq_first" | "open_meteo_first" | "race";
   raceTimeoutMs?: number;
+  maxCacheEntries?: number;
   replayMode?: boolean;
   fixturePath?: string;
 }
@@ -47,11 +48,50 @@ export class AirDataService {
   private primaryFailureCount = 0;
   private circuitOpenUntil = 0;
 
+  private readonly maxCacheEntries: number;
+
   constructor(private config: AirDataServiceConfig = {}) {
+    this.maxCacheEntries = Math.max(10, config.maxCacheEntries ?? 500);
     this.googleAdapter = new GoogleAirQualityAdapter(config.googleApiKey);
     this.openaqAdapter = new OpenAQAdapter(config.openaqApiKey);
     this.openMeteoAdapter = new OpenMeteoAdapter();
     this.replayAdapter = new ReplayAdapter(config.fixturePath);
+  }
+
+  getCacheStats() {
+    return {
+      currentEntries: this.currentCache.size,
+      forecastEntries: this.forecastCache.size,
+      maxEntries: this.maxCacheEntries
+    };
+  }
+
+  private getFreshCached<T>(cache: Map<string, CachedEntry<T>>, key: string, now: number): T | null {
+    const entry = cache.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt <= now) return null;
+    // Touch entry for LRU recency
+    cache.delete(key);
+    cache.set(key, entry);
+    return entry.data;
+  }
+
+  private setBoundedCache<T>(cache: Map<string, CachedEntry<T>>, key: string, entry: CachedEntry<T>): void {
+    const now = Date.now();
+    if (cache.has(key)) {
+      cache.delete(key);
+    } else if (cache.size >= this.maxCacheEntries) {
+      // First prune expired entries; if still full, evict oldest entry
+      for (const [k, v] of cache) {
+        if (v.expiresAt <= now) cache.delete(k);
+        if (cache.size < this.maxCacheEntries) break;
+      }
+      if (cache.size >= this.maxCacheEntries) {
+        const oldestKey = cache.keys().next().value;
+        if (oldestKey !== undefined) cache.delete(oldestKey);
+      }
+    }
+    cache.set(key, entry);
   }
 
   getAdapterStats(): Record<"openaq" | "open_meteo", AdapterHealthStats> {
@@ -88,10 +128,10 @@ export class AirDataService {
     const cacheKey = effectiveMode === "open_meteo" ? `open_meteo:${cell}` : effectiveMode === "auto" ? `auto:${cell}` : cell;
     const now = Date.now();
 
-    // 1. Check fresh cache
-    const cached = this.currentCache.get(cacheKey);
-    if (cached && cached.expiresAt > now) {
-      return cached.data;
+    // 1. Check fresh cache (with LRU touch)
+    const cached = this.getFreshCached(this.currentCache, cacheKey, now);
+    if (cached) {
+      return cached;
     }
 
     // 2. Request coalescing
@@ -106,7 +146,7 @@ export class AirDataService {
 
     try {
       const result = await fetchPromise;
-      this.currentCache.set(cacheKey, {
+      this.setBoundedCache(this.currentCache, cacheKey, {
         data: result,
         expiresAt: now + result.ttlSec * 1000
       });
@@ -120,10 +160,10 @@ export class AirDataService {
     const cell = toCellId(lat, lng);
     const now = Date.now();
 
-    // Check forecast cache
-    const cached = this.forecastCache.get(cell);
-    if (cached && cached.expiresAt > now) {
-      return cached.data;
+    // Check forecast cache (with LRU touch)
+    const cached = this.getFreshCached(this.forecastCache, cell, now);
+    if (cached) {
+      return cached;
     }
 
     if (this.inFlightForecast.has(cell)) {
@@ -137,7 +177,7 @@ export class AirDataService {
 
     try {
       const result = await fetchPromise;
-      this.forecastCache.set(cell, {
+      this.setBoundedCache(this.forecastCache, cell, {
         data: result,
         expiresAt: now + 6 * 3600 * 1000 // 6 hour TTL for forecasts
       });
