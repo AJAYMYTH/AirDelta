@@ -34,7 +34,9 @@ export function createAdvisoryRoutes(
   router.get("/groups/:id/impact", (c) => {
     const groupId = c.req.param("id");
     const countQuery = c.req.query("memberCount");
-    const memberCount = countQuery ? parseInt(countQuery, 10) : 8;
+    const parsedCount = countQuery !== undefined ? Number(countQuery) : 8;
+    const memberCount =
+      Number.isInteger(parsedCount) && parsedCount >= 0 && parsedCount <= 100000 ? parsedCount : 0;
 
     const isSatisfied = memberCount >= 5;
 

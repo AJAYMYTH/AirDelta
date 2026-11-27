@@ -12,6 +12,7 @@ import {
 } from "@airdelta/schemas";
 import { PiiSanitizerService } from "./pii-sanitizer.service.js";
 import { VisionService } from "./vision.service.js";
+import { createGeminiClient, generateWithModelFallback } from "../utils/gemini-client.js";
 
 const CHAT_CITY_PRESETS: Record<string, { label: string; lat: number; lng: number }> = {
   DELHI: { label: "Delhi-NCR", lat: 28.6139, lng: 77.209 },
@@ -229,14 +230,8 @@ export class ChatService {
         modelName: process.env.GEMINI_MODEL_VISION
       });
 
-    if (
-      !disableLlm &&
-      key &&
-      key.trim().length > 0 &&
-      !key.includes("your_gemini") &&
-      process.env.LLM_ENABLED !== "false"
-    ) {
-      this.ai = new GoogleGenAI({ apiKey: key });
+    if (!disableLlm) {
+      this.ai = createGeminiClient(key);
     }
   }
 
@@ -477,39 +472,29 @@ Respond practically with: (1) tailored routine/hack/sustainable alternative for 
       ? Array.from(new Set([process.env.GEMINI_MODEL_VISION || "gemini-3.6-flash", ...this.modelCandidates]))
       : this.modelCandidates;
 
-    for (let i = 0; i < models.length; i++) {
-      const model = models[i];
-      const timeoutMs = image ? 8500 : i === 0 ? 6000 : 4500;
-      const contents: any = image
-        ? [
-            {
-              role: "user",
-              parts: [
-                { text: prompt },
-                { inlineData: { mimeType: image.mimeType || "image/jpeg", data: cleanBase64 } }
-              ]
-            }
-          ]
-        : prompt;
+    const contents: any = image
+      ? [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: image.mimeType || "image/jpeg", data: cleanBase64 } }
+            ]
+          }
+        ]
+      : prompt;
 
-      try {
-        const res = await Promise.race([
-          this.ai.models.generateContent({ model, contents }),
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Gemini chat timeout")), timeoutMs))
-        ]);
-        const text = res.text?.trim();
-        if (!text) continue;
-        // Post-check output against code blocks or injection bleed
-        if (/```|<script\b|\bdef\s+\w+\s*\(/i.test(text)) {
-          return null;
-        }
-        return text;
-      } catch {
-        // Fall through to next model candidate or deterministic fallback
-      }
+    const text = await generateWithModelFallback(this.ai, models, contents, {
+      firstTimeoutMs: image ? 8500 : 6000,
+      fallbackTimeoutMs: image ? 8500 : 4500
+    });
+    if (!text) return null;
+
+    // Post-check output against code blocks or injection bleed
+    if (/```|<script\b|\bdef\s+\w+\s*\(/i.test(text)) {
+      return null;
     }
-
-    return null;
+    return text;
   }
 
   private async buildImageFallbackReply(

@@ -6,6 +6,7 @@ import {
   NarrationOutput,
   NarrationOutputSchema
 } from "@airdelta/schemas";
+import { createGeminiClient, generateWithModelFallback } from "../utils/gemini-client.js";
 
 export interface GeminiServiceConfig {
   apiKey?: string;
@@ -17,15 +18,11 @@ export class GeminiService {
   private modelCandidates: string[];
 
   constructor(config: GeminiServiceConfig = {}) {
-    const key = config.apiKey ?? process.env.GEMINI_API_KEY;
     const primaryModel = config.modelName || process.env.GEMINI_MODEL_NARRATE || "gemini-3.1-flash-lite";
     this.modelCandidates = Array.from(
       new Set([primaryModel, "gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-3.8-flash"])
     );
-
-    if (key && key.trim().length > 0 && !key.includes("your_gemini") && process.env.LLM_ENABLED !== "false") {
-      this.ai = new GoogleGenAI({ apiKey: key });
-    }
+    this.ai = createGeminiClient(config.apiKey);
   }
 
   isAvailable(): boolean {
@@ -66,36 +63,19 @@ JSON Schema:
 }
 `;
 
-    for (let i = 0; i < this.modelCandidates.length; i++) {
-      const model = this.modelCandidates[i];
-      const timeoutMs = i === 0 ? 6000 : 4500;
-      try {
-        const response = await Promise.race([
-          this.ai.models.generateContent({
-            model,
-            contents: prompt,
-            config: {
-              responseMimeType: "application/json"
-            }
-          }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Gemini narration timeout")), timeoutMs)
-          )
-        ]);
+    const text = await generateWithModelFallback(this.ai, this.modelCandidates, prompt, {
+      responseMimeType: "application/json"
+    });
+    if (!text) return null;
 
-        const text = response.text;
-        if (!text) continue;
-
-        const parsedJson = JSON.parse(text);
-        return NarrationOutputSchema.parse({
-          ...parsedJson,
-          source: "llm"
-        });
-      } catch {
-        // Try next Flash fallback candidate
-      }
+    try {
+      const parsedJson = JSON.parse(text);
+      return NarrationOutputSchema.parse({
+        ...parsedJson,
+        source: "llm"
+      });
+    } catch {
+      return null;
     }
-
-    return null;
   }
 }

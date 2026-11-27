@@ -6,6 +6,7 @@ import {
   BudgetBand
 } from "@airdelta/schemas";
 import { getFixesForDetectedSources } from "@airdelta/fix-library";
+import { createGeminiClient, generateWithModelFallback } from "../utils/gemini-client.js";
 
 export interface VisionServiceConfig {
   apiKey?: string;
@@ -17,15 +18,11 @@ export class VisionService {
   private modelCandidates: string[];
 
   constructor(config: VisionServiceConfig = {}) {
-    const key = config.apiKey ?? process.env.GEMINI_API_KEY;
     const primaryModel = config.modelName || process.env.GEMINI_MODEL_VISION || "gemini-3.6-flash";
     this.modelCandidates = Array.from(
       new Set([primaryModel, "gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-3.8-flash"])
     );
-
-    if (key && key.trim().length > 0 && !key.includes("your_gemini") && process.env.LLM_ENABLED !== "false") {
-      this.ai = new GoogleGenAI({ apiKey: key });
-    }
+    this.ai = createGeminiClient(config.apiKey);
   }
 
   isAvailable(): boolean {
@@ -69,48 +66,33 @@ JSON Schema:
 ]
 `;
 
-      for (const model of this.modelCandidates) {
-        try {
-          const response = await Promise.race([
-            this.ai.models.generateContent({
-              model,
-              contents: [
-                {
-                  role: "user",
-                  parts: [
-                    { text: prompt },
-                    {
-                      inlineData: {
-                        mimeType,
-                        data: cleanBase64
-                      }
-                    }
-                  ]
-                }
-              ],
-              config: {
-                responseMimeType: "application/json"
-              }
-            }),
-            new Promise<never>((_, reject) =>
-              setTimeout(() => reject(new Error("Gemini vision timeout")), 8000)
-            )
-          ]);
-
-          const text = response.text;
-          if (text) {
-            const rawItems: any[] = JSON.parse(text);
-            detectedSources = rawItems.map((item) => ({
-              id: `src-${randomUUID().slice(0, 8)}`,
-              sourceKey: item.sourceKey,
-              label: item.label,
-              confidence: typeof item.confidence === "number" ? item.confidence : 0.85,
-              detectedReason: item.detectedReason || "Detected via visual audit"
-            }));
-            if (detectedSources.length > 0) break;
+      const text = await generateWithModelFallback(
+        this.ai,
+        this.modelCandidates,
+        [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType, data: cleanBase64 } }
+            ]
           }
+        ],
+        { responseMimeType: "application/json", firstTimeoutMs: 8000, fallbackTimeoutMs: 6000 }
+      );
+
+      if (text) {
+        try {
+          const rawItems: any[] = JSON.parse(text);
+          detectedSources = rawItems.map((item) => ({
+            id: `src-${randomUUID().slice(0, 8)}`,
+            sourceKey: item.sourceKey,
+            label: item.label,
+            confidence: typeof item.confidence === "number" ? item.confidence : 0.85,
+            detectedReason: item.detectedReason || "Detected via visual audit"
+          }));
         } catch {
-          // Try next Flash fallback candidate
+          // Malformed JSON falls back cleanly to deterministic heuristics below
         }
       }
     }

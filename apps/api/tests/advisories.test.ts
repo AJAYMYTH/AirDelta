@@ -62,5 +62,12 @@ describe("Community Advisories & k-Anonymity test suite", () => {
     expect(jsonMasked.isAnonymitySatisfied).toBe(false);
     expect(jsonMasked.activeHouseholds).toBeNull();
     expect(jsonMasked.totalActionsTaken).toBeNull();
+
+    // Non-integer / negative memberCount stays k-anonymized
+    const resInvalid = await app.request("/v1/advisories/groups/group-3/impact?memberCount=abc");
+    expect(resInvalid.status).toBe(200);
+    const jsonInvalid = await resInvalid.json();
+    expect(jsonInvalid.isAnonymitySatisfied).toBe(false);
+    expect(jsonInvalid.activeHouseholds).toBeNull();
   });
 });

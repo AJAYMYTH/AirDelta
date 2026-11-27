@@ -12,6 +12,19 @@ export function timingSafeSecretEquals(provided: string | undefined, expected: s
 }
 
 /**
+ * Authorizes scheduled job endpoints when `CRON_SECRET` is configured.
+ */
+export function isAuthorizedCronRequest(
+  cronHeader: string | undefined,
+  authHeader: string | undefined
+): boolean {
+  const cronSecret = process.env.CRON_SECRET?.trim();
+  if (!cronSecret) return true;
+  const bearer = authHeader?.replace(/^Bearer\s+/i, "");
+  return timingSafeSecretEquals(cronHeader || bearer, cronSecret);
+}
+
+/**
  * Parses and validates geographic coordinates against WGS84 bounds.
  */
 export function parseCoordinates(

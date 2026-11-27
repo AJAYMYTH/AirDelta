@@ -1,19 +1,14 @@
 import { Hono } from "hono";
 import { SupabaseService, supabaseService } from "../services/supabase.service.js";
-import { timingSafeSecretEquals } from "../utils/security.js";
+import { isAuthorizedCronRequest } from "../utils/security.js";
 
 export function createJobRoutes(service: SupabaseService = supabaseService) {
   const router = new Hono();
 
   // POST /v1/jobs/retention-purge?days=30
   router.post("/retention-purge", async (c) => {
-    const cronSecret = process.env.CRON_SECRET?.trim();
-    if (cronSecret) {
-      const bearer = c.req.header("Authorization")?.replace(/^Bearer\s+/i, "");
-      const headerSecret = c.req.header("X-Cron-Secret") || bearer;
-      if (!timingSafeSecretEquals(headerSecret, cronSecret)) {
-        return c.json({ error: "Unauthorized job invocation" }, 401);
-      }
+    if (!isAuthorizedCronRequest(c.req.header("X-Cron-Secret"), c.req.header("Authorization"))) {
+      return c.json({ error: "Unauthorized job invocation" }, 401);
     }
 
     const daysParam = c.req.query("days");

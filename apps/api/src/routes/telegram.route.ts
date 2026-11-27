@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { AirDeltaBot } from "../bot/telegram.js";
-import { timingSafeSecretEquals } from "../utils/security.js";
+import { isAuthorizedCronRequest, timingSafeSecretEquals } from "../utils/security.js";
 
 function normalizeWebhookSecret(raw?: string): string {
   return (raw || "").replace(/[^A-Za-z0-9_-]/g, "");
@@ -30,13 +30,8 @@ export function createTelegramRoutes(botService: AirDeltaBot) {
 
   // POST /internal/jobs/morning-brief (for scheduled Cloud Scheduler / Cron)
   router.post("/jobs/morning-brief", async (c) => {
-    const cronSecret = process.env.CRON_SECRET?.trim();
-    if (cronSecret) {
-      const bearer = c.req.header("Authorization")?.replace(/^Bearer\s+/i, "");
-      const headerSecret = c.req.header("X-Cron-Secret") || bearer;
-      if (!timingSafeSecretEquals(headerSecret, cronSecret)) {
-        return c.json({ error: "Unauthorized scheduled job trigger" }, 401);
-      }
+    if (!isAuthorizedCronRequest(c.req.header("X-Cron-Secret"), c.req.header("Authorization"))) {
+      return c.json({ error: "Unauthorized scheduled job trigger" }, 401);
     }
 
     const brief = await botService.buildMorningBrief();
