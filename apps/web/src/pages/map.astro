@@ -130,7 +130,7 @@ import Activity from "lucide-astro/Activity";
                 <span id="inspector-eu-aqi" class="text-[11px] font-mono text-[#525252] mt-1 block">EU AQI: --</span>
               </div>
               <div id="inspector-aqi-value" class="text-5xl font-extrabold font-mono text-[#ea580c] leading-none">
-                <CountUp client:load syncId="inspector-aqi-value" value={0} fallbackText="--" duration={0.7} className="text-5xl font-extrabold font-mono leading-none" />
+                <CountUp client:load syncId="inspector-aqi-value" value={null} fallbackText="--" duration={0.7} className="text-5xl font-extrabold font-mono leading-none" />
               </div>
             </div>
 
@@ -142,7 +142,7 @@ import Activity from "lucide-astro/Activity";
                   <span>PM2.5</span>
                 </span>
                 <span id="inspector-pm25" class="text-base font-extrabold font-mono text-[#171717] mt-0.5 block">
-                  <CountUp client:load syncId="inspector-pm25" value={0} decimals={1} fallbackText="-- µg/m³" suffix=" µg/m³" duration={0.65} className="text-base font-extrabold font-mono text-[#171717]" />
+                  <CountUp client:load syncId="inspector-pm25" value={null} decimals={1} fallbackText="-- µg/m³" suffix=" µg/m³" duration={0.65} className="text-base font-extrabold font-mono text-[#171717]" />
                 </span>
               </div>
               <div class="p-3 bg-white rounded-xl border border-[#e5e5e5]">
@@ -151,13 +151,13 @@ import Activity from "lucide-astro/Activity";
                   <span>PM10</span>
                 </span>
                 <span id="inspector-pm10" class="text-base font-extrabold font-mono text-[#171717] mt-0.5 block">
-                  <CountUp client:load syncId="inspector-pm10" value={0} decimals={1} fallbackText="-- µg/m³" suffix=" µg/m³" duration={0.65} className="text-base font-extrabold font-mono text-[#171717]" />
+                  <CountUp client:load syncId="inspector-pm10" value={null} decimals={1} fallbackText="-- µg/m³" suffix=" µg/m³" duration={0.65} className="text-base font-extrabold font-mono text-[#171717]" />
                 </span>
               </div>
               <div class="p-3 bg-white rounded-xl border border-[#e5e5e5]">
                 <span class="text-[10px] text-[#737373] font-bold block">NO₂</span>
                 <span id="inspector-no2" class="text-sm font-extrabold font-mono text-[#171717] mt-0.5 block">
-                  <CountUp client:load syncId="inspector-no2" value={0} decimals={1} fallbackText="-- µg/m³" suffix=" µg/m³" duration={0.65} className="text-sm font-extrabold font-mono text-[#171717]" />
+                  <CountUp client:load syncId="inspector-no2" value={null} decimals={1} fallbackText="-- µg/m³" suffix=" µg/m³" duration={0.65} className="text-sm font-extrabold font-mono text-[#171717]" />
                 </span>
               </div>
               <div class="p-3 bg-[#f0fdf4] rounded-xl border border-[#bbf7d0]">

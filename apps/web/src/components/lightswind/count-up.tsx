@@ -13,7 +13,7 @@ const formatValue = (val: number, precision: number, sep: string): string => {
 };
 
 export interface CountUpProps {
-  value: number;
+  value: number | null;
   duration?: number;
   decimals?: number;
   prefix?: string;
@@ -116,8 +116,7 @@ export function CountUp({
 
   useEffect(() => {
     if (!syncId) return;
-    const handler = (event: Event) => {
-      const detail = (event as CustomEvent<CountUpUpdateDetail>).detail;
+    const applyUpdate = (detail: CountUpUpdateDetail | undefined) => {
       if (!detail || detail.id !== syncId) return;
       setLiveState((prev) => ({
         value: detail.value === undefined ? prev.value : detail.value,
@@ -129,7 +128,20 @@ export function CountUp({
       }));
     };
 
+    const handler = (event: Event) => {
+      applyUpdate((event as CustomEvent<CountUpUpdateDetail>).detail);
+    };
+
     window.addEventListener("airdelta:countup", handler);
+
+    const w = window as unknown as {
+      __airdeltaCountUpBuffer?: Record<string, CountUpUpdateDetail>;
+    };
+    const buffered = w.__airdeltaCountUpBuffer?.[syncId];
+    if (buffered) {
+      applyUpdate(buffered);
+    }
+
     return () => window.removeEventListener("airdelta:countup", handler);
   }, [syncId]);
 

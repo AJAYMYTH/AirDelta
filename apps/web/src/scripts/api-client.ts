@@ -419,7 +419,13 @@ export interface CountUpUpdateOptions {
 
 export function dispatchCountUpUpdate(id: string, options: CountUpUpdateOptions): void {
   if (typeof window === "undefined") return;
-  window.dispatchEvent(new CustomEvent("airdelta:countup", { detail: { id, ...options } }));
+  const detail = { id, ...options };
+  const w = window as unknown as { __airdeltaCountUpBuffer?: Record<string, typeof detail> };
+  if (!w.__airdeltaCountUpBuffer) {
+    w.__airdeltaCountUpBuffer = {};
+  }
+  w.__airdeltaCountUpBuffer[id] = detail;
+  window.dispatchEvent(new CustomEvent("airdelta:countup", { detail }));
 }
 
 /**

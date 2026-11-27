@@ -256,7 +256,10 @@ const episodeMeta = delhiSmogData.episodeName || "Delhi-NCR Severe Smog";
       const data = hours[idx];
 
       const triggerCountUp = (id, opts) => {
-        window.dispatchEvent(new CustomEvent("airdelta:countup", { detail: { id, duration: 0.45, ...opts } }));
+        const detail = { id, duration: 0.45, ...opts };
+        window.__airdeltaCountUpBuffer = window.__airdeltaCountUpBuffer || {};
+        window.__airdeltaCountUpBuffer[id] = detail;
+        window.dispatchEvent(new CustomEvent("airdelta:countup", { detail }));
       };
 
       if (labelTime) labelTime.innerText = `Hour: ${data.timeLabel} IST`;
