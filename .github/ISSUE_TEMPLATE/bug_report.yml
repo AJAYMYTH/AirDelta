@@ -1,0 +1,29 @@
+name: Bug Report
+description: Report an unexpected error, UI issue, or calculation discrepancy in AirDelta
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for reporting an issue in AirDelta! Please share enough detail so we can reproduce it quickly.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly, including the page (`/plan`, `/assistant`, `/indoor`, etc.) or API endpoint.
+      placeholder: Example - Selecting teen age band on /plan returned HTTP 500...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact inputs, city/coordinates, or payload used.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Live URL (`airdelta-web.onrender.com`), local dev, browser, or Telegram (`@airdeltabot`).
+      placeholder: Chrome on Windows / Mobile Safari / Local Node 22

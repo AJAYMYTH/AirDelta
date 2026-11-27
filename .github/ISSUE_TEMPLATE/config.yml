@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Live Web App
+    url: https://airdelta-web.onrender.com/?lang=en
+    about: Test the deployed AirDelta PWA before reporting an issue
+  - name: Security Vulnerability
+    url: https://github.com/AJAYMYTH/AirDelta/security/advisories/new
+    about: Report security issues privately instead of opening a public issue

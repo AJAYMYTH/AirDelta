@@ -1,0 +1,19 @@
+name: Feature Request
+description: Suggest an improvement for exposure modeling, indoor hacks, regional languages, or UI
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or user need
+      description: What challenge does this help families or communities solve during severe smog episodes?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the expected workflow, data source, or calculation behavior.
+    validations:
+      required: true
