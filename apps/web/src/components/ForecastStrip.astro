@@ -2,6 +2,7 @@
 import type { AirForecast } from "@airdelta/schemas";
 import { getGlossaryTerm } from "@airdelta/i18n";
 import BadgePill from "./BadgePill.astro";
+import CountUp from "./lightswind/count-up";
 import Clock from "lucide-astro/Clock";
 import Sparkles from "lucide-astro/Sparkles";
 
@@ -63,7 +64,9 @@ const formattedHourly = forecast.hourly.slice(0, 12).map((item) => {
       </div>
       <div class="text-left sm:text-right shrink-0">
         <span class="text-[11px] text-[#9a3412] block font-semibold" data-i18n="lowestExpectedPm25">Lowest Expected PM2.5</span>
-        <span id="forecast-cleanest-pm25" class="text-lg font-extrabold text-[#ea580c] font-mono">{cleanest.expectedPm25} µg/m³</span>
+        <span id="forecast-cleanest-pm25" class="text-lg font-extrabold text-[#ea580c] font-mono">
+          <CountUp client:load syncId="forecast-cleanest-pm25" value={cleanest.expectedPm25} decimals={1} duration={0.9} suffix=" µg/m³" className="text-lg font-extrabold text-[#ea580c] font-mono" />
+        </span>
       </div>
     </div>
   )}

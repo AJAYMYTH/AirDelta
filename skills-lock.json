@@ -1,6 +1,13 @@
 {
   "version": 2,
   "skills": {
+    "ffmpeg-skill": {
+      "source": "kajisho5/ffmpeg-skill",
+      "commit": "a2ecaa7719b667e828b5580126570ce4311b16d5",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "8b01a8a524c14cc69379dd3aca763dd537d0f2ad21dfe24b5537c4b357150afc"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "commit": "c9be0e931b7930f7d02126d04774d904c381e7d7",
@@ -14,6 +21,13 @@
       "sourceType": "github",
       "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
       "computedHash": "3eb972c2d7c818e544e35cc33ea8d7147d4d78ae08142ef40037b0fbac7a2505"
+    },
+    "video-editing": {
+      "source": "affaan-m/ECC",
+      "commit": "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
+      "sourceType": "github",
+      "skillPath": "skills/video-editing/SKILL.md",
+      "computedHash": "b1a66c7e9337e7030cfef7c5a8b2a519123e63c8fef710105118eab89641e505"
     }
   }
 }

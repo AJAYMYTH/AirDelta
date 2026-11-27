@@ -408,6 +408,20 @@ export function dispatchWaveUpdate(id: string, options: WaveUpdateOptions): void
   window.dispatchEvent(new CustomEvent("airdelta:wave-update", { detail: { id, ...options } }));
 }
 
+export interface CountUpUpdateOptions {
+  value: number | null | undefined;
+  prefix?: string;
+  suffix?: string;
+  decimals?: number;
+  duration?: number;
+  fallbackText?: string;
+}
+
+export function dispatchCountUpUpdate(id: string, options: CountUpUpdateOptions): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("airdelta:countup", { detail: { id, ...options } }));
+}
+
 /**
  * Build a WhatsApp share/redirect URL that opens WhatsApp (app on mobile, WhatsApp Web on desktop)
  * with the pre-filled report or daily plan message.

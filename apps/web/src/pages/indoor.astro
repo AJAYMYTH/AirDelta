@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
 import AirWaveLoader from "../components/AirWaveLoader.tsx";
+import CountUp from "../components/lightswind/count-up";
 import TransitionDropdown from "../components/TransitionDropdown.astro";
 import { getFixesForBudget } from "@airdelta/fix-library";
 
@@ -137,7 +138,7 @@ const massBalance = calculateIndoorMassBalance({
           <h2 class="text-base font-bold text-[#171717] mt-0.5" data-i18n="step1Heading">Check or Uncheck What Is in Your Room</h2>
         </div>
         <span id="sources-count-pill" class="text-xs text-[#525252] font-mono bg-[#f7f9fa] border border-[#e5e5e5] px-3 py-1 rounded-full">
-          <span id="sources-count-num">3</span> <span data-i18n="sourcesFoundSuffix">Sources Found</span>
+          <span id="sources-count-num"><CountUp client:load syncId="sources-count-num" value={3} duration={0.6} className="text-xs font-mono text-[#525252]" /></span> <span data-i18n="sourcesFoundSuffix">Sources Found</span>
         </span>
       </div>
 
@@ -165,19 +166,29 @@ const massBalance = calculateIndoorMassBalance({
         <span class="text-[11px] font-bold text-[#ea580c] uppercase tracking-wider block" data-i18n="step2Tag">Step 2 · Indoor Air Impact</span>
         <h2 class="text-lg font-bold text-[#171717] mt-0.5" data-i18n="step2Heading">How Much Cleaner Your Room Gets</h2>
         <p class="text-xs text-[#525252] mt-1 max-w-xl leading-relaxed">
-          <span id="val-outdoor-pm25" class="font-mono font-bold text-[#171717]">{ambientPm25} µg/m³</span> → <span id="val-unmitigated" class="font-mono text-[#dc2626] font-semibold">{massBalance.unmitigatedConcentrationUgM3} µg/m³</span> → <span id="val-mitigated" class="font-mono text-[#15803d] font-bold">{massBalance.indoorConcentrationUgM3} µg/m³</span>
+          <span id="val-outdoor-pm25" class="font-mono font-bold text-[#171717]">
+            <CountUp client:load syncId="val-outdoor-pm25" value={ambientPm25} decimals={1} suffix=" µg/m³" duration={0.75} className="font-mono font-bold text-[#171717] text-xs" />
+          </span> → <span id="val-unmitigated" class="font-mono text-[#dc2626] font-semibold">
+            <CountUp client:load syncId="val-unmitigated" value={massBalance.unmitigatedConcentrationUgM3} decimals={1} suffix=" µg/m³" duration={0.75} className="font-mono text-[#dc2626] font-semibold text-xs" />
+          </span> → <span id="val-mitigated" class="font-mono text-[#15803d] font-bold">
+            <CountUp client:load syncId="val-mitigated" value={massBalance.indoorConcentrationUgM3} decimals={1} suffix=" µg/m³" duration={0.75} className="font-mono text-[#15803d] font-bold text-xs" />
+          </span>
         </p>
       </div>
 
       <div class="flex flex-wrap items-center md:items-end justify-between md:justify-end gap-3 sm:gap-4 shrink-0">
         <div class="text-left md:text-right">
           <span class="text-xs text-[#737373] block" data-i18n="indoorFineDust">Indoor Fine Dust</span>
-          <span id="val-indoor-conc" class="text-3xl sm:text-4xl font-extrabold text-[#171717] font-mono tracking-tight">{massBalance.indoorConcentrationUgM3}</span>
+          <span id="val-indoor-conc" class="text-3xl sm:text-4xl font-extrabold text-[#171717] font-mono tracking-tight">
+            <CountUp client:load syncId="val-indoor-conc" value={massBalance.indoorConcentrationUgM3} decimals={1} duration={0.9} className="text-3xl sm:text-4xl font-extrabold text-[#171717] font-mono tracking-tight" />
+          </span>
           <span class="text-xs text-[#525252] font-medium"> µg/m³</span>
         </div>
         <div class="flex items-center gap-2">
           <div class="px-4 py-2 rounded-2xl bg-[#ea580c] text-white shadow-sm text-center">
-            <span id="val-pct-reduction" class="text-sm font-mono font-extrabold block">-{massBalance.percentageReduction}%</span>
+            <span id="val-pct-reduction" class="text-sm font-mono font-extrabold block">
+              <CountUp client:load syncId="val-pct-reduction" value={massBalance.percentageReduction} prefix="-" suffix="%" decimals={0} duration={0.8} className="text-sm font-mono font-extrabold text-white" />
+            </span>
             <span class="text-[10px] text-white/90 font-mono font-medium" data-i18n="lessDustBadge">Less Dust</span>
           </div>
           <a
@@ -278,7 +289,7 @@ const massBalance = calculateIndoorMassBalance({
   </div>
 
   <script>
-    import { apiFetchJson, buildWhatsAppShareUrl, getSelectedCity } from "../scripts/api-client.ts";
+    import { apiFetchJson, buildWhatsAppShareUrl, dispatchCountUpUpdate, getSelectedCity } from "../scripts/api-client.ts";
     import { stripExifViaCanvas } from "../scripts/image-utils.ts";
 
     const browseBtn = document.getElementById("btn-browse-photo");
@@ -300,9 +311,8 @@ const massBalance = calculateIndoorMassBalance({
         const snap = await apiFetchJson<any>(`/v1/air?lat=${city.lat}&lng=${city.lng}`);
         if (typeof snap.pm25 === "number") {
           liveAmbientPm25 = snap.pm25;
-          const outEl = document.getElementById("val-outdoor-pm25");
           const subEl = document.getElementById("indoor-ambient-subtitle");
-          if (outEl) outEl.textContent = `${liveAmbientPm25} µg/m³`;
+          dispatchCountUpUpdate("val-outdoor-pm25", { value: liveAmbientPm25, decimals: 1, suffix: " µg/m³" });
           if (subEl) subEl.textContent = `Live ${city.label} (PM2.5: ${liveAmbientPm25} µg/m³) · Private photo check & indoor air model`;
           await confirmAndCalculate();
         }
@@ -313,7 +323,7 @@ const massBalance = calculateIndoorMassBalance({
 
     function renderDetectedSources(sources: any[]) {
       if (!sourcesGrid) return;
-      if (sourcesCountNum) sourcesCountNum.textContent = String(sources.length);
+      if (sourcesCountNum) dispatchCountUpUpdate("sources-count-num", { value: sources.length, decimals: 0 });
 
       const nodes = sources.map((src) => {
         const card = document.createElement("div");
@@ -410,10 +420,10 @@ const massBalance = calculateIndoorMassBalance({
             ambientPm25: liveAmbientPm25
           })
         });
-        if (unmitEl) unmitEl.textContent = `${res.unmitigatedIndoorPm25} µg/m³`;
-        if (mitEl) mitEl.textContent = `${res.mitigatedIndoorPm25} µg/m³`;
-        if (indoorConcEl) indoorConcEl.textContent = String(res.mitigatedIndoorPm25);
-        if (pctRedEl) pctRedEl.textContent = `-${res.percentageReduction}%`;
+        if (unmitEl) dispatchCountUpUpdate("val-unmitigated", { value: Number(res.unmitigatedIndoorPm25), decimals: 1, suffix: " µg/m³" });
+        if (mitEl) dispatchCountUpUpdate("val-mitigated", { value: Number(res.mitigatedIndoorPm25), decimals: 1, suffix: " µg/m³" });
+        if (indoorConcEl) dispatchCountUpUpdate("val-indoor-conc", { value: Number(res.mitigatedIndoorPm25), decimals: 1 });
+        if (pctRedEl) dispatchCountUpUpdate("val-pct-reduction", { value: Number(res.percentageReduction), prefix: "-", suffix: "%", decimals: 0 });
         syncIndoorWhatsAppHref();
       } catch {
         // keep current fallback values
@@ -421,13 +431,19 @@ const massBalance = calculateIndoorMassBalance({
     }
 
     const indoorWhatsappBtn = document.getElementById("btn-indoor-whatsapp") as HTMLAnchorElement | null;
+    function readIndoorTarget(id: string, fallback: string): string {
+      const el = document.getElementById(id);
+      if (!el) return fallback;
+      return el.querySelector("[data-target-text]")?.getAttribute("data-target-text")?.trim() || el.textContent?.trim() || fallback;
+    }
+
     function syncIndoorWhatsAppHref() {
       if (!indoorWhatsappBtn) return;
       const city = getSelectedCity();
-      const out = document.getElementById("val-outdoor-pm25")?.textContent?.trim() || `${liveAmbientPm25} µg/m³`;
-      const unmit = document.getElementById("val-unmitigated")?.textContent?.trim() || "--";
-      const mit = document.getElementById("val-mitigated")?.textContent?.trim() || "--";
-      const pct = document.getElementById("val-pct-reduction")?.textContent?.trim() || "--";
+      const out = readIndoorTarget("val-outdoor-pm25", `${liveAmbientPm25} µg/m³`);
+      const unmit = readIndoorTarget("val-unmitigated", "--");
+      const mit = readIndoorTarget("val-mitigated", "--");
+      const pct = readIndoorTarget("val-pct-reduction", "--");
       const msg = [
         `*AirDelta Room Air Check — ${city.label}*`,
         `Outdoor PM2.5: ${out}`,

@@ -1,5 +1,6 @@
 import { animate, stagger } from "animejs";
 import { getTranslation, SUPPORTED_LANGUAGES } from "@airdelta/i18n";
+import { dispatchCountUpUpdate } from "./api-client.ts";
 import { wireTransitionsDropdown, initAutoDropdowns, refreshAllDropdownLabels, setTransitionDropdownValue } from "./dropdown.ts";
 
 declare global {
@@ -8,6 +9,7 @@ declare global {
       applyLanguage: (lang: string) => void;
       getCurrentLanguage: () => string;
       animateButton: (el: HTMLElement) => void;
+      countUp: typeof dispatchCountUpUpdate;
       wireTransitionsDropdown: typeof wireTransitionsDropdown;
       setTransitionDropdownValue: typeof setTransitionDropdownValue;
       t: (key: string) => string;
@@ -131,6 +133,7 @@ if (typeof window !== "undefined") {
     applyLanguage,
     getCurrentLanguage,
     animateButton,
+    countUp: dispatchCountUpUpdate,
     wireTransitionsDropdown,
     setTransitionDropdownValue,
     t: (key: string) => getTranslation(key, getCurrentLanguage())

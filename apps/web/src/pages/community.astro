@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
+import CountUp from "../components/lightswind/count-up";
 import TransitionDropdown from "../components/TransitionDropdown.astro";
 import delhiSmogData from "../../../../fixtures/delhi-smog-nov2026.json";
 import { getGrapStageForAqi, getAllGrapStages, AdvisoryService, type AirSnapshot } from "@airdelta/schemas";
@@ -147,17 +148,23 @@ const noticeLangOptions = languages.map((l) => ({
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
         <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5]">
           <span class="text-[#525252] block font-medium" data-i18n="participatingHomes">Participating Homes</span>
-          <span id="k-households" class="text-2xl font-extrabold text-[#171717] font-mono mt-1 block">18 Families</span>
+          <span id="k-households" class="text-2xl font-extrabold text-[#171717] font-mono mt-1 block">
+            <CountUp client:load syncId="k-households" value={18} suffix=" Families" duration={0.8} className="text-2xl font-extrabold text-[#171717] font-mono" />
+          </span>
           <span id="k-status-note" class="text-[10px] text-[#15803d] font-medium">5+ homes rule met (zero individual tracking)</span>
         </div>
         <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5]">
           <span class="text-[#525252] block font-medium" data-i18n="dustKeptOut">Dust Kept Out of Lungs</span>
-          <span id="k-pm25-saved" class="text-2xl font-extrabold text-[#ea580c] font-mono mt-1 block">3.3 g</span>
+          <span id="k-pm25-saved" class="text-2xl font-extrabold text-[#ea580c] font-mono mt-1 block">
+            <CountUp client:load syncId="k-pm25-saved" value={3.3} decimals={1} suffix=" g" duration={0.8} className="text-2xl font-extrabold text-[#ea580c] font-mono" />
+          </span>
           <span class="text-[10px] text-[#525252]" data-i18n="totalAvoidedNote">Total neighborhood exposure avoided</span>
         </div>
         <div class="p-4 bg-[#f7f9fa] rounded-2xl border border-[#e5e5e5]">
           <span class="text-[#525252] block font-medium" data-i18n="safeHabitsCompleted">Safe Habits Completed</span>
-          <span id="k-actions-count" class="text-2xl font-extrabold text-[#15803d] font-mono mt-1 block">72 Actions</span>
+          <span id="k-actions-count" class="text-2xl font-extrabold text-[#15803d] font-mono mt-1 block">
+            <CountUp client:load syncId="k-actions-count" value={72} suffix=" Actions" duration={0.8} className="text-2xl font-extrabold text-[#15803d] font-mono" />
+          </span>
           <span class="text-[10px] text-[#15803d] font-medium" data-i18n="safeHabitsNote">Metro switches, window timing &amp; exhaust fans</span>
         </div>
       </div>
@@ -202,7 +209,7 @@ const noticeLangOptions = languages.map((l) => ({
   </div>
 
   <script>
-    import { apiFetchJson, buildWhatsAppShareUrl, getSelectedCity } from "../scripts/api-client.ts";
+    import { apiFetchJson, buildWhatsAppShareUrl, dispatchCountUpUpdate, getSelectedCity } from "../scripts/api-client.ts";
     import { setTransitionDropdownValue } from "../scripts/dropdown.ts";
 
     const whatsappNoticeBtn = document.getElementById("btn-whatsapp-notice") as HTMLAnchorElement | null;
@@ -312,21 +319,21 @@ const noticeLangOptions = languages.map((l) => ({
       try {
         const res = await apiFetchJson<any>(`/v1/advisories/groups/sec-14-rwa/impact?memberCount=${memberCount}`);
         if (res.isAnonymitySatisfied) {
-          if (hhEl) hhEl.textContent = `${res.activeHouseholds} Families`;
+          if (hhEl) dispatchCountUpUpdate("k-households", { value: Number(res.activeHouseholds), suffix: " Families", decimals: 0 });
           if (noteEl) {
             noteEl.textContent = "5+ homes rule met (zero individual tracking)";
             noteEl.className = "text-[10px] text-[#15803d] font-medium";
           }
-          if (pmEl) pmEl.textContent = `${res.estimatedCommunityPm25PreventedGrams} g`;
-          if (actEl) actEl.textContent = `${res.totalActionsTaken} Actions`;
+          if (pmEl) dispatchCountUpUpdate("k-pm25-saved", { value: Number(res.estimatedCommunityPm25PreventedGrams), suffix: " g", decimals: 1 });
+          if (actEl) dispatchCountUpUpdate("k-actions-count", { value: Number(res.totalActionsTaken), suffix: " Actions", decimals: 0 });
         } else {
-          if (hhEl) hhEl.textContent = "Hidden (< 5)";
+          if (hhEl) dispatchCountUpUpdate("k-households", { value: null, fallbackText: "Hidden (< 5)" });
           if (noteEl) {
             noteEl.textContent = "Hidden to protect privacy when fewer than 5 homes participate";
             noteEl.className = "text-[10px] text-[#ea580c] font-bold";
           }
-          if (pmEl) pmEl.textContent = "Hidden";
-          if (actEl) actEl.textContent = "Hidden";
+          if (pmEl) dispatchCountUpUpdate("k-pm25-saved", { value: null, fallbackText: "Hidden" });
+          if (actEl) dispatchCountUpUpdate("k-actions-count", { value: null, fallbackText: "Hidden" });
         }
       } catch {
         // ignore if offline

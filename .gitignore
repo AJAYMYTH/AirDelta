@@ -34,4 +34,8 @@ blob-report/
 .idea/
 
 
-DESIGN.md 
+DESIGN.md
+
+# Local video-editing skill bundles (contains 60+ MB sample media; tracked in skills-lock.json)
+.agents/skills/ffmpeg-skill/
+.agents/skills/video-editing/

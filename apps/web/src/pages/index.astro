@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import ForecastStrip from "../components/ForecastStrip.astro";
 import AirWaveLoader from "../components/AirWaveLoader.tsx";
+import CountUp from "../components/lightswind/count-up";
 import delhiSmogData from "../../../../fixtures/delhi-smog-nov2026.json";
 import type { AirSnapshot, AirForecast } from "@airdelta/schemas";
 import Wind from "lucide-astro/Wind";
@@ -163,7 +164,7 @@ const aqi = snapshot.indexValue || 385;
                 <span class="text-[9px] font-mono font-bold uppercase tracking-wider text-[#737373]" data-i18n="airWaveLabel">Air Wave</span>
               </div>
               <div id="hero-aqi-value" class="hero-aqi-display font-extrabold tracking-tight text-[#ea580c] font-mono">
-                {aqi}
+                <CountUp client:load syncId="hero-aqi-value" value={aqi} duration={1.0} interactive={true} className="hero-aqi-display font-extrabold tracking-tight font-mono" />
               </div>
             </div>
           </div>
@@ -207,8 +208,9 @@ const aqi = snapshot.indexValue || 385;
         </div>
 
         <div class="flex flex-wrap items-center justify-between lg:justify-end gap-2 sm:gap-3 min-w-0">
-          <span id="air-mode-readout" class="text-xs font-mono font-bold text-[#171717] bg-white px-3 py-1 rounded-full border border-[#e5e5e5]">
-            PM2.5: {snapshot.pm25} µg/m³
+          <span id="air-mode-readout" class="text-xs font-mono font-bold text-[#171717] bg-white px-3 py-1 rounded-full border border-[#e5e5e5] inline-flex items-baseline gap-1">
+            <span id="air-mode-readout-prefix">PM2.5:</span>
+            <CountUp client:load syncId="air-mode-readout-val" value={snapshot.pm25 || 0} decimals={1} duration={0.65} suffix=" µg/m³" className="text-xs font-mono font-bold" />
           </span>
           <span class="text-[11px] text-[#737373] hidden sm:inline" data-i18n="rippleHint">Move cursor or tap card to ripple air</span>
           <button
@@ -230,7 +232,9 @@ const aqi = snapshot.indexValue || 385;
             <span class="text-xs text-[#525252] font-bold" data-i18n="fineDustLabel">Fine Dust (PM2.5)</span>
             <CloudFog class="w-4 h-4 text-[#ea580c] shrink-0" aria-hidden="true" />
           </div>
-          <span id="metric-pm25" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm25} µg/m³</span>
+          <span id="metric-pm25" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">
+            <CountUp client:load syncId="metric-pm25" value={snapshot.pm25 || 0} decimals={1} duration={0.95} suffix=" µg/m³" className="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono" />
+          </span>
           <span id="metric-pm25-who" class="text-[11px] text-[#ea580c] font-semibold mt-0.5 block" data-i18n="checkingWhoLimit">Checking WHO safe limit...</span>
         </div>
 
@@ -239,7 +243,9 @@ const aqi = snapshot.indexValue || 385;
             <span class="text-xs text-[#525252] font-bold" data-i18n="roadDustLabel">Road Dust (PM10)</span>
             <Activity class="w-4 h-4 text-[#d97706] shrink-0" aria-hidden="true" />
           </div>
-          <span id="metric-pm10" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pm10} µg/m³</span>
+          <span id="metric-pm10" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">
+            <CountUp client:load syncId="metric-pm10" value={snapshot.pm10 || 0} decimals={1} duration={0.95} suffix=" µg/m³" className="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono" />
+          </span>
           <span id="metric-pm10-who" class="text-[11px] text-[#d97706] font-semibold mt-0.5 block" data-i18n="checkingWhoLimit">Checking WHO safe limit...</span>
         </div>
 
@@ -248,7 +254,9 @@ const aqi = snapshot.indexValue || 385;
             <span class="text-xs text-[#525252] font-bold" data-i18n="trafficSmokeLabel">Traffic Smoke (NO₂)</span>
             <Car class="w-4 h-4 text-[#b45309] shrink-0" aria-hidden="true" />
           </div>
-          <span id="metric-no2" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">{snapshot.pollutants?.no2 ?? 84.5} µg/m³</span>
+          <span id="metric-no2" class="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono block">
+            <CountUp client:load syncId="metric-no2" value={snapshot.pollutants?.no2 ?? 84.5} decimals={1} duration={0.95} suffix=" µg/m³" className="text-xl sm:text-2xl font-extrabold text-[#171717] font-mono" />
+          </span>
           <span id="metric-no2-note" class="text-[11px] text-[#737373] font-medium mt-0.5 block" data-i18n="normalTrafficLevels">Normal traffic levels</span>
         </div>
 
@@ -415,6 +423,7 @@ const aqi = snapshot.indexValue || 385;
       CITY_PRESETS,
       buildWhatsAppShareUrl,
       clearApiCache,
+      dispatchCountUpUpdate,
       dispatchWaveUpdate,
       fetchResilientAir,
       getSelectedCity,
@@ -526,16 +535,20 @@ const aqi = snapshot.indexValue || 385;
 
     function syncAirModeUi() {
       const theme = getVisualThemeForAir();
+      const modePrefixEl = document.getElementById("air-mode-readout-prefix");
       if (modeReadout) {
         if (activeAirMode === "raw") {
-          modeReadout.textContent = `PM2.5: ${theme.effectivePm} µg/m³`;
-          modeReadout.className = "text-xs font-mono font-bold text-[#171717] bg-white px-3 py-1 rounded-full border border-[#e5e5e5]";
+          if (modePrefixEl) modePrefixEl.textContent = "PM2.5:";
+          dispatchCountUpUpdate("air-mode-readout-val", { value: theme.effectivePm, decimals: 1, suffix: " µg/m³" });
+          modeReadout.className = "text-xs font-mono font-bold text-[#171717] bg-white px-3 py-1 rounded-full border border-[#e5e5e5] inline-flex items-baseline gap-1";
         } else if (activeAirMode === "mask") {
-          modeReadout.textContent = `${tr("modeMask")}: ~${theme.effectivePm} µg/m³`;
-          modeReadout.className = "text-xs font-mono font-bold text-[#ea580c] bg-[#fff7ed] px-3 py-1 rounded-full border border-[#fed7aa]";
+          if (modePrefixEl) modePrefixEl.textContent = `${tr("modeMask")}: ~`;
+          dispatchCountUpUpdate("air-mode-readout-val", { value: theme.effectivePm, decimals: 1, suffix: " µg/m³" });
+          modeReadout.className = "text-xs font-mono font-bold text-[#ea580c] bg-[#fff7ed] px-3 py-1 rounded-full border border-[#fed7aa] inline-flex items-baseline gap-1";
         } else {
-          modeReadout.textContent = `${tr("modeHepa")}: ~${theme.effectivePm} µg/m³`;
-          modeReadout.className = "text-xs font-mono font-bold text-[#15803d] bg-[#dcfce7] px-3 py-1 rounded-full border border-[#86efac]";
+          if (modePrefixEl) modePrefixEl.textContent = `${tr("modeHepa")}: ~`;
+          dispatchCountUpUpdate("air-mode-readout-val", { value: theme.effectivePm, decimals: 1, suffix: " µg/m³" });
+          modeReadout.className = "text-xs font-mono font-bold text-[#15803d] bg-[#dcfce7] px-3 py-1 rounded-full border border-[#86efac] inline-flex items-baseline gap-1";
         }
       }
       if (glowEl) {
@@ -812,10 +825,13 @@ const aqi = snapshot.indexValue || 385;
       }
       if (catEl) catEl.textContent = trCategory(cat);
       if (aqiEl) {
-        aqiEl.textContent = String(aqi);
         aqiEl.className = `hero-aqi-display font-extrabold tracking-tight font-mono ${
           numAqi > 300 ? "text-[#dc2626]" : numAqi > 200 ? "text-[#ea580c]" : numAqi > 100 ? "text-[#d97706]" : "text-[#15803d]"
         }`;
+        dispatchCountUpUpdate("hero-aqi-value", {
+          value: typeof snapshot.indexValue === "number" ? snapshot.indexValue : null,
+          fallbackText: "--"
+        });
       }
       if (markerEl) {
         const pct = Math.min(97, Math.max(3, Math.round((numAqi / 500) * 100)));
@@ -824,27 +840,39 @@ const aqi = snapshot.indexValue || 385;
       if (grapBadge) grapBadge.textContent = grap.label;
 
       // Pollutants
-      const pm25El = document.getElementById("metric-pm25");
       const pm25WhoEl = document.getElementById("metric-pm25-who");
-      const pm10El = document.getElementById("metric-pm10");
       const pm10WhoEl = document.getElementById("metric-pm10-who");
-      const no2El = document.getElementById("metric-no2");
       const no2NoteEl = document.getElementById("metric-no2-note");
 
-      if (pm25El) pm25El.textContent = snapshot.pm25 !== null && snapshot.pm25 !== undefined ? `${snapshot.pm25} µg/m³` : "--";
+      dispatchCountUpUpdate("metric-pm25", {
+        value: snapshot.pm25 !== null && snapshot.pm25 !== undefined ? Number(snapshot.pm25) : null,
+        decimals: 1,
+        suffix: " µg/m³",
+        fallbackText: "--"
+      });
       if (pm25WhoEl) {
         pm25WhoEl.textContent = snapshot.pm25 !== null && snapshot.pm25 !== undefined
           ? `${(snapshot.pm25 / 15).toFixed(1)}${tr("whoSafeLimitSuffix")}`
           : "--";
       }
-      if (pm10El) pm10El.textContent = snapshot.pm10 !== null && snapshot.pm10 !== undefined ? `${snapshot.pm10} µg/m³` : "--";
+      dispatchCountUpUpdate("metric-pm10", {
+        value: snapshot.pm10 !== null && snapshot.pm10 !== undefined ? Number(snapshot.pm10) : null,
+        decimals: 1,
+        suffix: " µg/m³",
+        fallbackText: "--"
+      });
       if (pm10WhoEl) {
         pm10WhoEl.textContent = snapshot.pm10 !== null && snapshot.pm10 !== undefined
           ? `${(snapshot.pm10 / 45).toFixed(1)}${tr("whoSafeLimitSuffix")}`
           : "--";
       }
       const no2Val = snapshot.pollutants?.no2;
-      if (no2El) no2El.textContent = no2Val !== null && no2Val !== undefined ? `${no2Val} µg/m³` : "--";
+      dispatchCountUpUpdate("metric-no2", {
+        value: no2Val !== null && no2Val !== undefined ? Number(no2Val) : null,
+        decimals: 1,
+        suffix: " µg/m³",
+        fallbackText: "--"
+      });
       if (no2NoteEl) {
         no2NoteEl.textContent = no2Val !== null && no2Val !== undefined
           ? (no2Val > 80 ? tr("highRoadsideExhaust") : tr("normalTrafficLevels"))
@@ -862,13 +890,17 @@ const aqi = snapshot.indexValue || 385;
         const cwPm = document.getElementById("metric-cleanest-pm25");
         const act2 = document.getElementById("action2-window");
         const fcRange = document.getElementById("forecast-cleanest-range");
-        const fcPm = document.getElementById("forecast-cleanest-pm25");
 
         if (cwTime) cwTime.textContent = rangeStr;
         if (cwPm) cwPm.textContent = `${tr("bestTimeOpenWindows")} (${lowStr})`;
         if (act2) act2.textContent = `${tr("bestSlotPrefix")} ${rangeStr}`;
         if (fcRange) fcRange.textContent = rangeStr;
-        if (fcPm) fcPm.textContent = `${forecast.cleanestWindow.expectedPm25} µg/m³`;
+        dispatchCountUpUpdate("forecast-cleanest-pm25", {
+          value: typeof forecast.cleanestWindow.expectedPm25 === "number" ? forecast.cleanestWindow.expectedPm25 : null,
+          decimals: 1,
+          suffix: " µg/m³",
+          fallbackText: "--"
+        });
       }
 
       if (Array.isArray(forecast?.hourly) && forecast.hourly.length > 0) {

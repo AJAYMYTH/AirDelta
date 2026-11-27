@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import BadgePill from "../components/BadgePill.astro";
 import AirWaveLoader from "../components/AirWaveLoader.tsx";
+import CountUp from "../components/lightswind/count-up";
 import TransitionDropdown from "../components/TransitionDropdown.astro";
 import delhiSmogData from "../../../../fixtures/delhi-smog-nov2026.json";
 import { optimizeHouseholdPlan, TemplateFallbackService } from "@airdelta/engine";
@@ -89,7 +90,7 @@ const budgetOptions = [
         <div class="flex flex-wrap items-center gap-2">
           <BadgePill badge="modelled" />
           <span id="plan-air-source-badge" class="text-xs text-[#525252] font-mono bg-white border border-[#e5e5e5] px-3 py-1 rounded-full font-semibold">
-            AQI {snapshot.indexValue}
+            <CountUp client:load syncId="plan-air-source-badge" value={snapshot.indexValue ?? 385} prefix="AQI " duration={0.8} className="text-xs font-mono font-semibold text-[#525252]" />
           </span>
         </div>
       </div>
@@ -220,7 +221,9 @@ const budgetOptions = [
         <div class="py-4 border-y border-[#e5e5e5]">
           <span class="text-xs text-[#525252] block font-medium" data-i18n="fineDustBreathed">Fine Dust Breathed Today</span>
           <div class="flex items-baseline gap-2 mt-1">
-            <span id="plan-a-dose-display" class="text-3xl sm:text-4xl font-extrabold text-[#171717] font-mono tracking-tight">{planA.totalDoseUg.mid}</span>
+            <span id="plan-a-dose-display" class="text-3xl sm:text-4xl font-extrabold text-[#171717] font-mono tracking-tight">
+              <CountUp client:load syncId="plan-a-dose-display" value={planA.totalDoseUg.mid} decimals={1} duration={0.9} className="text-3xl sm:text-4xl font-extrabold text-[#171717] font-mono tracking-tight" />
+            </span>
             <span class="text-sm font-semibold text-[#737373]" data-i18n="ugPerDay">µg / day</span>
           </div>
           <span id="plan-a-range-display" class="text-[11px] text-[#737373] font-mono mt-1 block">
@@ -248,18 +251,24 @@ const budgetOptions = [
             <h3 class="text-lg font-extrabold text-[#171717]" data-i18n="withSimpleSwaps">With Simple Swaps</h3>
           </div>
           <span id="plan-b-saving-badge" class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#fff7ed] text-[#ea580c] border border-[#fed7aa]">
-            -{planB.netSavingPercent}%
+            <CountUp client:load syncId="plan-b-saving-badge" value={planB.netSavingPercent} prefix="-" suffix="%" decimals={1} duration={0.8} className="text-xs font-mono font-bold text-[#ea580c]" />
           </span>
         </div>
 
         <div class="py-4 border-y border-[#fed7aa]/60">
           <span class="text-xs text-[#525252] block font-medium" data-i18n="fineDustWithPlan">Fine Dust Breathed With Plan</span>
           <div class="flex items-baseline gap-2 mt-1">
-            <span id="plan-b-dose-display" class="text-3xl sm:text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight">{planB.totalDoseUg.mid}</span>
+            <span id="plan-b-dose-display" class="text-3xl sm:text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight">
+              <CountUp client:load syncId="plan-b-dose-display" value={planB.totalDoseUg.mid} decimals={1} duration={0.9} className="text-3xl sm:text-4xl font-extrabold text-[#ea580c] font-mono tracking-tight" />
+            </span>
             <span class="text-sm font-semibold text-[#ea580c]" data-i18n="ugPerDay">µg / day</span>
           </div>
           <span class="text-[11px] text-[#525252] font-mono mt-1 block">
-            <span id="plan-b-net-ug" class="font-bold text-[#ea580c]">-{planB.netSavingUg} µg</span> (<span id="plan-b-net-pct">{planB.netSavingPercent}%</span>)
+            <span id="plan-b-net-ug" class="font-bold text-[#ea580c]">
+              <CountUp client:load syncId="plan-b-net-ug" value={Math.abs(planB.netSavingUg)} prefix="-" suffix=" µg" decimals={1} duration={0.75} className="text-[11px] font-mono font-bold text-[#ea580c]" />
+            </span> (<span id="plan-b-net-pct">
+              <CountUp client:load syncId="plan-b-net-pct" value={planB.netSavingPercent} suffix="%" decimals={1} duration={0.75} className="text-[11px] font-mono text-[#525252]" />
+            </span>)
           </span>
         </div>
 
@@ -304,7 +313,7 @@ const budgetOptions = [
         </div>
         <div class="flex items-baseline gap-2">
           <span id="emissions-delta-display" class="text-3xl font-extrabold text-[#ea580c] font-mono tracking-tight">
-            {Math.abs(emissions.deltaGramsCo2e)}
+            <CountUp client:visible syncId="emissions-delta-display" value={Math.abs(emissions.deltaGramsCo2e)} duration={0.9} className="text-3xl font-extrabold text-[#ea580c] font-mono tracking-tight" />
           </span>
           <span class="text-xs font-semibold text-[#525252]" data-i18n="co2SavedUnit">g CO₂ saved today</span>
         </div>
@@ -360,6 +369,7 @@ const budgetOptions = [
     import {
       apiFetchJson,
       buildWhatsAppShareUrl,
+      dispatchCountUpUpdate,
       dispatchWaveUpdate,
       CITY_PRESETS,
       fetchResilientAir,
@@ -400,12 +410,18 @@ const budgetOptions = [
       source: "OPENAQ"
     };
 
+    function readTargetText(id: string, fallback = "--"): string {
+      const el = document.getElementById(id);
+      if (!el) return fallback;
+      return el.querySelector("[data-target-text]")?.getAttribute("data-target-text")?.trim() || el.textContent?.trim() || fallback;
+    }
+
     function buildPlanWhatsAppText(): string {
-      const doseA = document.getElementById("plan-a-dose-display")?.textContent?.trim() || "--";
-      const doseB = document.getElementById("plan-b-dose-display")?.textContent?.trim() || "--";
-      const netUg = document.getElementById("plan-b-net-ug")?.textContent?.trim() || "--";
-      const netPct = document.getElementById("plan-b-net-pct")?.textContent?.trim() || "--";
-      const co2Saved = document.getElementById("emissions-delta-display")?.textContent?.trim() || "0";
+      const doseA = readTargetText("plan-a-dose-display");
+      const doseB = readTargetText("plan-b-dose-display");
+      const netUg = readTargetText("plan-b-net-ug");
+      const netPct = readTargetText("plan-b-net-pct");
+      const co2Saved = readTargetText("emissions-delta-display", "0");
       const headline = document.getElementById("narrative-headline")?.textContent?.trim() || "";
 
       const activeSwaps: string[] = [];
@@ -476,10 +492,10 @@ const budgetOptions = [
           const currentDose = Math.max(5, currentBaseDoseA - totalSaved);
           const currentPct = currentBaseDoseA > 0 ? Math.round((totalSaved / currentBaseDoseA) * 1000) / 10 : 0;
 
-          if (doseDisplay) doseDisplay.textContent = currentDose.toFixed(1);
-          if (netUgDisplay) netUgDisplay.textContent = `-${totalSaved.toFixed(1)} µg`;
-          if (netPctDisplay) netPctDisplay.textContent = `${currentPct}%`;
-          if (badge) badge.textContent = `-${currentPct}% Less Smoke`;
+          if (doseDisplay) dispatchCountUpUpdate("plan-b-dose-display", { value: currentDose, decimals: 1, duration: 0.45 });
+          if (netUgDisplay) dispatchCountUpUpdate("plan-b-net-ug", { value: totalSaved, prefix: "-", suffix: " µg", decimals: 1, duration: 0.45 });
+          if (netPctDisplay) dispatchCountUpUpdate("plan-b-net-pct", { value: currentPct, suffix: "%", decimals: 1, duration: 0.45 });
+          if (badge) dispatchCountUpUpdate("plan-b-saving-badge", { value: currentPct, prefix: "-", suffix: "% Less Smoke", decimals: 1, duration: 0.45 });
           syncPlanWhatsAppHref();
         });
       });
@@ -525,7 +541,11 @@ const budgetOptions = [
       };
 
       if (airBadge) {
-        airBadge.textContent = `AQI ${plan.air.indexValue ?? "--"}`;
+        dispatchCountUpUpdate("plan-air-source-badge", {
+          value: typeof plan.air.indexValue === "number" ? plan.air.indexValue : null,
+          prefix: "AQI ",
+          fallbackText: "AQI --"
+        });
       }
       if (subtitle) {
         const stationName = String(plan.air.attribution || "").replace("OpenAQ Station: ", "");
@@ -534,7 +554,7 @@ const budgetOptions = [
 
       updateNarrativeOnly(plan);
 
-      if (doseAEl) doseAEl.textContent = String(plan.planA.totalDoseUg.mid);
+      if (doseAEl) dispatchCountUpUpdate("plan-a-dose-display", { value: Number(plan.planA.totalDoseUg.mid), decimals: 1 });
       if (rangeAEl) rangeAEl.textContent = `Typical range: ${plan.planA.totalDoseUg.low} – ${plan.planA.totalDoseUg.high} µg`;
 
       if (segsWrap) {
@@ -553,10 +573,10 @@ const budgetOptions = [
         segsWrap.replaceChildren(...nodes);
       }
 
-      if (doseBEl) doseBEl.textContent = String(plan.planB.totalDoseUg.mid);
-      if (netUgEl) netUgEl.textContent = `-${plan.planB.netSavingUg} µg`;
-      if (netPctEl) netPctEl.textContent = `${plan.planB.netSavingPercent}%`;
-      if (savingBadge) savingBadge.textContent = `-${plan.planB.netSavingPercent}% Less Smoke`;
+      if (doseBEl) dispatchCountUpUpdate("plan-b-dose-display", { value: Number(plan.planB.totalDoseUg.mid), decimals: 1 });
+      if (netUgEl) dispatchCountUpUpdate("plan-b-net-ug", { value: Math.abs(Number(plan.planB.netSavingUg)), prefix: "-", suffix: " µg", decimals: 1 });
+      if (netPctEl) dispatchCountUpUpdate("plan-b-net-pct", { value: Number(plan.planB.netSavingPercent), suffix: "%", decimals: 1 });
+      if (savingBadge) dispatchCountUpUpdate("plan-b-saving-badge", { value: Number(plan.planB.netSavingPercent), prefix: "-", suffix: "% Less Smoke", decimals: 1 });
 
       if (intWrap) {
         const cards = (plan.planB.changes || []).map((c: any, idx: number) => {
@@ -592,7 +612,7 @@ const budgetOptions = [
         intWrap.replaceChildren(...cards);
       }
 
-      if (emissionsEl) emissionsEl.textContent = String(Math.abs(plan.emissions.deltaGramsCo2e));
+      if (emissionsEl) dispatchCountUpUpdate("emissions-delta-display", { value: Math.abs(Number(plan.emissions.deltaGramsCo2e)), decimals: 0 });
       if (assumptionsEl) {
         const chips = (plan.assumptions || []).map((item: string) => {
           const s = document.createElement("span");
@@ -752,7 +772,7 @@ const budgetOptions = [
     }
 
     syncPlanCityUi();
-    const initialDoseA = parseFloat(document.getElementById("plan-a-dose-display")?.textContent || "185");
+    const initialDoseA = parseFloat(readTargetText("plan-a-dose-display", "185"));
     bindInterventionToggles(initialDoseA);
     syncPlanWhatsAppHref();
 

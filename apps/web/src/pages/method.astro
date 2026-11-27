@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import CountUp from "../components/lightswind/count-up";
 import { CONSTANTS_REGISTRY, CONSTANTS_VERSION } from "@airdelta/engine";
 import Atom from "lucide-astro/Atom";
 import Database from "lucide-astro/Database";
@@ -99,7 +100,7 @@ const constantsList = Object.values(CONSTANTS_REGISTRY);
         </div>
         <span class="text-xs font-mono text-[#ea580c] font-bold bg-[#fff7ed] px-3.5 py-1.5 rounded-full border border-[#fed7aa] self-start sm:self-auto flex items-center gap-1.5 shrink-0">
           <Database class="w-3.5 h-3.5" aria-hidden="true" />
-          <span>{constantsList.length} Active Constants</span>
+          <CountUp client:visible value={constantsList.length} duration={0.9} suffix=" Active Constants" className="text-xs font-mono text-[#ea580c] font-bold" />
         </span>
       </div>
 
