@@ -1,28 +1,88 @@
-name: AirDelta CI
+name: AirDelta CI/CD
 
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: airdelta-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
+    name: Build, Typecheck & Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      REPLAY_MODE: "true"
+      LLM_ENABLED: "false"
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          version: 9
-      - uses: actions/setup-node@v4
+          version: 11.8.0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Build workspace packages
+
+      - name: Build workspace packages & Astro PWA
         run: pnpm -r run build
-      - name: Typecheck workspace
+
+      - name: Typecheck TypeScript packages & Astro pages
         run: pnpm typecheck
-      - name: Run unit & grounding evaluation tests
+
+      - name: Run all unit, security, engine & grounding tests
         run: pnpm test
+
+  deploy:
+    name: Continuous Deployment (main)
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trigger Render Deploy Hooks (if configured)
+        env:
+          RENDER_API_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK }}
+          RENDER_WEB_HOOK: ${{ secrets.RENDER_WEB_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$RENDER_API_HOOK" ]; then
+            echo "Triggering Render API deploy hook..."
+            curl -fsS -X POST "$RENDER_API_HOOK" > /dev/null
+          fi
+          if [ -n "$RENDER_WEB_HOOK" ]; then
+            echo "Triggering Render Web deploy hook..."
+            curl -fsS -X POST "$RENDER_WEB_HOOK" > /dev/null
+          fi
+          if [ -z "$RENDER_API_HOOK" ] && [ -z "$RENDER_WEB_HOOK" ]; then
+            echo "Render GitHub auto-deploy handles main pushes directly."
+          fi
+
+      - name: Deploy Cloudflare Workers Static Assets (if CLOUDFLARE_API_TOKEN is configured)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            corepack enable && corepack prepare pnpm@11.8.0 --activate
+            pnpm install --frozen-lockfile
+            pnpm deploy:cf
+          else
+            echo "CLOUDFLARE_API_TOKEN not set; skipping Cloudflare deploy step."
+          fi
