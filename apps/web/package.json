@@ -15,7 +15,7 @@
     "@airdelta/fix-library": "workspace:*",
     "@airdelta/i18n": "workspace:*",
     "@airdelta/schemas": "workspace:*",
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/react": "^7.1.9",
     "@astryxdesign/cli": "^0.7.17",
     "@astryxdesign/core": "^0.7.17",
     "@astryxdesign/theme-neutral": "^0.7.17",
