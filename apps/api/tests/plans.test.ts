@@ -108,4 +108,37 @@ describe("Planner & Grounding Validator test suite", () => {
     expect(plan.narrative.headline).toContain("योजना B");
     expect(plan.assumptions.length).toBeGreaterThan(0);
   });
+
+  it("POST /v1/plans succeeds across all ageBands (child, teen, adult, senior) and commute modes", async () => {
+    for (const ageBand of ["child", "teen", "adult", "senior"] as const) {
+      const res = await app.request("/v1/plans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetLang: "en",
+          includeLlm: false,
+          profile: {
+            cityCode: "DELHI",
+            gridCell: "28.61:77.21",
+            lang: "en",
+            budgetBand: "low",
+            cooksIndoors: true,
+            hasExhaust: false,
+            hasPurifier: false,
+            members: [{ id: "m-1", ageBand, cautionMode: false }],
+            routines: [
+              { id: "r-walk", memberId: "m-1", kind: "walk", startHour: 7, durationMinutes: 45, isIndoor: false, maskUsed: false },
+              { id: "r-commute", memberId: "m-1", kind: "commute", mode: "two_wheeler", startHour: 9, durationMinutes: 45, isIndoor: false, maskUsed: false },
+              { id: "r-cook", memberId: "m-1", kind: "cooking", startHour: 19, durationMinutes: 60, isIndoor: true, maskUsed: false }
+            ]
+          }
+        })
+      });
+
+      expect(res.status).toBe(201);
+      const plan: any = await res.json();
+      expect(plan.planA.totalDoseUg.mid).toBeGreaterThan(0);
+      expect(plan.planB.netSavingPercent).toBeGreaterThan(0);
+    }
+  });
 });

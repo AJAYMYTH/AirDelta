@@ -30,15 +30,21 @@ export function calculateSegmentDose(
     veKey = `VE.sleep.${member.ageBand}`;
   }
 
-  // Fallback for senior if moderate exercise is requested
+  // Fallback to light_exercise or adult baseline if a specialized constant is absent
   let veValue: number;
   try {
     veValue = getConstant(veKey);
     assumptionsUsed.push(formatAssumptionRef(veKey));
   } catch {
-    veKey = `VE.light_exercise.${member.ageBand}`;
-    veValue = getConstant(veKey);
-    assumptionsUsed.push(formatAssumptionRef(veKey));
+    try {
+      veKey = `VE.light_exercise.${member.ageBand}`;
+      veValue = getConstant(veKey);
+      assumptionsUsed.push(formatAssumptionRef(veKey));
+    } catch {
+      veKey = "VE.light_exercise.adult";
+      veValue = getConstant(veKey);
+      assumptionsUsed.push(formatAssumptionRef(veKey));
+    }
   }
 
   // Caution mode multiplier (makes thresholds 20% more conservative for sensitive members)
@@ -66,6 +72,9 @@ export function calculateSegmentDose(
     } else if (segment.mode === "auto") {
       fMicroKey = "F_micro.transit.auto";
       microenvName = "transit_auto";
+    } else if (segment.mode === "cycle") {
+      fMicroKey = "F_micro.transit.cycle";
+      microenvName = "transit_cycle";
     } else {
       fMicroKey = "F_micro.transit.walking";
       microenvName = "outdoor_roadside";

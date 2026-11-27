@@ -9,6 +9,9 @@ import { AirDataService, parseCellId, type AirProviderPreference } from "@airdel
 import { optimizeHouseholdPlan, TemplateFallbackService, CONSTANTS_VERSION, ENGINE_VERSION } from "@airdelta/engine";
 import { GeminiService } from "./gemini.service.js";
 import { GroundingValidatorService } from "./grounding-validator.service.js";
+import { setBoundedMapEntry } from "../utils/security.js";
+
+const MAX_NARRATION_CACHE_ENTRIES = 500;
 
 export class PlannerService {
   private geminiService: GeminiService;
@@ -68,10 +71,12 @@ export class PlannerService {
 
         if (validation.isValid) {
           narrative = generated;
-          this.narrationCache.set(cacheKey, {
-            value: generated,
-            expiresAt: Date.now() + 15 * 60 * 1000
-          });
+          setBoundedMapEntry(
+            this.narrationCache,
+            cacheKey,
+            { value: generated, expiresAt: Date.now() + 15 * 60 * 1000 },
+            MAX_NARRATION_CACHE_ENTRIES
+          );
         }
       }
     }
@@ -86,10 +91,12 @@ export class PlannerService {
       );
       if (includeLlm && !this.disableLlm) {
         // Cache fallback briefly (60s) during transient upstream spikes so repeat loads stay instant
-        this.narrationCache.set(cacheKey, {
-          value: narrative,
-          expiresAt: Date.now() + 60 * 1000
-        });
+        setBoundedMapEntry(
+          this.narrationCache,
+          cacheKey,
+          { value: narrative, expiresAt: Date.now() + 60 * 1000 },
+          MAX_NARRATION_CACHE_ENTRIES
+        );
       }
     }
 

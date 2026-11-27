@@ -129,4 +129,60 @@ describe("@airdelta/engine mathematical verification", () => {
     expect(result.planB.changes.length).toBeGreaterThan(0);
     expect(result.assumptions.length).toBeGreaterThan(0);
   });
+
+  it("supports every ageBand (child, teen, adult, senior) and commuteMode without throwing", () => {
+    const air: AirSnapshot = {
+      cell: "28.61:77.21",
+      ts: "2026-11-06T10:00:00Z",
+      pm25: 250,
+      pm10: 380,
+      indexValue: 320,
+      indexStandard: "ind_cpcb",
+      category: "Very Poor",
+      source: "replay",
+      badge: "measured",
+      fetchedAt: "2026-11-06T10:05:00Z",
+      ttlSec: 3600,
+      license: "Open Data",
+      attribution: "CPCB"
+    };
+
+    const ageBands: Array<"child" | "teen" | "adult" | "senior"> = ["child", "teen", "adult", "senior"];
+    const commuteModes: Array<"walk" | "cycle" | "two_wheeler" | "bus" | "metro" | "car" | "auto"> = [
+      "walk", "cycle", "two_wheeler", "bus", "metro", "car", "auto"
+    ];
+    const activityKinds: Array<"walk" | "commute" | "cooking" | "outdoor_play" | "rest"> = [
+      "walk", "commute", "cooking", "outdoor_play", "rest"
+    ];
+
+    for (const ageBand of ageBands) {
+      for (const mode of commuteModes) {
+        const res = optimizeHouseholdPlan(
+          {
+            cityCode: "DELHI",
+            gridCell: "28.61:77.21",
+            lang: "en",
+            budgetBand: "low",
+            cooksIndoors: true,
+            hasExhaust: false,
+            hasPurifier: false,
+            members: [{ id: "m-1", ageBand, cautionMode: true }],
+            routines: activityKinds.map((kind, idx) => ({
+              id: `r-${idx}`,
+              memberId: "m-1",
+              kind,
+              mode: kind === "commute" ? mode : undefined,
+              startHour: 7 + idx,
+              durationMinutes: 30,
+              isIndoor: kind === "cooking" || kind === "rest",
+              maskUsed: false
+            }))
+          },
+          air
+        );
+        expect(res.planA.totalDoseUg.mid).toBeGreaterThan(0);
+        expect(res.planB.totalDoseUg.mid).toBeLessThanOrEqual(res.planA.totalDoseUg.mid);
+      }
+    }
+  });
 });

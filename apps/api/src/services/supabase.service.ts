@@ -1,6 +1,10 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { HouseholdProfile, PlanResponse } from "@airdelta/schemas";
 import { PiiSanitizerService } from "./pii-sanitizer.service.js";
+import { setBoundedMapEntry } from "../utils/security.js";
+
+const MAX_MEMORY_RECORDS = 500;
+const MAX_MEMORY_EVENTS = 2000;
 
 export interface StoredPlanRecord {
   id: string;
@@ -92,13 +96,18 @@ export class SupabaseService {
       console.warn("[SupabaseService] saveHousehold degraded to memory:", error.message);
     }
 
-    // In-memory fallback
-    this.memoryHouseholds.set(householdId, {
-      ...sanitized,
-      id: householdId,
-      owner: ownerId,
-      created_at: new Date().toISOString()
-    });
+    // In-memory fallback (bounded to prevent unbounded growth on long-lived processes)
+    setBoundedMapEntry(
+      this.memoryHouseholds,
+      householdId,
+      {
+        ...sanitized,
+        id: householdId,
+        owner: ownerId,
+        created_at: new Date().toISOString()
+      },
+      MAX_MEMORY_RECORDS
+    );
 
     return { id: householdId, ok: true };
   }
@@ -164,7 +173,7 @@ export class SupabaseService {
       console.warn("[SupabaseService] savePlan degraded to memory:", error.message);
     }
 
-    this.memoryPlans.set(planId, record);
+    setBoundedMapEntry(this.memoryPlans, planId, record, MAX_MEMORY_RECORDS);
     return { id: planId, ok: true };
   }
 
@@ -210,6 +219,9 @@ export class SupabaseService {
       console.warn("[SupabaseService] recordAction degraded to memory:", error.message);
     }
 
+    if (this.memoryActions.length >= MAX_MEMORY_EVENTS) {
+      this.memoryActions.shift();
+    }
     this.memoryActions.push({
       id: actionId,
       plan_id: planId,
@@ -268,6 +280,9 @@ export class SupabaseService {
       (m) => m.group_id === groupId && m.household_id === householdId
     );
     if (!existing) {
+      if (this.memoryGroupMembers.length >= MAX_MEMORY_EVENTS) {
+        this.memoryGroupMembers.shift();
+      }
       this.memoryGroupMembers.push({
         group_id: groupId,
         household_id: householdId,

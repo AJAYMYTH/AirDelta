@@ -175,12 +175,19 @@ airdelta/
   - Injects live location AQI, cleanest airing window, lifestyle preferences (`ageBand`, `commuteMode`, `budgetBand`, `cautionMode`, `hasExhaust`), deterministic Plan A vs Plan B savings (µg PM2.5 + gCO2e), and `@airdelta/fix-library` hacks into Gemini (with deterministic grounded fallback).
   - Added global floating chat launcher & safe DOM-rendered drawer (`apps/web/src/components/AirChatWidget.astro` + `apps/web/src/scripts/chat-widget.ts`) in `Layout.astro`, synced with `plan.astro` lifestyle settings (`airdelta_plan_prefs`).
 
+- [x] **Render `/v1/plans` 500 Fix, Full Age-Band Constants & Memory Bounding (Nov 27, 2026):**
+  - Diagnosed live `POST /v1/plans` `500 {"error":"Plan generation failed"}` (~305ms TTFB): `CONSTANTS_REGISTRY` (`packages/engine/src/constants.ts`) lacked US EPA breathing rates (`VE.*`) for `teen` (`13–17y`) and specialized `sleep`/`moderate_exercise` rates for `senior` (`65+`), causing `getConstant()` to throw whenever `teen` was selected in `/plan` or `/v1/chat`.
+  - Added `VE.sleep.teen`, `VE.rest.teen`, `VE.light_exercise.teen`, `VE.moderate_exercise.teen`, `VE.sleep.senior`, and `VE.moderate_exercise.senior` to `CONSTANTS_REGISTRY`, added an adult fallback guard + explicit `cycle` mode mapping in `packages/engine/src/dose.ts`, wrapped `dbService.savePlan` in `try/catch` inside `plans.route.ts`, bounded `PlannerService.narrationCache` and `SupabaseService` memory stores via LRU/cap limits (`500` records / `2000` events), and added transient `502`/`503`/`504`/`429` retry + error logging in `apps/web/src/scripts/api-client.ts`.
+  - Added full age-band (`child`, `teen`, `adult`, `senior`) and commute-mode matrix tests in `packages/engine/tests/dose.test.ts` and `apps/api/tests/plans.test.ts` (`65/65` tests passing).
+  - Prepared Cloudflare Workers Static Assets deployment (`wrangler.jsonc`, `apps/web/public/_headers`, `PRODUCTION_API_BASE` auto-detection in `api-client.ts`, `deploy:cf` script).
+
 ## Development Progress
-- **Current Status:** Production-hardened across all 8 Astro pages (`/`, `/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), global AI Chat Assistant, Hono API, and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 63/63 tests passing.
+- **Current Status:** Production-hardened across all 8 Astro pages (`/`, `/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), global AI Chat Assistant, Hono API (Render), and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 65/65 tests passing.
 - **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public visibility verified via GitHub API, < 10 MB submission cap).
-- **Test Suite Status:** 63/63 tests passing across 13 test suites (`pnpm test`).
-- **Compilation Status:** 0 errors, 0 warnings across `pnpm -r run build` and `pnpm typecheck` (`apps/web`: 18 files, 0 errors/warnings/hints, 8 static pages built).
+- **Test Suite Status:** 65/65 tests passing across 13 test suites (`pnpm test`).
+- **Compilation Status:** 0 errors, 0 warnings across `pnpm -r run build` and `pnpm typecheck` (`apps/web`: 20 files, 0 errors/warnings/hints, 8 static pages built).
 - **Pending / Blocked Items:**
+  - Authenticate Cloudflare account (Cloudflare plugin or `wrangler login`) and deploy `apps/web/dist` to Cloudflare.
   - Record/upload unlisted YouTube or accessible Google Drive demo video and submit on PromptWars before 29/11/2026 11:59 PM IST (at most 3 attempts allowed).
 
 ## Technical Decisions

@@ -39,12 +39,17 @@ export function createPlanRoutes(
     try {
       const plan = await plannerService.generatePlan(profileParse.data, targetLang, undefined, undefined, includeLlm, preferredProvider);
       const householdId = profileParse.data.id || "demo-household";
-      
-      // Persist plan in Supabase (or in-memory store)
-      await dbService.savePlan(plan, householdId, profileParse.data);
+
+      // Persist plan in Supabase (or in-memory store), never failing plan delivery on transient DB errors
+      try {
+        await dbService.savePlan(plan, householdId, profileParse.data);
+      } catch (persistErr) {
+        console.warn("[PlansRoute] Plan persistence degraded:", persistErr);
+      }
 
       return c.json(plan, 201);
-    } catch {
+    } catch (err) {
+      console.error("[PlansRoute] Plan generation failed:", err);
       return c.json({ error: "Plan generation failed" }, 500);
     }
   });

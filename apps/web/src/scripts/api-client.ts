@@ -327,17 +327,26 @@ export async function apiFetchJson<T>(path: string, init: RequestInit = {}, time
   }
 
   const url = `${getApiBase()}${path}`;
-  const res = await fetch(url, {
-    ...init,
-    signal: AbortSignal.timeout(timeoutMs),
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers || {})
+  let res: Response | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    res = await fetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(timeoutMs),
+      headers: {
+        "Content-Type": "application/json",
+        ...(init.headers || {})
+      }
+    });
+    if (res.ok || (res.status < 502 && res.status !== 429) || attempt === 1) {
+      break;
     }
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`HTTP ${res.status}${text ? `: ${text}` : ""}`);
+    await new Promise((r) => setTimeout(r, 350));
+  }
+  if (!res || !res.ok) {
+    const text = res ? await res.text().catch(() => "") : "";
+    const status = res?.status ?? 0;
+    console.warn(`[AirDelta API] ${method} ${path} failed (${status}): ${text}`);
+    throw new Error(`HTTP ${status}${text ? `: ${text}` : ""}`);
   }
   const json = (await res.json()) as T;
 

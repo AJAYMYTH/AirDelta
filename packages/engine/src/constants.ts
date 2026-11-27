@@ -44,6 +44,38 @@ export const CONSTANTS_REGISTRY: Record<string, ConstantDefinition> = {
     sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
     description: "Child active sports / running breathing rate"
   },
+  "VE.sleep.teen": {
+    key: "VE.sleep.teen",
+    value: 0.38,
+    unit: "m3/h",
+    confidence: "High",
+    sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
+    description: "Teen (13-17y) sleeping breathing rate"
+  },
+  "VE.rest.teen": {
+    key: "VE.rest.teen",
+    value: 0.48,
+    unit: "m3/h",
+    confidence: "High",
+    sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
+    description: "Teen (13-17y) sedentary / study breathing rate"
+  },
+  "VE.light_exercise.teen": {
+    key: "VE.light_exercise.teen",
+    value: 1.05,
+    unit: "m3/h",
+    confidence: "High",
+    sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
+    description: "Teen (13-17y) light walking breathing rate"
+  },
+  "VE.moderate_exercise.teen": {
+    key: "VE.moderate_exercise.teen",
+    value: 1.80,
+    unit: "m3/h",
+    confidence: "Medium",
+    sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
+    description: "Teen (13-17y) sports / brisk cycling breathing rate"
+  },
   "VE.sleep.adult": {
     key: "VE.sleep.adult",
     value: 0.45,
@@ -76,6 +108,14 @@ export const CONSTANTS_REGISTRY: Record<string, ConstantDefinition> = {
     sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
     description: "Adult brisk walking / cycling breathing rate"
   },
+  "VE.sleep.senior": {
+    key: "VE.sleep.senior",
+    value: 0.40,
+    unit: "m3/h",
+    confidence: "Medium",
+    sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
+    description: "Senior (>65y) sleeping breathing rate"
+  },
   "VE.rest.senior": {
     key: "VE.rest.senior",
     value: 0.50,
@@ -91,6 +131,14 @@ export const CONSTANTS_REGISTRY: Record<string, ConstantDefinition> = {
     confidence: "Medium",
     sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
     description: "Senior slow walking breathing rate"
+  },
+  "VE.moderate_exercise.senior": {
+    key: "VE.moderate_exercise.senior",
+    value: 1.65,
+    unit: "m3/h",
+    confidence: "Medium",
+    sourceUrl: "https://www.epa.gov/expobox/exposure-factors-handbook-chapter-6",
+    description: "Senior moderate exercise breathing rate"
   },
 
   // Microenvironment penetration factors (dimensionless ratio)
