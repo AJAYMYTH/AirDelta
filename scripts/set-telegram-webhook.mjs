@@ -55,15 +55,19 @@ async function run() {
   }
 
   const secretIdx = args.indexOf("--secret");
-  const secret =
+  const rawSecret =
     secretIdx >= 0 && args[secretIdx + 1]
       ? args[secretIdx + 1]
       : process.env.TELEGRAM_WEBHOOK_SECRET;
+  const secret =
+    rawSecret && !rawSecret.includes("your_telegram")
+      ? rawSecret.replace(/[^A-Za-z0-9_-]/g, "")
+      : "";
 
   const webhookUrl = `${baseUrl}/webhooks/telegram`;
   const payload = {
     url: webhookUrl,
-    ...(secret && !secret.includes("your_telegram") ? { secret_token: secret } : {})
+    ...(secret ? { secret_token: secret } : {})
   };
 
   const res = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {

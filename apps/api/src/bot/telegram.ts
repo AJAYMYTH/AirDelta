@@ -355,9 +355,10 @@ export class AirDeltaBot {
     const base = publicBaseUrl.replace(/\/$/, "");
     if (!base.startsWith("https://")) return;
 
+    const cleanSecret = (secretToken || "").replace(/[^A-Za-z0-9_-]/g, "");
     await this.ensureInitialized();
     await this.bot.api.setWebhook(`${base}/webhooks/telegram`, {
-      ...(secretToken ? { secret_token: secretToken } : {})
+      ...(cleanSecret ? { secret_token: cleanSecret } : {})
     });
     await this.bot.api.setMyCommands([
       { command: "start", description: "Start & pick city or live location" },

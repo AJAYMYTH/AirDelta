@@ -1,12 +1,16 @@
 import { Hono } from "hono";
 import { AirDeltaBot } from "../bot/telegram.js";
 
+function normalizeWebhookSecret(raw?: string): string {
+  return (raw || "").replace(/[^A-Za-z0-9_-]/g, "");
+}
+
 export function createTelegramRoutes(botService: AirDeltaBot) {
   const router = new Hono();
 
   // POST /webhooks/telegram
   router.post("/", async (c) => {
-    const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    const secret = normalizeWebhookSecret(process.env.TELEGRAM_WEBHOOK_SECRET);
     if (secret) {
       const headerToken = c.req.header("X-Telegram-Bot-Api-Secret-Token");
       if (headerToken !== secret) {

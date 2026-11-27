@@ -72,7 +72,7 @@ describe("Telegram Bot Channel (Option B) test suite", () => {
 
   it("handles POST /webhooks/telegram updates and enforces webhook secret when configured", async () => {
     const prevSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
-    process.env.TELEGRAM_WEBHOOK_SECRET = "test-secret-123";
+    process.env.TELEGRAM_WEBHOOK_SECRET = "test-secret-123=";
     try {
       const denied = await app.request("/webhooks/telegram", {
         method: "POST",
