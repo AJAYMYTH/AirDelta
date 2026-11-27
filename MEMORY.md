@@ -202,7 +202,7 @@ airdelta/
 - **Current Status:** Production-hardened across all 9 Astro pages (`/`, `/map`, `/plan`, `/assistant`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), floating quick-chat drawer, Hono API (Render), and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 67/67 tests passing.
 - **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public visibility verified via GitHub API, < 10 MB submission cap).
 - **Test Suite Status:** 67/67 tests passing across 13 test suites (`pnpm test`).
-- **Compilation Status:** 0 errors, 0 warnings across `pnpm -r run build` and `pnpm typecheck` (`apps/web`: 23 files, 0 errors/warnings/hints, 9 static pages built).
+- **Compilation Status:** 0 errors, 0 warnings across `pnpm -r run build` and `pnpm typecheck` (`apps/web`: 25 files, 0 errors/warnings/hints, 9 static pages built).
 - **Pending / Blocked Items:**
   - Authenticate Cloudflare account (Cloudflare plugin or `wrangler login`) and deploy `apps/web/dist` to Cloudflare.
   - Record/upload unlisted YouTube or accessible Google Drive demo video and submit on PromptWars before 29/11/2026 11:59 PM IST (at most 3 attempts allowed).

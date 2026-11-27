@@ -50,7 +50,13 @@ Google Gemini provides personalized narration, **multimodal room/smog photo anal
 4. **Hedged Dual-Adapter Race (`AirDataService`):** Races OpenAQ v3 ground monitors (`2.2 s` accuracy budget) against Open-Meteo ECMWF CAMS, coalesces per `0.01°` (~1.1 km) cell, caps spatial/forecast caches via LRU eviction (`500` entries), and falls back cleanly to offline fixtures so AQI lookups never crash.
 5. **Privacy by Minimization:** Coordinates snap to `0.01°` (~1.1 km) grid cells; uploaded photos are re-encoded on `<canvas>` to strip EXIF metadata; `PiiSanitizerService` redacts phone numbers, Aadhaar IDs, emails, addresses, and injection strings; Supabase enforces Row-Level Security (RLS), $k \ge 5$ group aggregation, and 30-day automatic pruning.
 
-### 3. Assumptions Made
+### 3. How the Solution Works
+1. **Live Hyper-Local Air Sensing (`/`, `/map`):** AirDelta snaps the user's selected city or privacy-rounded GPS (`0.01°` ~ 1.1 km grid cell) and runs a hedged parallel race between OpenAQ v3 ground monitors and Open-Meteo ECMWF CAMS (`72h` forecast), computing US AQI, CPCB NAQI sub-indices, and the cleanest upcoming 3-hour airing window.
+2. **Context-Aware Dose & Trade-Off Decisioning (`/plan`, `/indoor`):** Based on household age band (`child`, `teen`, `adult`, `senior`), caution sensitivity, commute mode (`two_wheeler`, `auto`, `bus`, `car`, `metro`, `walk`, `cycle`), budget tier (`none`/`low`/`medium`/`high`), and cooking exhaust availability, `@airdelta/engine` computes inhaled $\text{PM}_{2.5}$ dose (`Plan A` baseline vs. `Plan B` optimized day), indoor steady-state levels, and $\text{gCO}_2\text{e}$ carbon savings.
+3. **Guarded Multimodal AI Assistant (`/assistant` + Floating Drawer):** Pre-LLM security filters (`evaluateChatGuard`) block prompt injections, coding prompts, and off-topic abuse. Valid clean-air questions—and optional EXIF-stripped room/kitchen photos—receive live-AQI + Plan-delta grounded context, Gemini narration, and numeric-grounding validation before rendering.
+4. **Multilingual Community Action & Telegram Delivery (`/community`, `/replay`, `/method`, `@airdeltabot`):** Generates calm CAQM GRAP-stage WhatsApp/Telegram alerts in all 12 Indian regional languages + English, aggregates group savings only at $k \ge 5$ households for anonymity, and delivers 07:00 IST morning briefs and live location updates on Telegram.
+
+### 4. Assumptions Made
 - **Versioned Constants Registry (`2026-11-a`):** Minute ventilation rates ($VE$) across `child`, `teen`, `adult`, and `senior` follow US EPA Exposure Factors Handbook Chapter 6; microenvironment penetration factors ($F_{micro}$) follow EPIC India / Nazaroff aerosol research; transport emission factors follow CPCB & DMRC references; uncertainty intervals propagate at $[0.80, 1.25] \times D$.
 - **Indoor Mass-Balance Baseline:** Single-compartment steady-state model defaults to $V = 45\text{ m}^3$, air exchange $\lambda = 1.2\text{ h}^{-1}$, and deposition $k = 0.25\text{ h}^{-1}$ when custom room dimensions are not specified.
 - **Station Freshness:** OpenAQ readings $\le 3\text{ hours}$ old carry `[Measured]`; older readings degrade to `[Modelled]`. Forecasts use Open-Meteo ECMWF CAMS (`72h` hourly horizon).
@@ -244,7 +250,7 @@ Automated via GitHub Actions in [.github/workflows/ci.yml](.github/workflows/ci.
 # Run all 67 tests across 13 test suites
 pnpm test
 
-# Typecheck all workspace packages and 23 Astro files (0 errors, 0 warnings)
+# Typecheck all workspace packages and 25 Astro files (0 errors, 0 warnings, 0 hints)
 pnpm typecheck
 
 # Full monorepo production build
