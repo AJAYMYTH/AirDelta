@@ -44,9 +44,9 @@ export function createApp(
     c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   });
 
-  // Bound JSON payload size (5 MB for indoor photo uploads, 64 KB for chat, 256 KB elsewhere)
+  // Bound JSON payload size (5 MB for indoor photo uploads, 6 MB for multimodal chat, 256 KB elsewhere)
   app.use("/v1/indoor-audits/*", bodyLimit({ maxSize: 5 * 1024 * 1024 }));
-  app.use("/v1/chat/*", bodyLimit({ maxSize: 64 * 1024 }));
+  app.use("/v1/chat/*", bodyLimit({ maxSize: 6 * 1024 * 1024 }));
   app.use("/v1/plans/*", bodyLimit({ maxSize: 256 * 1024 }));
   app.use("/v1/advisories/*", bodyLimit({ maxSize: 256 * 1024 }));
 
@@ -84,7 +84,12 @@ export function createApp(
     modelName: process.env.GEMINI_MODEL_VISION
   });
   const advisoryService = new AdvisoryService();
-  const chatService = new ChatService(airService, process.env.GEMINI_API_KEY, Boolean(options.disableLlm));
+  const chatService = new ChatService(
+    airService,
+    process.env.GEMINI_API_KEY,
+    Boolean(options.disableLlm),
+    visionService
+  );
   const botService = new AirDeltaBot(airService, advisoryService, visionService, {
     token: process.env.TELEGRAM_BOT_TOKEN,
     webhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET

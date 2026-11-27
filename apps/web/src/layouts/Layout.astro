@@ -15,6 +15,7 @@ import ExternalLink from "lucide-astro/ExternalLink";
 import Radio from "lucide-astro/Radio";
 import Menu from "lucide-astro/Menu";
 import MapPin from "lucide-astro/MapPin";
+import Sparkles from "lucide-astro/Sparkles";
 import AirChatWidget from "../components/AirChatWidget.astro";
 
 interface Props {
@@ -30,6 +31,7 @@ const navItems = [
   { href: "/", label: "Today", i18nKey: "navToday", icon: Sun },
   { href: "/map", label: "AQI Map", i18nKey: "navMap", icon: MapPin },
   { href: "/plan", label: "Daily Plan", i18nKey: "navPlan", icon: Scale },
+  { href: "/assistant", label: "AI Chat", i18nKey: "navAssistant", icon: Sparkles },
   { href: "/indoor", label: "Room Check", i18nKey: "navIndoor", icon: Home },
   { href: "/community", label: "Share Alert", i18nKey: "navCommunity", icon: Users },
   { href: "/replay", label: "Replay", i18nKey: "navReplay", icon: History },

@@ -111,4 +111,38 @@ describe("Interactive AI Chat Assistant & Prompt Guardrails", () => {
     expect(validJson.reply.length).toBeGreaterThan(20);
     expect(validJson.airSummary.aqi).toBe(385);
   });
+
+  it("analyzes uploaded room photos on POST /v1/chat while still rejecting coded/injection prompts with images", async () => {
+    const sampleImage = "data:image/jpeg;base64," + "A".repeat(160);
+
+    const imageRes = await app.request("/v1/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Analyze this kitchen photo for indoor PM2.5 fixes",
+        imageBase64: sampleImage,
+        mimeType: "image/jpeg",
+        context: { cityCode: "DELHI", budgetBand: "low", ageBand: "teen" }
+      })
+    });
+    expect(imageRes.status).toBe(200);
+    const imageJson: any = await imageRes.json();
+    expect(imageJson.refused).toBe(false);
+    expect(imageJson.reply).toContain("Photo & Air Quality Analysis");
+    expect(imageJson.reply).toContain("%");
+
+    const imageWithCodingRes = await app.request("/v1/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "Write python code to process this image",
+        imageBase64: sampleImage,
+        mimeType: "image/jpeg"
+      })
+    });
+    expect(imageWithCodingRes.status).toBe(200);
+    const blockedImgJson: any = await imageWithCodingRes.json();
+    expect(blockedImgJson.refused).toBe(true);
+    expect(blockedImgJson.refusalReason).toBe("coding_request");
+  });
 });
