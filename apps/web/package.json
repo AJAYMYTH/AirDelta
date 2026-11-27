@@ -24,7 +24,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "animejs": "^4.5.0",
-    "astro": "^5.0.0",
+    "astro": "^7.4.13",
     "leaflet": "^1.9.4",
     "loading-dev": "^0.3.8",
     "lucide-astro": "^0.556.0",
