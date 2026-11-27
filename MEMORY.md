@@ -169,10 +169,16 @@ airdelta/
   - Added bounded LRU cache eviction (`maxCacheEntries: 500`) in `packages/air-adapters/src/air-service.ts` and bounded chat preference maps (`2000` entries) in `apps/api/src/bot/telegram.ts`.
   - Added `.github/workflows/ci.yml` and expanded security/cache unit tests.
 
+- [x] **Interactive Guarded AI Chat Assistant (`POST /v1/chat` + `AirChatWidget.astro`, Nov 27, 2026):**
+  - Created `apps/api/src/services/chat.service.ts` (`evaluateChatGuard`, `ChatService`) and `apps/api/src/routes/chat.route.ts` mounted at `/v1/chat` (`bodyLimit` 64 KB + Zod schema).
+  - Enforces pre-LLM prompt-injection, jailbreak, coding (`write python code`, SQL, JS, etc.), and off-topic rejection (`refused: true`, `source: "guard"`), plus post-LLM code-bleed filtering.
+  - Injects live location AQI, cleanest airing window, lifestyle preferences (`ageBand`, `commuteMode`, `budgetBand`, `cautionMode`, `hasExhaust`), deterministic Plan A vs Plan B savings (µg PM2.5 + gCO2e), and `@airdelta/fix-library` hacks into Gemini (with deterministic grounded fallback).
+  - Added global floating chat launcher & safe DOM-rendered drawer (`apps/web/src/components/AirChatWidget.astro` + `apps/web/src/scripts/chat-widget.ts`) in `Layout.astro`, synced with `plan.astro` lifestyle settings (`airdelta_plan_prefs`).
+
 ## Development Progress
-- **Current Status:** Production-hardened across all 8 Astro pages (`/`, `/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), Hono API, and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 58/58 tests passing.
-- **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public visibility verified via GitHub API, ~0.75 MB — well under 10 MB submission cap).
-- **Test Suite Status:** 58/58 tests passing across 12 test suites (`pnpm test`).
+- **Current Status:** Production-hardened across all 8 Astro pages (`/`, `/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), global AI Chat Assistant, Hono API, and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 63/63 tests passing.
+- **Git Remote:** Linked to `origin https://github.com/AJAYMYTH/AirDelta.git` (public visibility verified via GitHub API, < 10 MB submission cap).
+- **Test Suite Status:** 63/63 tests passing across 13 test suites (`pnpm test`).
 - **Compilation Status:** 0 errors, 0 warnings across `pnpm -r run build` and `pnpm typecheck` (`apps/web`: 18 files, 0 errors/warnings/hints, 8 static pages built).
 - **Pending / Blocked Items:**
   - Record/upload unlisted YouTube or accessible Google Drive demo video and submit on PromptWars before 29/11/2026 11:59 PM IST (at most 3 attempts allowed).

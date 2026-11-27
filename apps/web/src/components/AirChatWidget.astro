@@ -1,0 +1,112 @@
+---
+import Sparkles from "lucide-astro/Sparkles";
+import X from "lucide-astro/X";
+import Send from "lucide-astro/Send";
+import ShieldCheck from "lucide-astro/ShieldCheck";
+import MapPin from "lucide-astro/MapPin";
+
+const quickPrompts = [
+  "Low-emission morning routine for my family today",
+  "Budget indoor air hacks for cooking smoke",
+  "Metro vs two-wheeler: direct PM2.5 & CO2 impact",
+  "Best afternoon window to open windows today"
+];
+---
+
+<!-- Floating AI Clean-Air Assistant Launcher -->
+<button
+  id="btn-open-airchat"
+  type="button"
+  aria-haspopup="dialog"
+  aria-expanded="false"
+  aria-controls="airchat-window"
+  class="fixed bottom-20 md:bottom-6 right-4 sm:right-6 z-40 px-4 py-3 rounded-full bg-[#171717] hover:bg-[#ea580c] text-white shadow-xl border border-white/15 flex items-center gap-2 text-xs font-extrabold transition-all cursor-pointer press-scale"
+>
+  <Sparkles class="w-4 h-4 text-[#fb923c]" aria-hidden="true" />
+  <span>Ask AirDelta AI</span>
+</button>
+
+<!-- Interactive AI Chat Window -->
+<section
+  id="airchat-window"
+  role="dialog"
+  aria-label="AirDelta Clean Air AI Assistant"
+  class="hidden fixed bottom-36 md:bottom-22 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[400px] max-h-[75dvh] bg-white border border-[#e5e5e5] rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+>
+  <!-- Header -->
+  <div class="px-4 py-3.5 bg-[#171717] text-white flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="w-8 h-8 rounded-xl bg-[#ea580c] flex items-center justify-center shrink-0">
+        <Sparkles class="w-4 h-4 text-white" aria-hidden="true" />
+      </div>
+      <div class="min-w-0">
+        <h2 class="text-xs sm:text-sm font-extrabold tracking-tight truncate">AirDelta AI Assistant</h2>
+        <div class="flex items-center gap-1 text-[10px] text-[#a1a1aa]">
+          <ShieldCheck class="w-3 h-3 text-[#4ade80] shrink-0" aria-hidden="true" />
+          <span class="truncate">Domain-Guarded · Location &amp; Impact Aware</span>
+        </div>
+      </div>
+    </div>
+    <button
+      id="btn-close-airchat"
+      type="button"
+      aria-label="Close AI assistant"
+      class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer shrink-0"
+    >
+      <X class="w-4 h-4" aria-hidden="true" />
+    </button>
+  </div>
+
+  <!-- Live Location & Lifestyle Context Bar -->
+  <div class="px-4 py-2 bg-[#fff7ed] border-b border-[#fed7aa] flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#9a3412]">
+    <MapPin class="w-3.5 h-3.5 text-[#ea580c] shrink-0" aria-hidden="true" />
+    <span id="airchat-context-pill" class="truncate">Delhi-NCR · two wheeler · low budget</span>
+  </div>
+
+  <!-- Scrollable Conversation Area -->
+  <div id="airchat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white min-h-[220px]">
+    <div class="p-3.5 rounded-2xl bg-[#f7f9fa] border border-[#e5e5e5] text-xs text-[#171717] space-y-2 leading-relaxed">
+      <p class="font-bold">Ask me anything about navigating winter smog &amp; urban pollution:</p>
+      <p class="text-[11px] text-[#525252]">
+        I tailor low-emission daily routines, indoor air quality hacks, and sustainable commutes to your live location &amp; lifestyle — with clear PM2.5 &amp; CO2 impact. Off-topic &amp; coding prompts are automatically blocked.
+      </p>
+      <div id="airchat-quick-chips" class="flex flex-wrap gap-1.5 pt-1">
+        {quickPrompts.map((prompt) => (
+          <button
+            type="button"
+            data-chat-prompt={prompt}
+            class="text-left px-2.5 py-1.5 rounded-xl bg-white hover:bg-[#fff7ed] border border-[#e5e5e5] hover:border-[#ea580c] text-[11px] font-semibold text-[#171717] transition-colors cursor-pointer"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Bar -->
+  <form id="airchat-form" class="p-3 border-t border-[#e5e5e5] bg-[#f7f9fa] flex items-center gap-2">
+    <label for="airchat-input" class="visually-hidden">Ask about smog, routines, or indoor air hacks</label>
+    <input
+      id="airchat-input"
+      type="text"
+      maxlength="500"
+      autocomplete="off"
+      placeholder="Ask about smog routines, masks, indoor hacks..."
+      class="flex-1 min-w-0 px-3.5 py-2.5 rounded-full bg-white border border-[#d4d4d4] focus:border-[#ea580c] focus:outline-none text-xs text-[#171717]"
+    />
+    <button
+      id="airchat-send"
+      type="submit"
+      aria-label="Send message"
+      class="w-9 h-9 rounded-full bg-[#ea580c] hover:bg-[#c2410c] disabled:opacity-50 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 press-scale"
+    >
+      <Send class="w-4 h-4" aria-hidden="true" />
+    </button>
+  </form>
+</section>
+
+<script>
+  import { initAirChatWidget } from "../scripts/chat-widget";
+  initAirChatWidget();
+</script>

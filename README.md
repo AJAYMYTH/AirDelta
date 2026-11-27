@@ -1,6 +1,6 @@
 # AirDelta (Δ) — AI-Assisted Winter Smog Action Engine
 
-[![Tests](https://img.shields.io/badge/tests-58%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
+[![Tests](https://img.shields.io/badge/tests-63%20passed-emerald?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat-square)](https://github.com/AJAYMYTH/AirDelta/actions)
 [![Engine](https://img.shields.io/badge/engine-pure%20TypeScript-blue?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
 [![Standards](https://img.shields.io/badge/standard-CPCB%20NAQI%20%7C%20CAQM%20GRAP-orange?style=flat-square)](https://github.com/AJAYMYTH/AirDelta)
@@ -33,7 +33,7 @@ AirDelta computes a household's personalized **Plan A (normal day) vs. Plan B (o
 ### 3. How the Solution Works
 1. **Air Data Layer (`@airdelta/air-adapters`):** Coalesces concurrent requests per `0.01°` (~1.1 km) grid cell, caps spatial/forecast caches via bounded LRU eviction (`maxCacheEntries: 500`), runs the OpenAQ + Open-Meteo dual-adapter fallback hierarchy, and attaches provenance badges (`[Measured]`, `[Forecast]`, `[Modelled]`, `[Assumed]`).
 2. **Optimization Engine (`@airdelta/engine`):** Simulates Plan A segment-by-segment inhaled $\text{PM}_{2.5}$ dose ($D = \sum C_{seg} \times VE_{seg} \times \Delta t_{seg}$) and compares Plan B shifts (moving walks to the cleanest afternoon window, shifting two-wheeler/car commutes to Metro + N95, running kitchen exhaust).
-3. **Dual Delivery Channels (`apps/web` + `apps/api` + `grammY`):** Both the 8-page Astro PWA (`/map`, `/plan`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`, `/`) and the `@airdeltabot` Telegram bot consume the unified Hono REST API (`/v1/air`, `/v1/plans`, `/v1/indoor-audits`, `/v1/advisories`, `/webhooks/telegram`).
+3. **Dual Delivery Channels (`apps/web` + `apps/api` + `grammY`):** Both the 8-page Astro PWA (including a global **Domain-Guarded AI Chat Assistant** `AirChatWidget` across all pages) and the `@airdeltabot` Telegram bot consume the unified Hono REST API (`/v1/air`, `/v1/plans`, `/v1/chat`, `/v1/indoor-audits`, `/v1/advisories`, `/webhooks/telegram`).
 
 ### 4. Assumptions Made
 - **Versioned Constants Registry (`2026-11-a`):** Minute ventilation rates ($VE$) follow US EPA Exposure Factors Handbook Chapter 6; building envelope penetration ($F_{micro}$) follows EPIC India / Nazaroff indoor aerosol studies; transport emission factors follow CPCB & DMRC data; uncertainty bounds propagate deterministically at $[0.80, 1.25] \times D$ (or $\pm 15\%$ / $\pm 20\%$ as documented in `packages/engine/src/dose.ts`).
@@ -235,7 +235,7 @@ curl -X POST "http://localhost:3000/v1/jobs/retention-purge?days=30"
 AirDelta includes an exhaustive suite of unit, property, security, and end-to-end evaluation tests (automated via GitHub Actions in [.github/workflows/ci.yml](.github/workflows/ci.yml)):
 
 ```bash
-# Run all 58 tests across 12 test suites
+# Run all 63 tests across 13 test suites
 pnpm test
 
 # Typecheck all workspace packages and Astro pages (0 errors, 0 warnings)

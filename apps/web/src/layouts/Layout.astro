@@ -15,6 +15,7 @@ import ExternalLink from "lucide-astro/ExternalLink";
 import Radio from "lucide-astro/Radio";
 import Menu from "lucide-astro/Menu";
 import MapPin from "lucide-astro/MapPin";
+import AirChatWidget from "../components/AirChatWidget.astro";
 
 interface Props {
   title?: string;
@@ -239,6 +240,8 @@ const navItems = [
         </div>
       </div>
     </footer>
+
+    <AirChatWidget />
 
     <!-- Mobile Fixed Bottom Navigation (Safe-area aware) -->
     <nav aria-label="Mobile quick navigation" class="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-[#e5e5e5] flex items-center justify-around z-50 shadow-lg">

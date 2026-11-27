@@ -612,6 +612,21 @@ const budgetOptions = [
       const currentSelected = getSelectedCity();
       const preset = cityCode === "LIVE" ? currentSelected : (CITY_PRESETS[cityCode] || currentSelected);
       const targetLang = localStorage.getItem("airdelta_lang") || "en";
+      const budgetBand = (budgetSelect?.value as any) || "low";
+      const ageBand = (ageSelect?.value as any) || "adult";
+      const commuteMode = (commuteSelect?.value as any) || "two_wheeler";
+      const cautionMode = Boolean(cautionCheck?.checked);
+      const hasExhaust = Boolean(exhaustCheck?.checked);
+
+      try {
+        localStorage.setItem(
+          "airdelta_plan_prefs",
+          JSON.stringify({ budgetBand, ageBand, commuteMode, cautionMode, hasExhaust })
+        );
+        window.dispatchEvent(new CustomEvent("airdelta:prefschange"));
+      } catch {
+        // ignore storage errors
+      }
 
       return {
         targetLang,
@@ -621,21 +636,21 @@ const budgetOptions = [
           cityCode: preset.code,
           gridCell: preset.cell,
           lang: targetLang,
-          budgetBand: (budgetSelect?.value as any) || "low",
+          budgetBand,
           cooksIndoors: true,
-          hasExhaust: Boolean(exhaustCheck?.checked),
-          hasPurifier: (budgetSelect?.value || "low") === "high",
+          hasExhaust,
+          hasPurifier: budgetBand === "high",
           members: [
             {
               id: "m-1",
-              ageBand: (ageSelect?.value as any) || "adult",
-              cautionMode: Boolean(cautionCheck?.checked),
+              ageBand,
+              cautionMode,
               label: "Primary Member"
             }
           ],
           routines: [
             { id: "r-walk", memberId: "m-1", kind: "walk" as const, startHour: 7, durationMinutes: 45, isIndoor: false, maskUsed: false },
-            { id: "r-commute", memberId: "m-1", kind: "commute" as const, mode: (commuteSelect?.value as any) || "two_wheeler", startHour: 9, durationMinutes: 45, isIndoor: false, maskUsed: false },
+            { id: "r-commute", memberId: "m-1", kind: "commute" as const, mode: commuteMode, startHour: 9, durationMinutes: 45, isIndoor: false, maskUsed: false },
             { id: "r-cook", memberId: "m-1", kind: "cooking" as const, startHour: 19, durationMinutes: 60, isIndoor: true, maskUsed: false }
           ]
         }

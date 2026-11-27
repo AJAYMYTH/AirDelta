@@ -12,9 +12,11 @@ import { createIndoorRoutes } from "./routes/indoor.route.js";
 import { createAdvisoryRoutes } from "./routes/advisory.route.js";
 import { createTelegramRoutes } from "./routes/telegram.route.js";
 import { createJobRoutes } from "./routes/jobs.route.js";
+import { createChatRoutes } from "./routes/chat.route.js";
 import { PlannerService } from "./services/planner.service.js";
 import { VisionService } from "./services/vision.service.js";
 import { AdvisoryService } from "./services/advisory.service.js";
+import { ChatService } from "./services/chat.service.js";
 import { AirDeltaBot } from "./bot/telegram.js";
 
 const localEnv = path.resolve(process.cwd(), ".env");
@@ -42,8 +44,9 @@ export function createApp(
     c.header("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   });
 
-  // Bound JSON payload size (5 MB for indoor photo uploads, 256 KB elsewhere)
+  // Bound JSON payload size (5 MB for indoor photo uploads, 64 KB for chat, 256 KB elsewhere)
   app.use("/v1/indoor-audits/*", bodyLimit({ maxSize: 5 * 1024 * 1024 }));
+  app.use("/v1/chat/*", bodyLimit({ maxSize: 64 * 1024 }));
   app.use("/v1/plans/*", bodyLimit({ maxSize: 256 * 1024 }));
   app.use("/v1/advisories/*", bodyLimit({ maxSize: 256 * 1024 }));
 
@@ -81,6 +84,7 @@ export function createApp(
     modelName: process.env.GEMINI_MODEL_VISION
   });
   const advisoryService = new AdvisoryService();
+  const chatService = new ChatService(airService, process.env.GEMINI_API_KEY, Boolean(options.disableLlm));
   const botService = new AirDeltaBot(airService, advisoryService, visionService, {
     token: process.env.TELEGRAM_BOT_TOKEN,
     webhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET
@@ -91,6 +95,7 @@ export function createApp(
   app.route("/v1/plans", createPlanRoutes(plannerService));
   app.route("/v1/indoor-audits", createIndoorRoutes(visionService));
   app.route("/v1/advisories", createAdvisoryRoutes(advisoryService, airService));
+  app.route("/v1/chat", createChatRoutes(chatService));
   app.route("/v1/jobs", createJobRoutes());
   app.route("/webhooks/telegram", createTelegramRoutes(botService));
 
