@@ -1,0 +1,40 @@
+# AirDelta
+
+> AirDelta is an AI-assisted, deterministically grounded urban air pollution and winter smog decision engine for Indian households and communities. Live at https://airdelta-web.onrender.com with API at https://airdelta-api.onrender.com and Telegram bot @airdeltabot.
+
+Instead of only showing raw AQI numbers, AirDelta translates live air quality into actionable daily routine swaps by comparing **Plan A (normal day)** vs **Plan B (optimized day)** inhaled PM2.5 dose (µg) and carbon emissions deltas (gCO2e).
+
+## Core Architecture & Principles
+
+- **Strict Math Boundary (`LLM Explains, Code Computes`):** `@airdelta/engine` (pure TypeScript) deterministically computes all inhaled doses, indoor steady-state mass-balance levels, and CO2e deltas using Constants Registry `2026-11-a`. Google Gemini (`@google/genai`) is strictly limited to narration, multilingual translation, guarded clean-air chat, and visual source detection, verified by `GroundingValidatorService`.
+- **Hedged Dual-Adapter Air Sensing:** Races OpenAQ v3 physical ground monitors (CPCB/DPCC/SPCB) against Open-Meteo ECMWF CAMS (`72h` forecast) with `0.01°` (~1.1 km) LRU spatial caching and zero-error replay fallback.
+- **13-Language Localization:** Full UI, advisories, and fallback templates in English plus 12 Indian regional languages (`hi`, `bn`, `te`, `mr`, `ta`, `ur`, `gu`, `kn`, `or`, `ml`, `pa`, `as`), including RTL support for Urdu.
+- **Privacy by Minimization:** Browser GPS snaps to `0.01°` (~1.1 km) grid cells, uploaded photos are re-encoded on `<canvas>` to strip EXIF/GPS metadata, `PiiSanitizerService` redacts PII/prompt-injections, and Supabase Postgres enforces Row-Level Security (RLS), `k >= 5` community anonymity, and 30-day data retention pruning.
+
+## Web Application Pages
+
+- [Today Dashboard](https://airdelta-web.onrender.com/): Live city or GPS AQI, pollutant breakdown, interactive airflow visualizer, cleanest 3-hour airing window, CAQM GRAP stage, 3 daily actions, and WhatsApp share.
+- [Live AQI Map](https://airdelta-web.onrender.com/map): Fullscreen interactive Leaflet map powered by Open-Meteo AQI with 12 Indian city hubs, tap-anywhere inspection, browser geolocation, and 1-click Plan B generation.
+- [Daily Plan](https://airdelta-web.onrender.com/plan): Personalized Plan A vs Plan B inhaled PM2.5 comparison across `child`, `teen`, `adult`, and `senior` age bands, interactive swap toggles, and gCO2e emissions ledger.
+- [AI Chat & Vision](https://airdelta-web.onrender.com/assistant): Guarded clean-air AI assistant grounded in live AQI, lifestyle context, and EXIF-stripped photo analysis.
+- [Room Check](https://airdelta-web.onrender.com/indoor): Indoor photo audit detecting combustion/ventilation sources (unvented gas stove, missing exhaust, incense/dhoop, door/window gaps) paired with steady-state mass-balance forecast and budget-ranked fixes.
+- [Share Alert](https://airdelta-web.onrender.com/community): One-tap multilingual WhatsApp/Telegram CAQM GRAP-stage advisories for RWAs, schools, and workplaces, plus a `k >= 5` anonymous impact ledger.
+- [Smog Replay](https://airdelta-web.onrender.com/replay): Interactive 24-hour timeline scrubber replaying the Nov 6–8, 2026 Delhi smog episode (AQI 385, GRAP Stage III).
+- [How It Works](https://airdelta-web.onrender.com/method): Transparent exposure physics equations, versioned Constants Registry `2026-11-a`, and peer-reviewed citations (US EPA, Nazaroff, EPIC India, CPCB/CAQM, DMRC).
+- [Settings & Privacy](https://airdelta-web.onrender.com/settings): Instant 13-language switcher, data source attributions, zero-PII JSON export, and local storage purge.
+
+## API & Bot Channels
+
+- [API Health](https://airdelta-api.onrender.com/healthz): Backend health check for the Node.js + Hono API on Render.
+- [Air Snapshot & Forecast](https://airdelta-api.onrender.com/v1/air?lat=28.61&lng=77.21&provider=auto): `GET /v1/air`, `GET /v1/air/forecast`, and `GET /v1/air/health` endpoints.
+- **Planner (`POST /v1/plans`)**: Deterministic Plan A vs Plan B optimizer with optional Gemini narration and numeric-grounding fallback.
+- **Guarded Chat (`POST /v1/chat`)**: Domain-scoped clean-air chat and optional multimodal image analysis (6 MB limit, prompt-injection & coding-request blocking).
+- **Indoor Audit (`POST /v1/indoor-audits`, `POST /v1/indoor-audits/confirm`)**: Gemini Vision source detection + `@airdelta/fix-library` recommendations.
+- **Community Advisories (`POST /v1/advisories`, `GET /v1/advisories/groups/:id/impact`)**: Localized GRAP notices and `k >= 5` aggregated savings.
+- [Telegram Bot (@airdeltabot)](https://t.me/airdeltabot): Zero-install companion supporting `/start`, `/location` (live location streaming), `/today`, `/plan`, `/indoor`, `/advisory`, `/lang`, photo audits, and 07:00 IST morning briefs.
+
+## Optional
+
+- [GitHub Repository](https://github.com/AJAYMYTH/AirDelta): Source code, monorepo packages (`@airdelta/engine`, `@airdelta/schemas`, `@airdelta/air-adapters`, `@airdelta/fix-library`, `@airdelta/i18n`), Vitest suites, and CI workflows.
+- [README](https://github.com/AJAYMYTH/AirDelta/blob/main/README.md): Architecture diagrams, mathematical formulation, REST examples, and local setup guide.
+- [Impact Methodology](https://github.com/AJAYMYTH/AirDelta/blob/main/docs/Impact-Methodology.md): Detailed exposure physics and emission factor methodology.

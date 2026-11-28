@@ -197,6 +197,8 @@ airdelta/
 - [x] **Demo Video Editing & Project-Level Video Skills (Nov 28, 2026):**
   - Installed `affaan-m/ecc@video-editing` and `kajisho5/ffmpeg-skill@ffmpeg-skill` at project level (`.agents/skills/`).
   - Edited `C:\Users\javal\Music\AirDelta-demo-video.mp4` into `C:\Users\javal\Music\AirDelta-demo-edited.mp4` (3m 16.6s): removed 4 blank/loading frames, added frame-exact Recordly zoom-tracked privacy blur over the Telegram chat sidebar, and burned single-line section captions aligned to the submission guide.
+- [x] **`llms.txt` Website Discovery File (Nov 28, 2026):**
+  - Added `apps/web/public/llms.txt` following the `llmstxt.org` specification so `/llms.txt` is served at the root domain (`https://airdelta-web.onrender.com/llms.txt`), documenting all 9 PWA pages, API endpoints, `@airdeltabot`, strict math/Gemini grounding architecture, and GitHub links.
 
 ## Development Progress
 - **Current Status:** Production-hardened across all 9 Astro pages (`/`, `/map`, `/plan`, `/assistant`, `/indoor`, `/community`, `/replay`, `/method`, `/settings`), floating quick-chat drawer, Hono API (Render), and `@airdeltabot` Telegram bot; verified clean build, typecheck, and 67/67 tests passing.
